@@ -166,14 +166,20 @@ If the site's layout has changed, you may need to update the CSS selectors in th
 - `extractListEntries()` — selectors for list pages
 - `crawlListDetail()` — selectors for individual army list detail pages
 
-## Disclaimer
+## Disclaimer & robots.txt Compliance
 
-This tool is provided for personal and educational use. Before crawling listhammer.info (or any website), please:
+Listhammer.info's `robots.txt` (Cloudflare-managed) states:
 
-1. **Check `robots.txt`** — Visit `https://listhammer.info/robots.txt` and respect any disallow rules.
-2. **Be polite** — Use the `--delay` option to avoid overwhelming the server. The default 1500ms delay is a reasonable starting point.
-3. **Respect terms of service** — If the site has a ToS that prohibits scraping, do not use this tool against it.
-4. **Don't redistribute scraped data** — The army list content belongs to the players and/or listhammer.info. This tool is meant for personal analysis, not republishing.
+- **`Allow: /`** for general user agents — crawling the site is permitted
+- **`Content-Signal: search=yes, ai-train=no`** — content may be indexed for search, but **must not be used for AI training or fine-tuning**
+- Specific AI crawlers (GPTBot, ClaudeBot, CCBot, etc.) are blocked by user agent
+
+This tool uses a standard Chrome browser user agent and is **not** one of the blocked AI bots. However, please respect the following:
+
+1. **Do not use scraped data for AI training** — The site explicitly disallows this via `ai-train=no`. Do not feed the output into model training or fine-tuning pipelines.
+2. **Personal analysis only** — The army list content belongs to the players and/or listhammer.info. This tool is meant for personal meta analysis, not republishing.
+3. **Be polite** — Use the `--delay` option to avoid overwhelming the server. The default 1500ms delay is a reasonable starting point.
+4. **Respect terms of service** — If the site updates its ToS or `robots.txt` to restrict scraping, stop using this tool against it.
 
 The authors of this tool are not responsible for misuse.
 
