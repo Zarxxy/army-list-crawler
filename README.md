@@ -165,3 +165,18 @@ If the site's layout has changed, you may need to update the CSS selectors in th
 
 - `extractListEntries()` — selectors for list pages
 - `crawlListDetail()` — selectors for individual army list detail pages
+
+## Disclaimer
+
+This tool is provided for personal and educational use. Before crawling listhammer.info (or any website), please:
+
+1. **Check `robots.txt`** — Visit `https://listhammer.info/robots.txt` and respect any disallow rules.
+2. **Be polite** — Use the `--delay` option to avoid overwhelming the server. The default 1500ms delay is a reasonable starting point.
+3. **Respect terms of service** — If the site has a ToS that prohibits scraping, do not use this tool against it.
+4. **Don't redistribute scraped data** — The army list content belongs to the players and/or listhammer.info. This tool is meant for personal analysis, not republishing.
+
+The authors of this tool are not responsible for misuse.
+
+## License
+
+[ISC](LICENSE)
