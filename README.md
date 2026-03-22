@@ -34,6 +34,7 @@ npm run crawl:aos
 | Option | Description | Default |
 |---|---|---|
 | `--game 40k\|aos` | Filter to a single game system | both |
+| `--faction NAME` | Only keep lists matching a faction (case-insensitive substring) | all |
 | `--max-pages N` | Limit number of pages to crawl per section (0 = unlimited) | `0` |
 | `--delay N` | Milliseconds to wait between requests | `1500` |
 | `--no-headless` | Show the browser window (useful for debugging) | headless |
@@ -46,6 +47,15 @@ node crawler.js --game 40k --max-pages 3 --no-headless
 
 # Crawl AoS lists with a longer delay between requests
 node crawler.js --game aos --delay 3000
+
+# Only grab Tyranids lists
+node crawler.js --faction Tyranids
+
+# Combine filters: 40k Space Marines lists only
+node crawler.js --game 40k --faction "Space Marines"
+
+# AoS Stormcast lists
+node crawler.js --game aos --faction Stormcast
 ```
 
 ### Using a Custom Chrome/Chromium

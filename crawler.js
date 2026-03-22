@@ -8,6 +8,7 @@ const OUTPUT_DIR = path.join(__dirname, 'output');
 // Parse CLI args
 const args = process.argv.slice(2);
 const gameFilter = getArg(args, '--game'); // "40k", "aos", or null for both
+const factionFilter = getArg(args, '--faction'); // e.g. "Tyranids", "Stormcast", case-insensitive substring match
 const maxPages = parseInt(getArg(args, '--max-pages') || '0', 10); // 0 = unlimited
 const headless = !args.includes('--no-headless');
 const delay = parseInt(getArg(args, '--delay') || '1500', 10);
@@ -24,6 +25,7 @@ function sleep(ms) {
 async function main() {
   console.log('=== Listhammer.info Army Lists Crawler ===');
   console.log(`Game filter: ${gameFilter || 'all'}`);
+  console.log(`Faction filter: ${factionFilter || 'all'}`);
   console.log(`Max pages per section: ${maxPages || 'unlimited'}`);
   console.log(`Headless: ${headless}`);
   console.log(`Delay between requests: ${delay}ms`);
@@ -85,8 +87,13 @@ async function main() {
 
       console.log(`\n--- Crawling section: ${section.name} ---`);
       const lists = await crawlListSection(page, section, delay, maxPages);
-      allResults[section.name] = lists;
-      console.log(`  Collected ${lists.length} army lists from ${section.name}`);
+      const filtered = filterByFaction(lists, factionFilter);
+      if (factionFilter && filtered.length !== lists.length) {
+        console.log(`  Collected ${lists.length} army lists, ${filtered.length} match faction "${factionFilter}"`);
+      } else {
+        console.log(`  Collected ${filtered.length} army lists from ${section.name}`);
+      }
+      allResults[section.name] = filtered;
     }
 
     // If no sections were discovered, try fallback direct URLs
@@ -96,8 +103,13 @@ async function main() {
       for (const section of fallbackSections) {
         console.log(`\n--- Crawling fallback: ${section.name} ---`);
         const lists = await crawlListSection(page, section, delay, maxPages);
-        allResults[section.name] = lists;
-        console.log(`  Collected ${lists.length} army lists from ${section.name}`);
+        const filtered = filterByFaction(lists, factionFilter);
+        if (factionFilter && filtered.length !== lists.length) {
+          console.log(`  Collected ${lists.length} army lists, ${filtered.length} match faction "${factionFilter}"`);
+        } else {
+          console.log(`  Collected ${filtered.length} army lists from ${section.name}`);
+        }
+        allResults[section.name] = filtered;
       }
     }
 
@@ -138,6 +150,29 @@ async function main() {
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * Filter army list entries by faction name (case-insensitive substring match).
+ * Checks faction, title, armyListText, and rawText/rawCells fields.
+ */
+function filterByFaction(lists, faction) {
+  if (!faction) return lists;
+  const needle = faction.toLowerCase();
+  return lists.filter((entry) => {
+    const haystack = [
+      entry.faction,
+      entry.title,
+      entry.armyListText,
+      entry.rawText,
+      entry.detachment,
+      ...(entry.rawCells || []),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(needle);
+  });
 }
 
 /**
