@@ -1,0 +1,17 @@
+{
+  "name": "listhammer-crawler",
+  "version": "1.0.0",
+  "description": "Headless browser crawler for listhammer.info army lists",
+  "main": "crawler.js",
+  "scripts": {
+    "crawl": "node crawler.js",
+    "crawl:40k": "node crawler.js --game 40k",
+    "crawl:aos": "node crawler.js --game aos"
+  },
+  "keywords": ["warhammer", "army-lists", "crawler", "listhammer"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
