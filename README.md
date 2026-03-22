@@ -1,6 +1,6 @@
-# Listhammer Army Lists Crawler
+# Listhammer Army Lists Crawler & Meta Report
 
-Headless browser crawler for [listhammer.info](https://listhammer.info) that extracts Warhammer 40k and Age of Sigmar tournament army lists and saves them to JSON.
+Headless browser crawler for [listhammer.info](https://listhammer.info) that extracts Warhammer 40k and Age of Sigmar tournament army lists, saves them to JSON, and generates extensive meta analysis reports.
 
 ## Prerequisites
 
@@ -98,6 +98,61 @@ Results are saved to the `output/` directory:
   }
 }
 ```
+
+## Meta Report
+
+After crawling, generate an extensive meta analysis report from the JSON data.
+
+```bash
+# Generate all formats (text + JSON + HTML)
+npm run report
+
+# Single format
+npm run report:json
+npm run report:html
+npm run report:text
+```
+
+### Report CLI Options
+
+| Option | Description | Default |
+|---|---|---|
+| `--input PATH` | Path to the crawler JSON file | `output/army-lists-latest.json` |
+| `--output DIR` | Directory to write reports to | `reports/` |
+| `--format FORMAT` | Output format: `json`, `html`, `text`, or `all` | `all` |
+| `--top N` | Number of top players to include | `20` |
+
+**Examples:**
+
+```bash
+# Report from a specific crawl file
+node report.js --input output/army-lists-2026-03-22T12-00-00-000Z.json
+
+# Only HTML report, top 50 players
+node report.js --format html --top 50
+```
+
+### What the Report Includes
+
+- **Faction Representation** — list counts, percentage share per faction
+- **Faction Win Rates** — wins, losses, draws, total games, win% sorted by performance
+- **Undefeated Lists** — every X-0 list with player, faction, event, and record
+- **Record Distribution** — histogram of all W-L-D records with visual bars
+- **Top Players** — ranked by win rate with their factions and events
+- **Detachment Popularity** — which detachments are most played and by which factions
+- **Event Breakdown** — per-event faction distribution and top faction
+- **Points Analysis** — min/max/median/mean points with a distribution histogram
+
+### Report Output
+
+Reports are saved to the `reports/` directory:
+
+- `meta-report-latest.json` — structured data for programmatic use
+- `meta-report-latest.html` — styled dashboard you can open in a browser
+- `meta-report-latest.txt` — terminal-friendly text tables
+- Timestamped copies of each are also saved as archives
+
+The HTML report is a self-contained dark-themed dashboard with bar charts, sortable tables, and summary cards — no external dependencies needed, just open it in any browser.
 
 ## Troubleshooting
 

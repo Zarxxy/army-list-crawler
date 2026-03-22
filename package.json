@@ -6,7 +6,11 @@
   "scripts": {
     "crawl": "node crawler.js",
     "crawl:40k": "node crawler.js --game 40k",
-    "crawl:aos": "node crawler.js --game aos"
+    "crawl:aos": "node crawler.js --game aos",
+    "report": "node report.js",
+    "report:json": "node report.js --format json",
+    "report:html": "node report.js --format html",
+    "report:text": "node report.js --format text"
   },
   "keywords": ["warhammer", "army-lists", "crawler", "listhammer"],
   "author": "",
