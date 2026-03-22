@@ -33,8 +33,10 @@ async function main() {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
+  const executablePath = process.env.CHROMIUM_PATH || undefined;
   const browser = await chromium.launch({
     headless,
+    executablePath,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
