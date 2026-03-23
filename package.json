@@ -10,7 +10,12 @@
     "report": "node report.js",
     "report:json": "node report.js --format json",
     "report:html": "node report.js --format html",
-    "report:text": "node report.js --format text"
+    "report:text": "node report.js --format text",
+    "optimize": "node optimizer.js",
+    "optimize:40k": "node optimizer.js --game 40k",
+    "optimize:aos": "node optimizer.js --game aos",
+    "optimize:json": "node optimizer.js --format json",
+    "optimize:text": "node optimizer.js --format text"
   },
   "keywords": ["warhammer", "army-lists", "crawler", "listhammer"],
   "author": "",
