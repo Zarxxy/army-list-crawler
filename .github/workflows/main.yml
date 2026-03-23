@@ -54,6 +54,18 @@ jobs:
         run: node crawler.js --game 40k --faction "Death Guard" --delay 2000
         timeout-minutes: 30
 
+      - name: Upload crawler debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-debug
+          path: |
+            output/debug-*.png
+            output/debug-*.html
+            output/error-*.png
+            output/error-*.html
+          if-no-files-found: ignore
+
       - name: Generate meta report
         run: node report.js --format json
 

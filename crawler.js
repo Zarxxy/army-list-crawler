@@ -39,13 +39,46 @@ async function main() {
   const browser = await chromium.launch({
     headless,
     executablePath,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-infobars',
+      '--window-size=1920,1080',
+    ],
   });
 
   const context = await browser.newContext({
     userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     viewport: { width: 1920, height: 1080 },
+    locale: 'en-US',
+    timezoneId: 'America/New_York',
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
+  });
+
+  // Hide webdriver flag (anti-bot detection evasion)
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    // Override plugins to look like a real browser
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5],
+    });
+    // Override languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en'],
+    });
+    // Remove chrome.runtime to avoid detection
+    window.chrome = { runtime: {} };
   });
 
   const page = await context.newPage();
@@ -107,8 +140,28 @@ async function main() {
       }
     }
 
-    // Save results
+    // Debug: save screenshot and HTML if nothing was found
     const totalLists = Object.values(allResults).reduce((sum, arr) => sum + arr.length, 0);
+    if (totalLists === 0) {
+      console.warn('\n*** WARNING: No army lists found! Saving debug info... ***');
+      const debugScreenshot = path.join(OUTPUT_DIR, 'debug-screenshot.png');
+      await page.screenshot({ path: debugScreenshot, fullPage: true }).catch(() => {});
+      console.log(`Debug screenshot: ${debugScreenshot}`);
+
+      const html = await page.content().catch(() => '');
+      if (html) {
+        const debugHtml = path.join(OUTPUT_DIR, 'debug-page.html');
+        fs.writeFileSync(debugHtml, html, 'utf-8');
+        console.log(`Debug HTML (${html.length} chars): ${debugHtml}`);
+        // Print a snippet for CI logs
+        console.log('Page title:', html.match(/<title>(.*?)<\/title>/)?.[1] || 'N/A');
+        console.log('Page URL:', page.url());
+        console.log('First 500 chars of body text:');
+        const bodyText = await page.evaluate(() => document.body?.innerText?.substring(0, 500) || '').catch(() => '');
+        console.log(bodyText || '(empty)');
+      }
+    }
+
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
     const outputFile = path.join(OUTPUT_DIR, `army-lists-${timestamp}.json`);
@@ -282,6 +335,19 @@ async function crawlListSection(page, section, delayMs, maxPages) {
   try {
     await page.goto(section.url, { waitUntil: 'networkidle', timeout: 60000 });
     await sleep(delayMs);
+
+    // Human-like behavior: scroll down to trigger lazy-loaded content
+    await page.evaluate(() => window.scrollTo(0, 300));
+    await sleep(500);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await sleep(500);
+
+    // Wait for any JavaScript-rendered content (SPA frameworks)
+    await page.waitForTimeout(3000);
+
+    // Log page info for debugging
+    const pageTitle = await page.title();
+    console.log(`  Page loaded: "${pageTitle}" (${page.url()})`);
   } catch (err) {
     console.warn(`  Failed to load ${section.url}: ${err.message}`);
     return allLists;
@@ -415,6 +481,37 @@ async function extractListEntries(page) {
           rawText: text.substring(0, 500),
           detailUrl: new URL(href, baseUrl).href,
         });
+      }
+    }
+
+    if (entries.length > 0) return entries;
+
+    // Strategy 4: Look for any div/section with structured repeated children
+    // (common in React/Vue rendered sites)
+    const containers = document.querySelectorAll('div, section, main');
+    for (const container of containers) {
+      const children = container.children;
+      if (children.length >= 3) {
+        // Check if children look similar (repeated structure = list items)
+        const firstChildTags = [...children[0].querySelectorAll('*')].map((e) => e.tagName).join(',');
+        let similar = 0;
+        for (let i = 1; i < Math.min(children.length, 5); i++) {
+          const tags = [...children[i].querySelectorAll('*')].map((e) => e.tagName).join(',');
+          if (tags === firstChildTags) similar++;
+        }
+        if (similar >= 2) {
+          for (const child of children) {
+            const text = child.textContent.trim();
+            if (text.length < 10) continue;
+            const link = child.querySelector('a[href]');
+            const detailUrl = link ? new URL(link.href, baseUrl).href : null;
+            entries.push({
+              rawText: text.substring(0, 500),
+              detailUrl,
+            });
+          }
+          if (entries.length > 0) return entries;
+        }
       }
     }
 
