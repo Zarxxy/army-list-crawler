@@ -15,7 +15,9 @@
     "optimize:40k": "node optimizer.js --game 40k",
     "optimize:aos": "node optimizer.js --game aos",
     "optimize:json": "node optimizer.js --format json",
-    "optimize:text": "node optimizer.js --format text"
+    "optimize:text": "node optimizer.js --format text",
+    "build-site": "node build-site.js",
+    "build-all": "node report.js && node optimizer.js && node build-site.js"
   },
   "keywords": ["warhammer", "army-lists", "crawler", "listhammer"],
   "author": "",
