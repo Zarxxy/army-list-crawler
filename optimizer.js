@@ -22,15 +22,18 @@ function getArg(args, flag) {
 // ---------------------------------------------------------------------------
 
 function main() {
-  if (!fs.existsSync(listsFile)) {
-    console.error(`Army lists not found: ${listsFile}`);
-    console.error('Run the crawler first:  npm run crawl');
-    process.exit(1);
-  }
-  if (!fs.existsSync(reportFile)) {
-    console.error(`Meta report not found: ${reportFile}`);
-    console.error('Run the report first:  npm run report:json');
-    process.exit(1);
+  if (!fs.existsSync(listsFile) || !fs.existsSync(reportFile)) {
+    console.warn('Input files not found. Generating empty optimizer output.');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const empty = { generatedAt: new Date().toISOString(), totalLists: 0, rankings: [], insights: [] };
+    if (format === 'json' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'optimizer-latest.json'), JSON.stringify(empty, null, 2), 'utf-8');
+    }
+    if (format === 'text' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'optimizer-latest.txt'), 'No army lists to optimize.\n', 'utf-8');
+    }
+    console.log('Empty optimizer output saved.');
+    return;
   }
 
   const rawLists = JSON.parse(fs.readFileSync(listsFile, 'utf-8'));
@@ -42,10 +45,20 @@ function main() {
   if (game) {
     const needle = game.toLowerCase();
     lists = lists.filter((l) => (l.section || '').toLowerCase().includes(needle));
-    if (lists.length === 0) {
-      console.error(`No lists found for game filter: ${game}`);
-      process.exit(1);
+  }
+
+  if (lists.length === 0) {
+    console.warn('No lists found. Generating empty optimizer output.');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const empty = { generatedAt: new Date().toISOString(), totalLists: 0, rankings: [], insights: [] };
+    if (format === 'json' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'optimizer-latest.json'), JSON.stringify(empty, null, 2), 'utf-8');
     }
+    if (format === 'text' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'optimizer-latest.txt'), 'No army lists to optimize.\n', 'utf-8');
+    }
+    console.log('Empty optimizer output saved.');
+    return;
   }
 
   console.log(`Loaded ${lists.length} army lists and meta report.\n`);

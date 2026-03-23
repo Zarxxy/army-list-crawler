@@ -73,9 +73,7 @@ function main() {
   fs.writeFileSync(outputPath, html, 'utf-8');
 
   if (embedded === 0) {
-    console.error('\nNo reports found. Run the full pipeline first:');
-    console.error('  npm run crawl && npm run report && npm run optimize');
-    process.exit(1);
+    console.warn('\nNo reports found — site will show empty state.');
   }
 
   console.log(`\nSite built -> ${path.relative(__dirname, outputPath)} (${embedded} report${embedded > 1 ? 's' : ''} inlined)`);

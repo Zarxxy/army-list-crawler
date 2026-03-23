@@ -147,6 +147,14 @@ async function main() {
       fs.writeFileSync(htmlPath, html, 'utf-8');
       console.error(`Page HTML saved to ${htmlPath}`);
     }
+
+    // Write empty output so downstream steps don't fail
+    const latestFile = path.join(OUTPUT_DIR, 'army-lists-latest.json');
+    if (!fs.existsSync(latestFile)) {
+      const empty = { crawledAt: new Date().toISOString(), source: BASE_URL, totalLists: 0, sections: {} };
+      fs.writeFileSync(latestFile, JSON.stringify(empty, null, 2), 'utf-8');
+      console.log(`Wrote empty output to ${latestFile}`);
+    }
   } finally {
     await browser.close();
   }

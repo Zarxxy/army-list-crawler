@@ -18,17 +18,59 @@ function getArg(args, flag) {
 
 function main() {
   if (!fs.existsSync(inputFile)) {
-    console.error(`Input file not found: ${inputFile}`);
-    console.error('Run the crawler first:  npm run crawl');
-    process.exit(1);
+    console.warn(`Input file not found: ${inputFile}. Crawler may not have found any data.`);
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+    const emptyReport = {
+      meta: { generatedAt: new Date().toISOString(), crawledAt: 'unknown', totalLists: 0 },
+      factionBreakdown: [], eventBreakdown: [], recordDistribution: [],
+      detachmentBreakdown: [], topPlayers: [], undefeatedLists: [],
+      factionWinRates: {}, factionMatchups: {}, pointsAnalysis: {},
+      sectionBreakdown: [],
+    };
+    if (format === 'json' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'meta-report-latest.json'), JSON.stringify(emptyReport, null, 2), 'utf-8');
+    }
+    if (format === 'text' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'meta-report-latest.txt'), 'No army lists found.\n', 'utf-8');
+    }
+    if (format === 'html' || format === 'all') {
+      fs.writeFileSync(path.join(outputDir, 'meta-report-latest.html'), '<html><body><h1>No army lists found</h1></body></html>', 'utf-8');
+    }
+    console.log('Generated empty report files.');
+    return;
   }
 
   const raw = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
   const lists = flattenLists(raw);
 
   if (lists.length === 0) {
-    console.error('No army lists found in the input file.');
-    process.exit(1);
+    console.warn('No army lists found in the input file. Generating empty report.');
+    const emptyReport = {
+      meta: { generatedAt: new Date().toISOString(), crawledAt: raw.crawledAt || 'unknown', totalLists: 0 },
+      factionBreakdown: [], eventBreakdown: [], recordDistribution: [],
+      detachmentBreakdown: [], topPlayers: [], undefeatedLists: [],
+      factionWinRates: {}, factionMatchups: {}, pointsAnalysis: {},
+      sectionBreakdown: [],
+    };
+
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+
+    if (format === 'json' || format === 'all') {
+      const jsonPath = path.join(outputDir, 'meta-report-latest.json');
+      fs.writeFileSync(jsonPath, JSON.stringify(emptyReport, null, 2), 'utf-8');
+      console.log(`Empty JSON report saved to ${jsonPath}`);
+    }
+    if (format === 'text' || format === 'all') {
+      const textPath = path.join(outputDir, 'meta-report-latest.txt');
+      fs.writeFileSync(textPath, 'No army lists found.\n', 'utf-8');
+      console.log(`Empty text report saved to ${textPath}`);
+    }
+    if (format === 'html' || format === 'all') {
+      const htmlPath = path.join(outputDir, 'meta-report-latest.html');
+      fs.writeFileSync(htmlPath, '<html><body><h1>No army lists found</h1></body></html>', 'utf-8');
+      console.log(`Empty HTML report saved to ${htmlPath}`);
+    }
+    return;
   }
 
   console.log(`Loaded ${lists.length} army lists from ${inputFile}\n`);
