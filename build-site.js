@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 
 // ---------------------------------------------------------------------------
-// Copies report JSON files into docs/data/ so the GitHub Pages site can
-// load them. Run after `npm run report` and `npm run optimize`.
+// Builds the GitHub Pages site by inlining report JSON directly into the
+// HTML template. The result is a single self-contained index.html that
+// works without a server and without separate data files.
+//
+// Also copies the raw JSON into docs/data/ as a fallback / for direct access.
 //
 // Usage:
 //   node build-site.js
@@ -20,47 +23,63 @@ function getArg(flag) {
 const reportsDir = getArg('--reports-dir') || path.join(__dirname, 'reports');
 const docsDir = getArg('--docs-dir') || path.join(__dirname, 'docs');
 const dataDir = path.join(docsDir, 'data');
+const templatePath = path.join(docsDir, 'template.html');
+const outputPath = path.join(docsDir, 'index.html');
 
 // ---------------------------------------------------------------------------
 
 function main() {
-  // Ensure data directory exists
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  let copied = 0;
+  // Read template
+  if (!fs.existsSync(templatePath)) {
+    console.error(`Template not found: ${templatePath}`);
+    process.exit(1);
+  }
+  let html = fs.readFileSync(templatePath, 'utf-8');
 
-  // Copy meta report
+  let embedded = 0;
+
+  // Meta report
   const metaSrc = path.join(reportsDir, 'meta-report-latest.json');
-  const metaDest = path.join(dataDir, 'meta-report.json');
+  let metaJSON = 'null';
   if (fs.existsSync(metaSrc)) {
-    fs.copyFileSync(metaSrc, metaDest);
-    console.log(`  Copied meta report -> ${path.relative(__dirname, metaDest)}`);
-    copied++;
+    metaJSON = fs.readFileSync(metaSrc, 'utf-8');
+    fs.copyFileSync(metaSrc, path.join(dataDir, 'meta-report.json'));
+    console.log('  Embedded meta report');
+    embedded++;
   } else {
-    console.warn(`  Warning: ${metaSrc} not found — run "npm run report" first`);
+    console.warn('  Warning: meta report not found — run "npm run report" first');
   }
 
-  // Copy optimizer report
+  // Optimizer report
   const optSrc = path.join(reportsDir, 'optimizer-latest.json');
-  const optDest = path.join(dataDir, 'optimizer.json');
+  let optJSON = 'null';
   if (fs.existsSync(optSrc)) {
-    fs.copyFileSync(optSrc, optDest);
-    console.log(`  Copied optimizer report -> ${path.relative(__dirname, optDest)}`);
-    copied++;
+    optJSON = fs.readFileSync(optSrc, 'utf-8');
+    fs.copyFileSync(optSrc, path.join(dataDir, 'optimizer.json'));
+    console.log('  Embedded optimizer report');
+    embedded++;
   } else {
-    console.warn(`  Warning: ${optSrc} not found — run "npm run optimize" first`);
+    console.warn('  Warning: optimizer report not found — run "npm run optimize" first');
   }
 
-  if (copied === 0) {
-    console.error('\nNo reports found to copy. Run the crawler, report, and optimizer first:');
+  // Inject data into the template
+  html = html.replace('/*__META_REPORT_DATA__*/', metaJSON);
+  html = html.replace('/*__OPTIMIZER_DATA__*/', optJSON);
+
+  fs.writeFileSync(outputPath, html, 'utf-8');
+
+  if (embedded === 0) {
+    console.error('\nNo reports found. Run the full pipeline first:');
     console.error('  npm run crawl && npm run report && npm run optimize');
     process.exit(1);
   }
 
-  console.log(`\nSite data built (${copied} file${copied > 1 ? 's' : ''} copied to ${path.relative(__dirname, dataDir)}/)`);
-  console.log('Open docs/index.html in a browser, or deploy to GitHub Pages.');
+  console.log(`\nSite built -> ${path.relative(__dirname, outputPath)} (${embedded} report${embedded > 1 ? 's' : ''} inlined)`);
+  console.log('Deploy docs/ to GitHub Pages, or open index.html in a browser.');
 }
 
 main();

@@ -232,25 +232,33 @@
   const hash = location.hash.replace('#', '');
   if (hash && document.getElementById('tab-' + hash)) switchTab(hash);
 
-  // --- Load data ---
-  let metaReport = null;
-  let optimizerReport = null;
+  // --- Data inlined at build time by build-site.js ---
+  var INLINE_META = /*__META_REPORT_DATA__*/null;
+  var INLINE_OPT  = /*__OPTIMIZER_DATA__*/null;
 
-  function loadJSON(url) {
-    return fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
-  }
-
-  Promise.allSettled([
-    loadJSON('data/meta-report.json').then(d => { metaReport = d; }),
-    loadJSON('data/optimizer.json').then(d => { optimizerReport = d; }),
-  ]).then(function () {
+  function boot(metaReport, optimizerReport) {
     if (metaReport) renderMeta(metaReport);
     if (optimizerReport) renderOptimizer(optimizerReport);
     if (!metaReport && !optimizerReport) {
       document.getElementById('summary-cards').innerHTML =
-        '<div class="notice" style="grid-column:1/-1"><p>No data found.</p><p>Run <code>npm run crawl && npm run report && npm run optimize && npm run build-site</code></p></div>';
+        '<div class="notice" style="grid-column:1/-1"><p>No data available yet.</p><p>The GitHub Actions workflow runs daily to refresh data.</p></div>';
     }
-  });
+  }
+
+  if (INLINE_META || INLINE_OPT) {
+    boot(INLINE_META, INLINE_OPT);
+  } else {
+    // Fallback: try fetching from data/ (local dev with a server)
+    function loadJSON(url) {
+      return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    var metaReport = null;
+    var optimizerReport = null;
+    Promise.allSettled([
+      loadJSON('data/meta-report.json').then(function (d) { metaReport = d; }),
+      loadJSON('data/optimizer.json').then(function (d) { optimizerReport = d; }),
+    ]).then(function () { boot(metaReport, optimizerReport); });
+  }
 
   // --- Helpers ---
   function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
