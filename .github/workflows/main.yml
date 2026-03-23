@@ -51,12 +51,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Crawl listhammer.info
-        run: |
-          GAME_FLAG=""
-          if [ -n "${{ github.event.inputs.game }}" ]; then
-            GAME_FLAG="--game ${{ github.event.inputs.game }}"
-          fi
-          node crawler.js $GAME_FLAG --delay 2000
+        run: node crawler.js --game 40k --faction "Death Guard" --delay 2000
         timeout-minutes: 30
 
       - name: Generate meta report
