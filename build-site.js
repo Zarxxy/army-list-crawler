@@ -67,8 +67,10 @@ function main() {
   }
 
   // Inject data into the template
-  html = html.replace('/*__META_REPORT_DATA__*/', metaJSON);
-  html = html.replace('/*__OPTIMIZER_DATA__*/', optJSON);
+  // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
+  // We need to replace both the comment AND the trailing null to avoid syntax errors
+  html = html.replace('/*__META_REPORT_DATA__*/null', metaJSON);
+  html = html.replace('/*__OPTIMIZER_DATA__*/null', optJSON);
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 

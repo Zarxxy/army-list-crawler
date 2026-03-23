@@ -195,8 +195,8 @@ function buildReport(lists, crawledAt) {
 
   for (const list of lists) {
     const faction = normaliseFaction(list.faction);
-    const event = list.event || 'Unknown Event';
-    const detachment = list.detachment || extractDetachment(list.armyListText) || 'Unknown';
+    const event = (list.event && list.event.length < 200) ? list.event : 'Unknown Event';
+    const detachment = list.detachment || extractDetachment(list.armyListText) || extractDetachment(list.rawText) || 'Unknown';
     const player = list.playerName || list.player || 'Unknown';
     const section = list.section || 'Unknown';
     const record = parseRecord(list.record);

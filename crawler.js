@@ -459,12 +459,130 @@ async function crawlListSection(page, section, delayMs, maxPages) {
  * Tries multiple strategies since we can't test the exact DOM structure.
  */
 async function extractListEntries(page) {
-  return page.evaluate((baseUrl) => {
+  const rawEntries = await page.evaluate((baseUrl) => {
     const entries = [];
 
-    // Strategy 1: Table rows (common for tournament results)
+    // Helper: extract semantic fields from an element
+    function _extractSemanticFields(el) {
+      const playerSelectors = [
+        '.player', '[class*="player"]', '[class*="name"]:not([class*="army-name"])',
+        '[class*="author"]', '[data-field="player"]', '[data-col="player"]',
+      ];
+      const factionSelectors = [
+        '.faction', '[class*="faction"]', '[class*="army-name"]',
+        '[data-field="faction"]', '[data-col="faction"]',
+      ];
+      const detachmentSelectors = [
+        '.detachment', '[class*="detachment"]',
+        '[data-field="detachment"]', '[data-col="detachment"]',
+      ];
+      const eventSelectors = [
+        '.event', '[class*="event"]', '[class*="tournament"]',
+        '[data-field="event"]', '[data-col="event"]',
+      ];
+      const recordSelectors = [
+        '.record', '[class*="record"]', '[class*="score"]', '[class*="result"]',
+        '[data-field="record"]', '[data-col="record"]',
+      ];
+      const dateSelectors = [
+        '.date', '[class*="date"]', 'time',
+        '[data-field="date"]', '[data-col="date"]',
+      ];
+
+      function queryText(parent, selectors) {
+        for (const sel of selectors) {
+          try {
+            const found = parent.querySelector(sel);
+            if (found) {
+              const t = found.textContent.trim();
+              if (t) return t;
+            }
+          } catch (_) { /* ignore invalid selectors */ }
+        }
+        return null;
+      }
+
+      const player = queryText(el, playerSelectors);
+      const faction = queryText(el, factionSelectors);
+      const detachment = queryText(el, detachmentSelectors);
+      const event = queryText(el, eventSelectors);
+      const record = queryText(el, recordSelectors);
+      const date = queryText(el, dateSelectors);
+
+      if (player || faction || detachment || event || record || date) {
+        return { playerName: player, faction, detachment, event, record, date };
+      }
+      return null;
+    }
+
+    // Helper: extract child element texts from a cell
+    function _extractChildTexts(cell) {
+      const children = cell.children;
+      if (children.length <= 1) return null;
+      const texts = [];
+      for (const child of children) {
+        const t = child.textContent.trim();
+        if (t) texts.push(t);
+      }
+      return texts.length >= 2 ? texts : null;
+    }
+
+    // Strategy 0: Extract from Nuxt SSR payload (__NUXT_DATA__ script tag)
+    // Listhammer.info is a Nuxt.js app that embeds data in a JSON script tag
+    const nuxtScript = document.querySelector('script#__NUXT_DATA__[type="application/json"]');
+    if (nuxtScript) {
+      try {
+        const nuxtRaw = JSON.parse(nuxtScript.textContent);
+        // Nuxt 3 payload is an array of values with references
+        if (Array.isArray(nuxtRaw)) {
+          for (const item of nuxtRaw) {
+            if (item && typeof item === 'object' && !Array.isArray(item)) {
+              const keys = Object.keys(item);
+              const hasPlayerField = keys.some(k => /player|name|author/i.test(k));
+              const hasFactionField = keys.some(k => /faction|army/i.test(k));
+              if (hasPlayerField && hasFactionField) {
+                const playerKey = keys.find(k => /^player/i.test(k)) || keys.find(k => /name/i.test(k));
+                const factionKey = keys.find(k => /faction/i.test(k)) || keys.find(k => /army/i.test(k));
+                const detachmentKey = keys.find(k => /detachment/i.test(k));
+                const eventKey = keys.find(k => /event|tournament/i.test(k));
+                const recordKey = keys.find(k => /record|result|score/i.test(k));
+                const dateKey = keys.find(k => /date/i.test(k));
+                entries.push({
+                  playerName: playerKey ? String(item[playerKey]) : null,
+                  faction: factionKey ? String(item[factionKey]) : null,
+                  detachment: detachmentKey ? String(item[detachmentKey]) : null,
+                  event: eventKey ? String(item[eventKey]) : null,
+                  record: recordKey ? String(item[recordKey]) : null,
+                  date: dateKey ? String(item[dateKey]) : null,
+                  _source: 'nuxt-payload',
+                });
+              }
+            }
+          }
+        }
+      } catch (_) { /* Nuxt payload parsing failed, fall through */ }
+    }
+    if (entries.length > 0) return entries;
+
+    // Strategy 1: Table rows with header-based column mapping
+    // Reads <th> text to determine which column holds which field
     const tables = document.querySelectorAll('table');
     for (const table of tables) {
+      // Build column mapping from header row
+      const headerCells = table.querySelectorAll('thead th, thead td, tr:first-child th');
+      const colMap = {};
+      headerCells.forEach((th, i) => {
+        const text = th.textContent.trim().toLowerCase();
+        if (/^name|player/.test(text)) colMap.playerName = i;
+        else if (/faction|army/.test(text)) colMap.faction = i;
+        else if (/detachment/.test(text)) colMap.detachment = i;
+        else if (/event|tournament/.test(text)) colMap.event = i;
+        else if (/result|record|score/.test(text)) colMap.record = i;
+        else if (/date/.test(text)) colMap.date = i;
+      });
+
+      const hasHeaderMap = Object.keys(colMap).length >= 2;
+
       const rows = table.querySelectorAll('tbody tr, tr');
       for (const row of rows) {
         const cells = row.querySelectorAll('td, th');
@@ -472,11 +590,67 @@ async function extractListEntries(page) {
 
         // Skip header rows
         if (row.querySelector('th') && row.closest('thead')) continue;
+        if (row.querySelectorAll('th').length === cells.length) continue;
 
-        const cellTexts = [...cells].map((c) => c.textContent.trim());
         const link = row.querySelector('a[href]');
         const detailUrl = link ? new URL(link.href, baseUrl).href : null;
+        const rawText = row.textContent.trim().substring(0, 500);
 
+        // First, try semantic class extraction from the row
+        const semantic = _extractSemanticFields(row);
+        if (semantic && (semantic.playerName || semantic.faction)) {
+          entries.push({ ...semantic, detailUrl, rawText });
+          continue;
+        }
+
+        const cellTexts = [...cells].map((c) => c.textContent.trim());
+
+        // Use header-based mapping if we detected column names
+        if (hasHeaderMap) {
+          entries.push({
+            playerName: colMap.playerName != null ? (cellTexts[colMap.playerName] || null) : null,
+            faction: colMap.faction != null ? (cellTexts[colMap.faction] || null) : null,
+            detachment: colMap.detachment != null ? (cellTexts[colMap.detachment] || null) : null,
+            event: colMap.event != null ? (cellTexts[colMap.event] || null) : null,
+            record: colMap.record != null ? (cellTexts[colMap.record] || null) : null,
+            date: colMap.date != null ? (cellTexts[colMap.date] || null) : null,
+            rawCells: cellTexts,
+            detailUrl,
+            rawText,
+          });
+          continue;
+        }
+
+        // Fallback: auto-detect columns from cell content patterns
+        let dateIdx = -1, recordIdx = -1;
+        for (let ci = 0; ci < cellTexts.length; ci++) {
+          if (/\d{4}-\d{2}-\d{2}/.test(cellTexts[ci]) && dateIdx === -1) dateIdx = ci;
+          if (/^\d+\s*[-–]\s*\d+(\s*[-–]\s*\d+)?$/.test(cellTexts[ci].trim()) && recordIdx === -1) recordIdx = ci;
+        }
+
+        if (recordIdx >= 4) {
+          // Work backwards from record column
+          const di = dateIdx >= 0 ? dateIdx : recordIdx - 1;
+          const eventIdx = di - 1;
+          const detIdx = eventIdx >= 2 ? eventIdx - 1 : -1;
+          const facIdx = detIdx >= 1 ? detIdx - 1 : eventIdx - 1;
+          const nameIdx = facIdx >= 1 ? facIdx - 1 : 0;
+
+          entries.push({
+            playerName: nameIdx >= 0 ? (cellTexts[nameIdx] || null) : null,
+            faction: facIdx >= 0 ? (cellTexts[facIdx] || null) : null,
+            detachment: detIdx >= 0 ? (cellTexts[detIdx] || null) : null,
+            event: eventIdx >= 0 ? (cellTexts[eventIdx] || null) : null,
+            record: cellTexts[recordIdx] || null,
+            date: di >= 0 ? (cellTexts[di] || null) : null,
+            rawCells: cellTexts,
+            detailUrl,
+            rawText,
+          });
+          continue;
+        }
+
+        // Last resort: positional mapping
         entries.push({
           playerName: cellTexts[0] || null,
           faction: cellTexts[1] || null,
@@ -485,6 +659,7 @@ async function extractListEntries(page) {
           date: cellTexts[4] || null,
           rawCells: cellTexts,
           detailUrl,
+          rawText,
         });
       }
     }
@@ -496,6 +671,21 @@ async function extractListEntries(page) {
       '.card, .list-item, .army-list, article, [class*="list-entry"], [class*="army-card"]'
     );
     for (const card of cards) {
+      const link = card.querySelector('a[href]');
+      const detailUrl = link ? new URL(link.href, baseUrl).href : null;
+      const rawText = card.textContent.trim().substring(0, 500);
+
+      // Try semantic extraction first
+      const semantic = _extractSemanticFields(card);
+      if (semantic && (semantic.playerName || semantic.faction)) {
+        entries.push({
+          ...semantic,
+          detailUrl,
+          rawText,
+        });
+        continue;
+      }
+
       const title = card.querySelector('h1, h2, h3, h4, h5, .title, [class*="title"]');
       const faction = card.querySelector(
         '.faction, [class*="faction"], [class*="army"], .subtitle, [class*="subtitle"]'
@@ -506,8 +696,6 @@ async function extractListEntries(page) {
       const record = card.querySelector(
         '.record, [class*="record"], [class*="score"], [class*="result"]'
       );
-      const link = card.querySelector('a[href]');
-      const detailUrl = link ? new URL(link.href, baseUrl).href : null;
 
       entries.push({
         playerName: title ? title.textContent.trim() : null,
@@ -515,7 +703,7 @@ async function extractListEntries(page) {
         event: event ? event.textContent.trim() : null,
         record: record ? record.textContent.trim() : null,
         detailUrl,
-        rawText: card.textContent.trim().substring(0, 500),
+        rawText,
       });
     }
 
@@ -530,8 +718,19 @@ async function extractListEntries(page) {
         text.length > 5 &&
         (href.includes('list') || href.includes('army') || href.includes('player'))
       ) {
+        // Try semantic extraction from the link's inner elements
+        const semantic = _extractSemanticFields(link);
+        const childEls = link.children;
+        const childTexts = [];
+        for (const child of childEls) {
+          const t = child.textContent.trim();
+          if (t) childTexts.push(t);
+        }
+
         entries.push({
+          ...(semantic || {}),
           rawText: text.substring(0, 500),
+          childTexts: childTexts.length >= 2 ? childTexts : undefined,
           detailUrl: new URL(href, baseUrl).href,
         });
       }
@@ -558,8 +757,20 @@ async function extractListEntries(page) {
             if (text.length < 10) continue;
             const link = child.querySelector('a[href]');
             const detailUrl = link ? new URL(link.href, baseUrl).href : null;
+
+            // Try semantic extraction
+            const semantic = _extractSemanticFields(child);
+            const innerChildren = child.children;
+            const childTexts = [];
+            for (const ic of innerChildren) {
+              const t = ic.textContent.trim();
+              if (t) childTexts.push(t);
+            }
+
             entries.push({
+              ...(semantic || {}),
               rawText: text.substring(0, 500),
+              childTexts: childTexts.length >= 2 ? childTexts : undefined,
               detailUrl,
             });
           }
@@ -570,6 +781,256 @@ async function extractListEntries(page) {
 
     return entries;
   }, BASE_URL);
+
+  // Post-process: normalize entries using smart text parsing
+  return rawEntries.map((entry) => normalizeEntry(entry));
+}
+
+/**
+ * Post-process an extracted entry to fix field mapping issues.
+ * Uses pattern matching to split concatenated text blobs into proper fields.
+ */
+function normalizeEntry(entry) {
+  // If semantic extraction already provided good data, skip
+  if (entry.faction && entry.playerName && entry.event &&
+      entry.faction !== entry.playerName) {
+    return entry;
+  }
+
+  // Detect if the "faction" field actually contains a player name
+  // (player names don't match known faction patterns)
+  const knownFactionPatterns = [
+    /death guard/i, /space marine/i, /tyranid/i, /ork/i, /eldar/i, /aeldari/i,
+    /necron/i, /tau/i, /t'au/i, /chaos/i, /imperial/i, /adeptus/i, /astra/i,
+    /drukhari/i, /harlequin/i, /genestealer/i, /knight/i, /custodes/i,
+    /sister/i, /adepta sororitas/i, /world eater/i, /thousand son/i,
+    /dark angel/i, /blood angel/i, /space wolv/i, /black templar/i,
+    /grey knight/i, /deathwatch/i, /votann/i, /agent/i, /daemon/i,
+    /nurgle/i, /khorne/i, /slaanesh/i, /tzeentch/i,
+    /stormcast/i, /lumineth/i, /seraphon/i, /sylvaneth/i, /idoneth/i,
+    /ossiarch/i, /soulblight/i, /skaven/i, /maggotkin/i, /ironjawz/i,
+    /flesh.eater/i, /cities of sigmar/i, /slaves to darkness/i,
+    /blades of khorne/i, /hedonites/i, /disciples of tzeentch/i,
+    /ogor mawtribes/i, /sons of behemat/i, /fyreslayer/i, /kharadron/i,
+    /nighthaunt/i, /gloomspite/i, /bonesplitterz/i, /big waaagh/i,
+  ];
+
+  // Known Death Guard detachments
+  const knownDetachments = [
+    'Virulent Vectorium', "Mortarion's Hammer", 'Champions of Contagion',
+    'Flyblown Host', 'Tallyband Summoners', 'Unclean Horde', 'Plague Company',
+    'Black Legion', 'Creations of Bile', 'Pactbound Zealots',
+    'Soulforged Warpack', 'Fellhammer Siege-Host',
+  ];
+
+  // Check if the faction field looks wrong (contains a player name instead of a faction)
+  const factionLooksWrong = entry.faction &&
+    !knownFactionPatterns.some((p) => p.test(entry.faction));
+
+  // Try to parse from childTexts (separate child element texts)
+  if (entry.childTexts && entry.childTexts.length >= 2) {
+    const parsed = parseFieldsFromTexts(entry.childTexts, knownFactionPatterns, knownDetachments);
+    if (parsed.faction) {
+      return { ...entry, ...parsed };
+    }
+  }
+
+  // Try to parse from rawCells if the field mapping seems wrong
+  if (factionLooksWrong && entry.rawCells && entry.rawCells.length >= 2) {
+    // Expand cells: split any cell that contains concatenated data
+    const expandedTexts = [];
+    for (const cell of entry.rawCells) {
+      const subTexts = splitConcatenatedText(cell, knownFactionPatterns, knownDetachments);
+      expandedTexts.push(...subTexts);
+    }
+    const parsed = parseFieldsFromTexts(expandedTexts, knownFactionPatterns, knownDetachments);
+    if (parsed.faction) {
+      return { ...entry, ...parsed };
+    }
+  }
+
+  // Try to parse from rawText as last resort
+  if (factionLooksWrong && entry.rawText) {
+    const subTexts = splitConcatenatedText(entry.rawText, knownFactionPatterns, knownDetachments);
+    if (subTexts.length >= 2) {
+      const parsed = parseFieldsFromTexts(subTexts, knownFactionPatterns, knownDetachments);
+      if (parsed.faction) {
+        return { ...entry, ...parsed };
+      }
+    }
+  }
+
+  return entry;
+}
+
+/**
+ * Given a list of text segments, identify which is player, faction, detachment, event, record, date.
+ */
+function parseFieldsFromTexts(texts, factionPatterns, detachmentNames) {
+  const result = {};
+  const used = new Set();
+
+  // 1. Find date (YYYY-MM-DD pattern)
+  for (let i = 0; i < texts.length; i++) {
+    const dateMatch = texts[i].match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      result.date = dateMatch[1];
+      used.add(i);
+      break;
+    }
+  }
+
+  // 2. Find record (W-L or W-L-D pattern, e.g. "5-0", "4-1-0")
+  for (let i = 0; i < texts.length; i++) {
+    if (used.has(i)) continue;
+    if (/^\d+\s*[-–]\s*\d+(\s*[-–]\s*\d+)?$/.test(texts[i].trim())) {
+      result.record = texts[i].trim();
+      used.add(i);
+      break;
+    }
+  }
+
+  // 3. Find faction (matches known faction patterns)
+  for (let i = 0; i < texts.length; i++) {
+    if (used.has(i)) continue;
+    if (factionPatterns.some((p) => p.test(texts[i]))) {
+      result.faction = texts[i].trim();
+      used.add(i);
+      break;
+    }
+  }
+
+  // 4. Find detachment (matches known detachment names)
+  for (let i = 0; i < texts.length; i++) {
+    if (used.has(i)) continue;
+    const lower = texts[i].toLowerCase().trim();
+    const match = detachmentNames.find((d) => lower === d.toLowerCase());
+    if (match) {
+      result.detachment = match;
+      used.add(i);
+      break;
+    }
+  }
+
+  // 5. Remaining fields: player name is typically first, event is the rest
+  // Deduplicate remaining texts to handle cases where the same text appears
+  // in multiple cells (e.g., player name in its own cell AND in a concatenated cell)
+  const remaining = [];
+  const seenRemaining = new Set();
+  for (let i = 0; i < texts.length; i++) {
+    if (used.has(i)) continue;
+    const t = texts[i].trim();
+    if (!t || seenRemaining.has(t)) continue;
+    seenRemaining.add(t);
+    remaining.push(t);
+  }
+  if (remaining.length >= 2) {
+    result.playerName = remaining[0];
+    result.event = remaining[1];
+  } else if (remaining.length === 1) {
+    // If we already have a faction, remaining is likely the player name
+    if (result.faction) {
+      result.playerName = remaining[0];
+    } else {
+      result.event = remaining[0];
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Split a concatenated text blob into segments using known patterns.
+ * E.g., "John DoeDeath GuardVirulent VectoriumSome GT2026-03-21"
+ * becomes ["John Doe", "Death Guard", "Virulent Vectorium", "Some GT", "2026-03-21"]
+ */
+function splitConcatenatedText(text, factionPatterns, detachmentNames) {
+  if (!text || text.length < 5) return [text];
+
+  let remaining = text;
+  const parts = [];
+
+  // Extract date from the end
+  const dateMatch = remaining.match(/(\d{4}-\d{2}-\d{2})$/);
+  if (dateMatch) {
+    remaining = remaining.substring(0, remaining.length - dateMatch[1].length);
+    parts.push(dateMatch[1]);
+  }
+
+  // Extract record pattern (W-L-D at the end of remaining)
+  const recordMatch = remaining.match(/(\d+\s*[-–]\s*\d+(?:\s*[-–]\s*\d+)?)\s*$/);
+  if (recordMatch) {
+    remaining = remaining.substring(0, remaining.length - recordMatch[1].length);
+    parts.push(recordMatch[1].trim());
+  }
+
+  // Find and extract known detachment names
+  for (const det of detachmentNames) {
+    const idx = remaining.indexOf(det);
+    if (idx !== -1) {
+      const before = remaining.substring(0, idx);
+      const after = remaining.substring(idx + det.length);
+      remaining = before + '\x00' + after;
+      parts.push(det);
+      break;
+    }
+  }
+
+  // Find and extract known faction names
+  for (const pattern of factionPatterns) {
+    const match = remaining.match(pattern);
+    if (match) {
+      const idx = remaining.search(pattern);
+      const before = remaining.substring(0, idx);
+      const after = remaining.substring(idx + match[0].length);
+      remaining = before + '\x00' + after;
+      parts.push(match[0]);
+      break;
+    }
+  }
+
+  // Split remaining by null markers and add non-empty parts
+  const leftover = remaining.split('\x00').map((s) => s.trim()).filter(Boolean);
+  parts.push(...leftover);
+
+  // Return all found parts (ordered: leftovers first, then structured fields)
+  // Reorder: player name (leftover before faction), faction, detachment, event (leftover after), record, date
+  return reorderParsedParts(parts, factionPatterns, detachmentNames);
+}
+
+/**
+ * Reorder parsed parts into [playerName, faction, detachment, event, record, date] order.
+ */
+function reorderParsedParts(parts, factionPatterns, detachmentNames) {
+  const result = [];
+  const categorized = parts.map((p) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(p)) return { type: 'date', text: p };
+    if (/^\d+\s*[-–]\s*\d+(\s*[-–]\s*\d+)?$/.test(p)) return { type: 'record', text: p };
+    if (factionPatterns.some((pat) => pat.test(p))) return { type: 'faction', text: p };
+    if (detachmentNames.some((d) => d.toLowerCase() === p.toLowerCase())) return { type: 'detachment', text: p };
+    return { type: 'unknown', text: p };
+  });
+
+  const unknowns = categorized.filter((c) => c.type === 'unknown');
+  const faction = categorized.find((c) => c.type === 'faction');
+  const detachment = categorized.find((c) => c.type === 'detachment');
+  const record = categorized.find((c) => c.type === 'record');
+  const date = categorized.find((c) => c.type === 'date');
+
+  // Player name is typically the first unknown, event is the second
+  if (unknowns.length >= 1) result.push(unknowns[0].text); // player
+  if (faction) result.push(faction.text);
+  if (detachment) result.push(detachment.text);
+  if (unknowns.length >= 2) result.push(unknowns[1].text); // event
+  if (record) result.push(record.text);
+  if (date) result.push(date.text);
+
+  // Add any remaining unknowns
+  for (let i = 2; i < unknowns.length; i++) {
+    result.push(unknowns[i].text);
+  }
+
+  return result;
 }
 
 /**
@@ -657,6 +1118,18 @@ async function crawlListDetail(page, url, delayMs) {
 
       return result;
     });
+
+    // Try to extract detachment from army list text if not found via selectors
+    if (!detail.detachment && detail.armyListText) {
+      const detMatch = detail.armyListText.match(/Detachment:\s*(.+?)(?:\n|$)/i) ||
+                        detail.armyListText.match(/Detachment\s*[-–:]\s*(.+?)(?:\n|$)/i);
+      if (detMatch) detail.detachment = detMatch[1].trim();
+    }
+
+    // Rename 'player' to 'playerName' for consistency
+    if (detail.player && !detail.playerName) {
+      detail.playerName = detail.player;
+    }
 
     // Navigate back to the list page
     await page.goto(currentUrl, { waitUntil: 'networkidle', timeout: 30000 });
