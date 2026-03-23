@@ -51,57 +51,51 @@ async function main() {
   const page = await context.newPage();
 
   try {
-    // Navigate to the homepage to discover sections
-    console.log('Loading homepage...');
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 60000 });
-    await sleep(2000);
-
-    // Discover navigation links for list sections
-    const navLinks = await page.evaluate(() => {
-      const links = [];
-      document.querySelectorAll('a[href]').forEach((a) => {
-        const href = a.getAttribute('href');
-        const text = a.textContent.trim();
-        if (href && text) {
-          links.push({ text, href });
-        }
-      });
-      return links;
-    });
-
-    console.log(`Found ${navLinks.length} navigation links`);
-
-    // Identify list page URLs
-    const listSections = identifyListSections(navLinks);
-    console.log(`Identified list sections: ${listSections.map((s) => s.name).join(', ')}`);
-
     const allResults = {};
 
-    for (const section of listSections) {
-      if (gameFilter) {
-        const is40k = section.name.toLowerCase().includes('40k');
-        const isAos = section.name.toLowerCase().includes('aos') || section.name.toLowerCase().includes('sigmar');
-        if (gameFilter === '40k' && !is40k) continue;
-        if (gameFilter === 'aos' && !isAos) continue;
-      }
+    // Build direct URLs using query params (how listhammer.info actually works)
+    const directSections = buildDirectSections(gameFilter, factionFilter);
+    console.log(`Will crawl ${directSections.length} section(s): ${directSections.map((s) => s.name).join(', ')}`);
 
-      console.log(`\n--- Crawling section: ${section.name} ---`);
+    for (const section of directSections) {
+      console.log(`\n--- Crawling: ${section.name} (${section.url}) ---`);
       const lists = await crawlListSection(page, section, delay, maxPages);
-      const filtered = filterByFaction(lists, factionFilter);
-      if (factionFilter && filtered.length !== lists.length) {
-        console.log(`  Collected ${lists.length} army lists, ${filtered.length} match faction "${factionFilter}"`);
-      } else {
-        console.log(`  Collected ${filtered.length} army lists from ${section.name}`);
-      }
-      allResults[section.name] = filtered;
+      console.log(`  Collected ${lists.length} army lists from ${section.name}`);
+      allResults[section.name] = lists;
     }
 
-    // If no sections were discovered, try fallback direct URLs
-    if (Object.keys(allResults).length === 0) {
-      console.log('\nNo sections discovered via nav. Trying fallback URLs...');
-      const fallbackSections = getFallbackSections(gameFilter);
-      for (const section of fallbackSections) {
-        console.log(`\n--- Crawling fallback: ${section.name} ---`);
+    // If direct URLs found nothing, also try nav-based discovery as fallback
+    const totalDirect = Object.values(allResults).reduce((sum, arr) => sum + arr.length, 0);
+    if (totalDirect === 0) {
+      console.log('\nDirect URLs returned no results. Trying nav-based discovery...');
+      await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 60000 });
+      await sleep(2000);
+
+      const navLinks = await page.evaluate(() => {
+        const links = [];
+        document.querySelectorAll('a[href]').forEach((a) => {
+          const href = a.getAttribute('href');
+          const text = a.textContent.trim();
+          if (href && text) {
+            links.push({ text, href });
+          }
+        });
+        return links;
+      });
+
+      console.log(`Found ${navLinks.length} navigation links`);
+      const listSections = identifyListSections(navLinks);
+      console.log(`Identified list sections: ${listSections.map((s) => s.name).join(', ')}`);
+
+      for (const section of listSections) {
+        if (gameFilter) {
+          const is40k = section.name.toLowerCase().includes('40k');
+          const isAos = section.name.toLowerCase().includes('aos') || section.name.toLowerCase().includes('sigmar');
+          if (gameFilter === '40k' && !is40k) continue;
+          if (gameFilter === 'aos' && !isAos) continue;
+        }
+
+        console.log(`\n--- Crawling section: ${section.name} ---`);
         const lists = await crawlListSection(page, section, delay, maxPages);
         const filtered = filterByFaction(lists, factionFilter);
         if (factionFilter && filtered.length !== lists.length) {
@@ -226,6 +220,33 @@ function identifyListSections(navLinks) {
         }
       }
     }
+  }
+
+  return sections;
+}
+
+/**
+ * Build direct URLs using listhammer.info query-parameter based filtering.
+ * The site uses ?faction=Death+Guard&wins=X-0 style params.
+ */
+function buildDirectSections(gameFilter, factionFilter) {
+  const sections = [];
+  const params = new URLSearchParams();
+
+  if (factionFilter) {
+    params.set('faction', factionFilter);
+  }
+
+  // All lists for the faction (includes X-0 and X-1)
+  const allListsUrl = `${BASE_URL}/?${params.toString()}`;
+  const label = factionFilter || (gameFilter ? `${gameFilter} Lists` : 'All Lists');
+  sections.push({ name: `${label} (All)`, url: allListsUrl });
+
+  // Also try undefeated specifically
+  if (factionFilter) {
+    const undefeatedParams = new URLSearchParams(params);
+    undefeatedParams.set('wins', 'X-0');
+    sections.push({ name: `${label} (Undefeated)`, url: `${BASE_URL}/?${undefeatedParams.toString()}` });
   }
 
   return sections;
