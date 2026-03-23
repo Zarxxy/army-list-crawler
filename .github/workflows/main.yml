@@ -1,6 +1,8 @@
 name: Crawl, Analyse & Deploy
 
 on:
+  push:
+    branches: ['claude/army-lists-crawler-osq7I']
   # Run daily at 06:00 UTC
   schedule:
     - cron: '0 6 * * *'
