@@ -140,26 +140,46 @@ async function main() {
       }
     }
 
-    // Debug: save screenshot and HTML if nothing was found
+    // ALWAYS save debug info so we can inspect what the crawler saw
     const totalLists = Object.values(allResults).reduce((sum, arr) => sum + arr.length, 0);
-    if (totalLists === 0) {
-      console.warn('\n*** WARNING: No army lists found! Saving debug info... ***');
-      const debugScreenshot = path.join(OUTPUT_DIR, 'debug-screenshot.png');
-      await page.screenshot({ path: debugScreenshot, fullPage: true }).catch(() => {});
-      console.log(`Debug screenshot: ${debugScreenshot}`);
 
-      const html = await page.content().catch(() => '');
-      if (html) {
-        const debugHtml = path.join(OUTPUT_DIR, 'debug-page.html');
-        fs.writeFileSync(debugHtml, html, 'utf-8');
-        console.log(`Debug HTML (${html.length} chars): ${debugHtml}`);
-        // Print a snippet for CI logs
-        console.log('Page title:', html.match(/<title>(.*?)<\/title>/)?.[1] || 'N/A');
-        console.log('Page URL:', page.url());
-        console.log('First 500 chars of body text:');
-        const bodyText = await page.evaluate(() => document.body?.innerText?.substring(0, 500) || '').catch(() => '');
-        console.log(bodyText || '(empty)');
+    console.log(`\n=== Debug: found ${totalLists} total entries ===`);
+
+    // Save screenshot of the last page visited
+    const debugScreenshot = path.join(OUTPUT_DIR, 'debug-screenshot.png');
+    await page.screenshot({ path: debugScreenshot, fullPage: true }).catch(() => {});
+    console.log(`Debug screenshot: ${debugScreenshot}`);
+
+    // Save page HTML
+    const html = await page.content().catch(() => '');
+    if (html) {
+      const debugHtml = path.join(OUTPUT_DIR, 'debug-page.html');
+      fs.writeFileSync(debugHtml, html, 'utf-8');
+      console.log(`Debug HTML (${html.length} chars): ${debugHtml}`);
+      console.log('Page title:', html.match(/<title>(.*?)<\/title>/)?.[1] || 'N/A');
+      console.log('Page URL:', page.url());
+    }
+
+    // Log the first 3 entries from each section for inspection
+    for (const [sectionName, entries] of Object.entries(allResults)) {
+      console.log(`\n--- Section "${sectionName}" has ${entries.length} entries ---`);
+      for (let i = 0; i < Math.min(entries.length, 3); i++) {
+        const e = entries[i];
+        console.log(`  Entry ${i + 1}:`);
+        console.log(`    playerName: ${JSON.stringify(e.playerName)}`);
+        console.log(`    faction:    ${JSON.stringify(e.faction)}`);
+        console.log(`    event:      ${JSON.stringify(e.event)}`);
+        console.log(`    record:     ${JSON.stringify(e.record)}`);
+        console.log(`    detailUrl:  ${JSON.stringify(e.detailUrl)}`);
+        if (e.rawText) console.log(`    rawText:    ${JSON.stringify(e.rawText.substring(0, 200))}`);
+        if (e.rawCells) console.log(`    rawCells:   ${JSON.stringify(e.rawCells.slice(0, 6))}`);
       }
+    }
+
+    if (totalLists === 0) {
+      console.warn('\n*** WARNING: No army lists found! ***');
+      const bodyText = await page.evaluate(() => document.body?.innerText?.substring(0, 1000) || '').catch(() => '');
+      console.log('Page body text:\n' + (bodyText || '(empty)'));
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -347,7 +367,40 @@ async function crawlListSection(page, section, delayMs, maxPages) {
 
     // Log page info for debugging
     const pageTitle = await page.title();
-    console.log(`  Page loaded: "${pageTitle}" (${page.url()})`);
+    const pageUrl = page.url();
+    console.log(`  Page loaded: "${pageTitle}" (${pageUrl})`);
+
+    // Check if we were redirected (e.g. Cloudflare challenge)
+    const expectedHost = new URL(section.url).hostname;
+    const actualHost = new URL(pageUrl).hostname;
+    if (expectedHost !== actualHost) {
+      console.warn(`  WARNING: Redirected from ${expectedHost} to ${actualHost} — possible bot protection`);
+    }
+
+    // Check for Cloudflare challenge indicators
+    const hasCfChallenge = await page.evaluate(() => {
+      const bodyText = document.body?.innerText || '';
+      return bodyText.includes('Checking your browser') ||
+             bodyText.includes('challenge-platform') ||
+             bodyText.includes('Just a moment') ||
+             bodyText.includes('Verify you are human') ||
+             bodyText.includes('Enable JavaScript') ||
+             !!document.querySelector('#challenge-form, #cf-challenge-running, .cf-browser-verification');
+    });
+    if (hasCfChallenge) {
+      console.warn('  WARNING: Cloudflare/bot challenge detected! Waiting 10s for it to resolve...');
+      await sleep(10000);
+      const stillChallenge = await page.evaluate(() => {
+        return document.body?.innerText?.includes('Checking your browser') ||
+               document.body?.innerText?.includes('Just a moment') ||
+               !!document.querySelector('#challenge-form');
+      });
+      if (stillChallenge) {
+        console.warn('  Challenge still present after waiting. Page may be blocked.');
+      } else {
+        console.log('  Challenge appears to have resolved. Continuing...');
+      }
+    }
   } catch (err) {
     console.warn(`  Failed to load ${section.url}: ${err.message}`);
     return allLists;

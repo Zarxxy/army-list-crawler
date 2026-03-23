@@ -60,10 +60,7 @@ jobs:
         with:
           name: crawler-debug
           path: |
-            output/debug-*.png
-            output/debug-*.html
-            output/error-*.png
-            output/error-*.html
+            output/
           if-no-files-found: ignore
 
       - name: Generate meta report
