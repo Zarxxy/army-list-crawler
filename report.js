@@ -4,7 +4,7 @@ const path = require('path');
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
 const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
-const format = getArg(args, '--format') || 'all'; // "json", "html", "text", "all"
+const format = getArg(args, '--format') || 'all'; // "json", "text", "all"
 const topN = parseInt(getArg(args, '--top') || '20', 10);
 
 function getArg(args, flag) {

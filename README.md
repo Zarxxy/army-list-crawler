@@ -1,6 +1,20 @@
-# Listhammer Army Lists Crawler & Meta Report
+# Listhammer — Death Guard Meta Analyser & Army Optimizer
 
-Headless browser crawler for [listhammer.info](https://listhammer.info) that extracts Warhammer 40k and Age of Sigmar tournament army lists, saves them to JSON, and generates extensive meta analysis reports.
+Automated pipeline that crawls [listhammer.info](https://listhammer.info) for Death Guard tournament army lists, analyses the meta, and generates a recommended competitive army list — all deployed to a GitHub Pages dashboard.
+
+## How It Works
+
+```
+Crawl listhammer.info  →  Generate meta report  →  Run army optimizer  →  Build & deploy site
+     (crawler.js)            (report.js)             (optimizer.js)        (build-site.js)
+```
+
+1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text
+2. **Meta Report** — Analyses detachment popularity, win rates, undefeated lists, player rankings, and record distributions
+3. **Army Optimizer** — Finds the most meta-representative winning army list and recommends it as a concrete ~2000pt build, with unit synergy analysis
+4. **Site Builder** — Inlines report JSON into a self-contained HTML dashboard for GitHub Pages
+
+The pipeline runs daily via GitHub Actions.
 
 ## Prerequisites
 
@@ -18,170 +32,126 @@ npx playwright install chromium
 
 ## Usage
 
+### Crawl
+
 ```bash
-# Crawl all sections (40k + AoS)
-npm run crawl
+# Crawl Death Guard lists (default config)
+npm run crawl:dg
 
-# Crawl only Warhammer 40k lists
-npm run crawl:40k
+# Crawl with custom options
+node crawler.js --game 40k --faction "Death Guard" --delay 2000
 
-# Crawl only Age of Sigmar lists
-npm run crawl:aos
+# Show browser window for debugging
+node crawler.js --game 40k --faction "Death Guard" --no-headless
 ```
-
-### CLI Options
 
 | Option | Description | Default |
 |---|---|---|
-| `--game 40k\|aos` | Filter to a single game system | both |
-| `--faction NAME` | Only keep lists matching a faction (case-insensitive substring) | all |
-| `--max-pages N` | Limit number of pages to crawl per section (0 = unlimited) | `0` |
-| `--delay N` | Milliseconds to wait between requests | `1500` |
-| `--no-headless` | Show the browser window (useful for debugging) | headless |
+| `--game 40k\|aos` | Game system filter | both |
+| `--faction NAME` | Faction filter (case-insensitive) | all |
+| `--max-pages N` | Max pages per section (0 = unlimited) | `0` |
+| `--delay N` | Milliseconds between requests | `1500` |
+| `--no-headless` | Show browser window | headless |
 
-**Examples:**
-
-```bash
-# Crawl 40k lists, max 3 pages, with visible browser
-node crawler.js --game 40k --max-pages 3 --no-headless
-
-# Crawl AoS lists with a longer delay between requests
-node crawler.js --game aos --delay 3000
-
-# Only grab Tyranids lists
-node crawler.js --faction Tyranids
-
-# Combine filters: 40k Space Marines lists only
-node crawler.js --game 40k --faction "Space Marines"
-
-# AoS Stormcast lists
-node crawler.js --game aos --faction Stormcast
-```
-
-### Using a Custom Chrome/Chromium
-
-If you want to use an existing browser installation instead of the Playwright-managed one:
+### Meta Report
 
 ```bash
-CHROMIUM_PATH=/usr/bin/chromium npm run crawl
+npm run report          # JSON + text output
+npm run report:json     # JSON only
+npm run report:text     # Text only
 ```
-
-## Output
-
-Results are saved to the `output/` directory:
-
-- `army-lists-latest.json` — always points to the most recent crawl
-- `army-lists-<timestamp>.json` — timestamped archive of each run
-
-### JSON Structure
-
-```json
-{
-  "crawledAt": "2026-03-22T12:00:00.000Z",
-  "source": "https://listhammer.info",
-  "totalLists": 42,
-  "sections": {
-    "40k Lists": [
-      {
-        "playerName": "John Doe",
-        "faction": "Tyranids",
-        "event": "Grand Tournament 2026",
-        "record": "5-0",
-        "date": "2026-03-15",
-        "detailUrl": "https://listhammer.info/list/123",
-        "armyListText": "++ Army Roster (Warhammer 40,000) [2000pts] ++\n..."
-      }
-    ],
-    "AoS Lists": [
-      ...
-    ]
-  }
-}
-```
-
-## Meta Report
-
-After crawling, generate an extensive meta analysis report from the JSON data.
-
-```bash
-# Generate all formats (text + JSON + HTML)
-npm run report
-
-# Single format
-npm run report:json
-npm run report:html
-npm run report:text
-```
-
-### Report CLI Options
 
 | Option | Description | Default |
 |---|---|---|
-| `--input PATH` | Path to the crawler JSON file | `output/army-lists-latest.json` |
-| `--output DIR` | Directory to write reports to | `reports/` |
-| `--format FORMAT` | Output format: `json`, `html`, `text`, or `all` | `all` |
-| `--top N` | Number of top players to include | `20` |
+| `--input PATH` | Crawler JSON file | `output/army-lists-latest.json` |
+| `--output DIR` | Output directory | `reports/` |
+| `--format FORMAT` | `json`, `text`, or `all` | `all` |
+| `--top N` | Number of top players | `20` |
 
-**Examples:**
+### Army Optimizer
 
 ```bash
-# Report from a specific crawl file
-node report.js --input output/army-lists-2026-03-22T12-00-00-000Z.json
-
-# Only HTML report, top 50 players
-node report.js --format html --top 50
+npm run optimize        # JSON + text output
+npm run optimize:json   # JSON only
 ```
 
-### What the Report Includes
+| Option | Description | Default |
+|---|---|---|
+| `--lists PATH` | Crawler JSON file | `output/army-lists-latest.json` |
+| `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
+| `--output DIR` | Output directory | `reports/` |
+| `--format FORMAT` | `json`, `text`, or `all` | `all` |
+| `--points N` | Target army points | `2000` |
 
-- **Faction Representation** — list counts, percentage share per faction
-- **Faction Win Rates** — wins, losses, draws, total games, win% sorted by performance
-- **Undefeated Lists** — every X-0 list with player, faction, event, and record
-- **Record Distribution** — histogram of all W-L-D records with visual bars
-- **Top Players** — ranked by win rate with their factions and events
-- **Detachment Popularity** — which detachments are most played and by which factions
-- **Event Breakdown** — per-event faction distribution and top faction
-- **Points Analysis** — min/max/median/mean points with a distribution histogram
+### Build Site
 
-### Report Output
+```bash
+npm run build-site      # Build docs/index.html
+npm run build-all       # Report + optimizer + site in one step
+```
 
-Reports are saved to the `reports/` directory:
+## Output Structure
 
-- `meta-report-latest.json` — structured data for programmatic use
-- `meta-report-latest.html` — styled dashboard you can open in a browser
-- `meta-report-latest.txt` — terminal-friendly text tables
-- Timestamped copies of each are also saved as archives
+```
+output/
+  army-lists-latest.json          # Most recent crawl data
+  army-lists-<timestamp>.json     # Archived crawls
 
-The HTML report is a self-contained dark-themed dashboard with bar charts, sortable tables, and summary cards — no external dependencies needed, just open it in any browser.
+reports/
+  meta-report-latest.json         # Detachment stats, player rankings, etc.
+  optimizer-latest.json           # Recommended army list + analysis
+  *.txt                           # Text versions of each report
+
+docs/
+  index.html                      # GitHub Pages dashboard (self-contained)
+  template.html                   # Source template
+  data/                           # Raw JSON copies for direct access
+```
+
+## What the Dashboard Shows
+
+- **Overview** — Detachment popularity/win rate bars, summary cards, record distribution
+- **Detachments** — Full W/L/D breakdown table, undefeated lists
+- **Optimizer** — Concrete recommended army list (~2000pts) based on the best-performing tournament list, unit synergy pairings, enhancement usage
+- **Players** — Top players ranked by win rate with detachment and event info
+- **Events** — Per-event detachment breakdown with W/L stats
+
+## How the Optimizer Works
+
+The optimizer analyses all parsed army lists from winning players and:
+
+1. **Scores every list** by how well it represents the current meta (sum of unit appearance frequencies)
+2. **Picks the best template** — preferring undefeated lists, then top-performing lists with the highest meta-alignment score
+3. **Categorises units** into Core (40%+ appearance), Common (20-39%), and Flex (<20%) tiers
+4. **Analyses unit synergies** — which units most frequently appear together in winning lists
+5. **Tracks enhancement usage** — most popular enhancements across winning lists
+
+If no parseable army list text is available, it falls back to synthesising a list from the most popular units.
+
+## GitHub Actions
+
+The workflow (`.github/workflows/main.yml`) runs daily at 06:00 UTC and on push:
+
+1. Install dependencies + Playwright
+2. Crawl listhammer.info for Death Guard lists
+3. Generate meta report
+4. Run army optimizer
+5. Build and deploy site to GitHub Pages
+
+Debug artifacts (raw crawl output) are uploaded on every run.
 
 ## Troubleshooting
 
-If the crawler fails, check the `output/` directory for:
+Check `output/` for debug files if the crawler fails:
+- `error-screenshot.png` — page state at failure
+- `error-page.html` — raw HTML dump
 
-- `error-screenshot.png` — screenshot of the page at the time of failure
-- `error-page.html` — raw HTML dump for inspecting the DOM
+## Disclaimer
 
-If the site's layout has changed, you may need to update the CSS selectors in these functions inside `crawler.js`:
-
-- `extractListEntries()` — selectors for list pages
-- `crawlListDetail()` — selectors for individual army list detail pages
-
-## Disclaimer & robots.txt Compliance
-
-Listhammer.info's `robots.txt` (Cloudflare-managed) states:
-
-- **`Allow: /`** for general user agents — crawling the site is permitted
-- **`Content-Signal: search=yes, ai-train=no`** — content may be indexed for search, but **must not be used for AI training or fine-tuning**
-- Specific AI crawlers (GPTBot, ClaudeBot, CCBot, etc.) are blocked by user agent
-
-This tool uses a standard Chrome browser user agent and is **not** one of the blocked AI bots. However, please respect the following:
-
-1. **Do not use scraped data for AI training** — The site explicitly disallows this via `ai-train=no`. Do not feed the output into model training or fine-tuning pipelines.
-2. **Personal analysis only** — The army list content belongs to the players and/or listhammer.info. This tool is meant for personal meta analysis, not republishing.
-3. **Be polite** — Use the `--delay` option to avoid overwhelming the server. The default 1500ms delay is a reasonable starting point.
-4. **Respect terms of service** — If the site updates its ToS or `robots.txt` to restrict scraping, stop using this tool against it.
-
-The authors of this tool are not responsible for misuse.
+Listhammer.info's `robots.txt` allows general crawling (`Allow: /`) but disallows AI training (`ai-train=no`). This tool:
+- Uses a standard Chrome user agent
+- Is for **personal meta analysis only**, not AI training or republishing
+- Respects rate limits via the `--delay` option
 
 ## License
 

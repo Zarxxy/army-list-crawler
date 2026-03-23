@@ -353,23 +353,50 @@
     }
 
     var rec = o.recommendation;
-    var army = rec.army || {};
+    var cl = o.concreteList;
     var html = '';
 
     // Recommendation box
     html += '<div class="rec-box">';
     html += '<div class="faction-name">' + esc(rec.faction) + '</div>';
-    html += '<div class="det-name">' + esc(rec.detachment) + '</div>';
+    html += '<div class="det-name">' + esc(rec.detachment) + ' — ' + rec.detachmentWinRate + '% Win Rate</div>';
     html += '<div class="rec-stats">';
     html += recStat(rec.winRate + '%', 'Win Rate');
     html += recStat(rec.score, 'Score');
     html += recStat(rec.undefeatedCount, 'Undefeated');
-    html += recStat(rec.representation + '%', 'Meta Share');
     html += recStat(o.meta.winningListsAnalysed, 'Winning Lists');
+    html += recStat(o.meta.targetPoints + 'pts', 'Target');
     html += '</div>';
     html += '</div>';
 
-    // Detachment analysis
+    // Concrete army list
+    if (cl && cl.units && cl.units.length) {
+      html += '<h3>Recommended Army List — ' + cl.totalPoints + 'pts</h3>';
+      if (cl.source !== 'synthetic') {
+        html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Based on <strong>' + esc(cl.sourcePlayer) + '</strong> (' + esc(cl.sourceRecord) + ') at ' + esc(cl.sourceEvent) + ' — ' + (cl.source === 'undefeated' ? 'Undefeated list' : 'Top-performing list') + '</p>';
+      } else {
+        html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Synthesised from the most common units across winning lists</p>';
+      }
+
+      // List header
+      if (cl.detachment || cl.warlord || cl.enhancements.length) {
+        html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:0.8rem;font-size:0.88rem">';
+        if (cl.detachment) html += '<div><span style="color:var(--text2)">Detachment:</span> <strong>' + esc(cl.detachment) + '</strong></div>';
+        if (cl.warlord) html += '<div><span style="color:var(--text2)">Warlord:</span> ' + esc(cl.warlord) + '</div>';
+        if (cl.enhancements.length) html += '<div><span style="color:var(--text2)">Enhancements:</span> ' + cl.enhancements.map(function(e) { return esc(e); }).join(', ') + '</div>';
+        html += '</div>';
+      }
+
+      // Group by tier
+      var tiers = { core: [], common: [], flex: [] };
+      cl.units.forEach(function (u) { (tiers[u.tier] || tiers.flex).push(u); });
+
+      if (tiers.core.length) html += tierBlock('Core Units — Must Takes', 'core', tiers.core);
+      if (tiers.common.length) html += tierBlock('Common Picks', 'common', tiers.common);
+      if (tiers.flex.length) html += tierBlock('Flex Slots', 'flex', tiers.flex);
+    }
+
+    // Detachment comparison
     if (o.detachmentAnalysis && o.detachmentAnalysis.length) {
       html += '<h3>Detachment Comparison</h3>';
       html += '<table><thead><tr><th>Detachment</th><th class="num">Lists</th><th class="num">WR%</th><th class="num">Undefeated</th></tr></thead><tbody>';
@@ -380,31 +407,25 @@
       html += '</tbody></table>';
     }
 
-    // Army build — unit tiers
-    html += '<h3>Recommended Army Build</h3>';
-
-    if (army.coreUnits && army.coreUnits.length) {
-      html += tierBlock('Core Units — Must Takes', 'core', army.coreUnits);
-    }
-    if (army.commonUnits && army.commonUnits.length) {
-      html += tierBlock('Common Picks — Strong Includes', 'common', army.commonUnits);
-    }
-    if (army.flexUnits && army.flexUnits.length) {
-      html += tierBlock('Flex Slots — Meta Dependent', 'flex', army.flexUnits);
-    }
-
-    // Enhancements
-    if (army.enhancements && army.enhancements.length) {
-      html += '<h3>Top Enhancements</h3>';
-      html += '<table><thead><tr><th>Enhancement</th><th class="num">Usage%</th><th class="num">Appearances</th></tr></thead><tbody>';
-      army.enhancements.forEach(function (e) {
-        html += '<tr><td>' + esc(e.name) + '</td><td class="num">' + e.frequency + '%</td><td class="num">' + e.appearances + '</td></tr>';
+    // Co-occurrence / synergies
+    if (o.coOccurrence && o.coOccurrence.length) {
+      html += '<h3>Unit Synergies</h3>';
+      html += '<p style="color:var(--text2);font-size:0.82rem;margin-bottom:0.5rem">Units most frequently paired together in winning lists</p>';
+      html += '<table><thead><tr><th>Unit Pairing</th><th class="num">Count</th><th class="num">%</th></tr></thead><tbody>';
+      o.coOccurrence.forEach(function (c) {
+        html += '<tr><td>' + esc(c.pair) + '</td><td class="num">' + c.count + '</td><td class="num">' + c.frequency + '%</td></tr>';
       });
       html += '</tbody></table>';
     }
 
-    if (army.estimatedCorePoints) {
-      html += '<p style="color:var(--text2);margin:1rem 0">Estimated core + common cost: ~' + army.estimatedCorePoints + 'pts</p>';
+    // Enhancement analysis
+    if (o.enhancementAnalysis && o.enhancementAnalysis.enhancements && o.enhancementAnalysis.enhancements.length) {
+      html += '<h3>Top Enhancements</h3>';
+      html += '<table><thead><tr><th>Enhancement</th><th class="num">Usage%</th><th class="num">Appearances</th></tr></thead><tbody>';
+      o.enhancementAnalysis.enhancements.slice(0, 10).forEach(function (e) {
+        html += '<tr><td>' + esc(e.name) + '</td><td class="num">' + e.frequency + '%</td><td class="num">' + e.appearances + '</td></tr>';
+      });
+      html += '</tbody></table>';
     }
 
     // Reasoning
@@ -425,7 +446,7 @@
   function tierBlock(title, cls, units) {
     var h = '<div class="tier"><div class="tier-header ' + cls + '">' + title + '</div><div class="tier-body">';
     units.forEach(function (u) {
-      h += '<div class="unit"><span class="uname">' + esc(u.name) + '</span><span class="umeta">' + u.frequency + '% &middot; ~' + u.avgPoints + 'pts</span></div>';
+      h += '<div class="unit"><span class="uname">' + esc(u.name) + '</span><span class="umeta">' + u.metaFrequency + '% meta &middot; ' + u.points + 'pts</span></div>';
     });
     h += '</div></div>';
     return h;
