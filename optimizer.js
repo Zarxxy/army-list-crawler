@@ -94,8 +94,13 @@ function main() {
 
 function flattenLists(raw) {
   const lists = [];
+  const seen = new Set();
   for (const [sectionName, entries] of Object.entries(raw.sections || {})) {
     for (const entry of entries) {
+      // Deduplicate entries that appear in multiple sections (All + Undefeated)
+      const key = [entry.playerName || entry.player, entry.event, entry.date].join('|');
+      if (seen.has(key)) continue;
+      seen.add(key);
       lists.push({ ...entry, section: sectionName });
     }
   }
@@ -214,29 +219,48 @@ function parseArmyListText(text) {
 // ---------------------------------------------------------------------------
 
 function optimize(lists, metaReport) {
-  const factionWinRates = metaReport.factionWinRates || [];
-  const factionBreakdown = metaReport.factionBreakdown || [];
-  const undefeatedLists = metaReport.undefeatedLists || [];
   const detachmentBreakdown = metaReport.detachmentBreakdown || [];
+  const faction = metaReport.meta.faction || 'Unknown';
 
-  // ---- Step 1: Score every faction ----
-  const factionScores = scoreFactions(factionWinRates, factionBreakdown, undefeatedLists);
+  // In single-faction mode, all lists belong to our faction
+  const factionLists = lists;
 
-  // ---- Step 2: Pick optimal faction ----
-  const topFaction = factionScores[0];
-  if (!topFaction) {
-    return { error: 'No factions with enough data to optimize.' };
+  // ---- Step 1: Analyse detachments from the meta report data ----
+  const factionDetachments = detachmentBreakdown
+    .filter((d) => d.detachment !== 'Unknown')
+    .map((d) => ({
+      detachment: d.detachment,
+      count: d.count,
+      wins: d.wins || 0,
+      losses: d.losses || 0,
+      draws: d.draws || 0,
+      totalGames: d.totalGames || 0,
+      winRate: d.winRate != null ? d.winRate : 0,
+      undefeated: d.undefeatedCount || 0,
+    }))
+    .sort((a, b) => b.winRate - a.winRate || b.undefeated - a.undefeated || b.count - a.count);
+
+  if (factionDetachments.length === 0) {
+    return { error: 'No detachment data available to optimize.' };
   }
 
-  // ---- Step 3: Find best detachment for the faction ----
-  const factionDetachments = analyseDetachments(lists, topFaction.faction, detachmentBreakdown);
+  // Compute overall faction stats
+  const totalWins = detachmentBreakdown.reduce((s, d) => s + (d.wins || 0), 0);
+  const totalGames = detachmentBreakdown.reduce((s, d) => s + (d.totalGames || 0), 0);
+  const totalUndefeated = (metaReport.undefeatedLists || []).length;
+  const overallWinRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 1000) / 10 : 0;
 
-  // ---- Step 4: Get all lists for the top faction ----
-  const factionLists = lists.filter(
-    (l) => normaliseFaction(l.faction) === topFaction.faction
-  );
+  const topFaction = {
+    faction,
+    winRate: overallWinRate,
+    undefeatedCount: totalUndefeated,
+    representation: 100,
+    listCount: lists.length,
+    totalGames,
+    wins: totalWins,
+  };
 
-  // Separate winning lists (3+ wins, or undefeated)
+  // ---- Step 2: Get winning lists for unit/enhancement analysis ----
   const winningLists = factionLists.filter((l) => {
     const rec = parseRecord(l.record);
     return rec && rec.wins >= 3 && rec.wins > rec.losses;
@@ -247,11 +271,12 @@ function optimize(lists, metaReport) {
     return rec && rec.losses === 0 && rec.wins > 0;
   });
 
-  // ---- Step 5: Analyse unit and enhancement patterns ----
-  const unitAnalysis = analyseUnits(winningLists.length > 0 ? winningLists : factionLists);
-  const enhancementAnalysis = analyseEnhancements(winningLists.length > 0 ? winningLists : factionLists);
+  // ---- Step 3: Analyse unit and enhancement patterns ----
+  const listsForAnalysis = winningLists.length > 0 ? winningLists : factionLists;
+  const unitAnalysis = analyseUnits(listsForAnalysis);
+  const enhancementAnalysis = analyseEnhancements(listsForAnalysis);
 
-  // ---- Step 6: Build recommended army ----
+  // ---- Step 4: Build recommended army ----
   const recommendedArmy = buildRecommendedArmy(
     topFaction,
     factionDetachments,
@@ -260,10 +285,9 @@ function optimize(lists, metaReport) {
     undefeatedFactionLists
   );
 
-  // ---- Step 7: Generate reasoning ----
+  // ---- Step 5: Generate reasoning (single-faction focused) ----
   const reasoning = generateReasoning(
     topFaction,
-    factionScores,
     factionDetachments,
     unitAnalysis,
     enhancementAnalysis,
@@ -280,13 +304,12 @@ function optimize(lists, metaReport) {
       factionListsAnalysed: factionLists.length,
       winningListsAnalysed: winningLists.length,
     },
-    factionRankings: factionScores,
     recommendation: {
       faction: topFaction.faction,
-      score: topFaction.score,
+      score: Math.round(overallWinRate * 3 + totalUndefeated * 10),
       winRate: topFaction.winRate,
       undefeatedCount: topFaction.undefeatedCount,
-      representation: topFaction.representation,
+      representation: 100,
       detachment: recommendedArmy.detachment,
       army: recommendedArmy,
     },
@@ -524,7 +547,6 @@ function buildRecommendedArmy(topFaction, detachments, unitAnalysis, enhancement
 
 function generateReasoning(
   topFaction,
-  factionScores,
   detachments,
   unitAnalysis,
   enhancementAnalysis,
@@ -534,23 +556,13 @@ function generateReasoning(
 ) {
   const sections = [];
 
-  // ---- 1. Meta position ----
-  const rank = factionScores.findIndex((f) => f.faction === topFaction.faction) + 1;
-  const totalFactions = factionScores.length;
-  const runner = factionScores[1];
-
+  // ---- 1. Faction overview ----
   sections.push({
-    title: 'Meta Position',
-    text: buildMetaPositionText(topFaction, rank, totalFactions, runner, metaReport),
+    title: 'Faction Overview',
+    text: buildFactionOverviewText(topFaction, metaReport),
   });
 
-  // ---- 2. Why this faction ----
-  sections.push({
-    title: 'Why This Faction',
-    text: buildWhyFactionText(topFaction, factionScores),
-  });
-
-  // ---- 3. Detachment synergies ----
+  // ---- 2. Detachment synergies ----
   const bestDet = detachments.find((d) => d.detachment !== 'Unknown') || detachments[0];
   if (bestDet) {
     sections.push({
@@ -559,13 +571,13 @@ function generateReasoning(
     });
   }
 
-  // ---- 4. Unit choices ----
+  // ---- 3. Unit choices ----
   sections.push({
     title: 'Unit Choices',
     text: buildUnitText(unitAnalysis),
   });
 
-  // ---- 5. Enhancement picks ----
+  // ---- 4. Enhancement picks ----
   if (enhancementAnalysis.enhancements.length > 0) {
     sections.push({
       title: 'Enhancement Picks',
@@ -573,7 +585,7 @@ function generateReasoning(
     });
   }
 
-  // ---- 6. Strategy summary ----
+  // ---- 5. Strategy summary ----
   sections.push({
     title: 'Strategy',
     text: buildStrategyText(topFaction, bestDet, unitAnalysis, undefeatedLists),
@@ -582,52 +594,18 @@ function generateReasoning(
   return sections;
 }
 
-function buildMetaPositionText(faction, rank, total, runner, report) {
+function buildFactionOverviewText(faction, report) {
   const lines = [];
   lines.push(
-    `${faction.faction} currently holds the #${rank} position out of ${total} factions with competitive data.`
+    `Analysing ${faction.faction} across ${faction.listCount} tournament lists and ${faction.totalGames} recorded games.`
   );
   lines.push(
-    `With a ${faction.winRate}% win rate across ${faction.totalGames} games and ${faction.undefeatedCount} undefeated finishes, this faction is performing above the field.`
+    `The faction has an overall ${faction.winRate}% win rate with ${faction.undefeatedCount} undefeated finishes.`
   );
-  if (runner) {
-    const gap = Math.round((faction.score - runner.score) * 10) / 10;
-    lines.push(
-      `The next closest faction is ${runner.faction} (${runner.winRate}% WR, score gap: ${gap}).`
-    );
+  const events = (report.eventBreakdown || []).length;
+  if (events > 0) {
+    lines.push(`Data spans ${events} different events.`);
   }
-  lines.push(
-    `Representation sits at ${faction.representation}% of the meta (${faction.listCount} lists), which means ${
-      faction.representation > 10
-        ? 'the data is well-supported with a healthy sample size.'
-        : 'the sample is smaller, but the results are strong enough to act on.'
-    }`
-  );
-  return lines.join(' ');
-}
-
-function buildWhyFactionText(faction, scores) {
-  const lines = [];
-  lines.push(
-    `The optimizer scores factions using a weighted composite: win rate (×3), undefeated finishes (×10 each), and a capped representation bonus.`
-  );
-  lines.push(
-    `${faction.faction} scored ${faction.score}, driven primarily by its ${faction.winRate}% win rate` +
-    (faction.undefeatedCount > 0
-      ? ` and ${faction.undefeatedCount} undefeated tournament run${faction.undefeatedCount > 1 ? 's' : ''}.`
-      : '.')
-  );
-
-  // Compare to average
-  const avgWR =
-    scores.length > 0
-      ? Math.round((scores.reduce((s, f) => s + f.winRate, 0) / scores.length) * 10) / 10
-      : 50;
-  const delta = Math.round((faction.winRate - avgWR) * 10) / 10;
-  if (delta > 0) {
-    lines.push(`This is ${delta} percentage points above the field average of ${avgWR}%.`);
-  }
-
   return lines.join(' ');
 }
 
@@ -750,20 +728,8 @@ function renderText(result) {
   lines.push('  ARMY OPTIMIZER — RECOMMENDED BUILD');
   lines.push(hr);
   lines.push(`  Generated: ${result.meta.generatedAt}`);
-  lines.push(`  Lists analysed: ${result.meta.totalListsAnalysed} total, ${result.meta.factionListsAnalysed} for chosen faction`);
+  lines.push(`  Lists analysed: ${result.meta.totalListsAnalysed}`);
   lines.push(`  Winning lists studied: ${result.meta.winningListsAnalysed}`);
-  lines.push('');
-
-  // Faction Rankings
-  lines.push(hr2);
-  lines.push('  FACTION RANKINGS (top 10)');
-  lines.push(hr2);
-  lines.push(padRow(['#', 'Faction', 'Score', 'WR%', 'Undefeated', 'Lists']));
-  lines.push(padRow(['-', '-------', '-----', '---', '----------', '-----']));
-  const top10 = result.factionRankings.slice(0, 10);
-  top10.forEach((f, i) => {
-    lines.push(padRow([i + 1, f.faction, f.score, `${f.winRate}%`, f.undefeatedCount, f.listCount]));
-  });
   lines.push('');
 
   // Recommendation

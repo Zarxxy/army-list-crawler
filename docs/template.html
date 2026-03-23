@@ -17,6 +17,7 @@
   /* Nav */
   .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; align-items: center; gap: 2rem; position: sticky; top: 0; z-index: 100; }
   .topbar h1 { font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
+  .topbar .faction-badge { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 0.2rem 0.7rem; border-radius: var(--radius); font-size: 0.82rem; }
   .topbar nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .topbar nav a { color: var(--text2); text-decoration: none; padding: 0.3rem 0.8rem; border-radius: var(--radius); font-size: 0.85rem; transition: background 0.15s; }
   .topbar nav a:hover, .topbar nav a.active { background: var(--bg3); color: var(--text); }
@@ -47,14 +48,12 @@
   .bar-label { width: 180px; min-width: 140px; text-align: right; padding-right: 0.8rem; font-size: 0.82rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar { color: #fff; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; min-width: 28px; transition: width 0.4s ease; }
   .bar.blue { background: var(--accent); }
-  .bar.wr { /* colored dynamically */ }
 
   /* Optimizer recommendation */
   .rec-box { background: linear-gradient(135deg, #161b22 0%, #1a2332 100%); border: 1px solid var(--accent); border-radius: var(--radius); padding: 1.5rem; margin: 1rem 0; }
   .rec-box .faction-name { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
   .rec-box .det-name { font-size: 1rem; color: var(--accent2); margin-top: 0.2rem; }
   .rec-stats { display: flex; gap: 2rem; margin: 1rem 0; flex-wrap: wrap; }
-  .rec-stat { }
   .rec-stat .rv { font-size: 1.3rem; font-weight: 700; color: var(--text); }
   .rec-stat .rl { font-size: 0.75rem; color: var(--text2); }
 
@@ -96,9 +95,10 @@
 
 <div class="topbar">
   <h1>Listhammer</h1>
+  <span class="faction-badge" id="faction-name">—</span>
   <nav>
     <a href="#overview" class="active" data-tab="overview">Overview</a>
-    <a href="#factions" data-tab="factions">Factions</a>
+    <a href="#detachments" data-tab="detachments">Detachments</a>
     <a href="#optimizer" data-tab="optimizer">Optimizer</a>
     <a href="#players" data-tab="players">Players</a>
     <a href="#events" data-tab="events">Events</a>
@@ -117,32 +117,32 @@
     </section>
 
     <section>
-      <h2>Faction Representation</h2>
-      <div class="bar-chart" id="faction-bars"></div>
+      <h2>Detachment Popularity</h2>
+      <div class="bar-chart" id="det-bars"></div>
     </section>
 
     <section>
-      <h2>Faction Win Rates</h2>
-      <div class="bar-chart" id="winrate-bars"></div>
+      <h2>Detachment Win Rates</h2>
+      <div class="bar-chart" id="det-wr-bars"></div>
     </section>
 
     <section>
       <h2>Record Distribution</h2>
       <table id="record-table">
-        <thead><tr><th>Record</th><th>Count</th><th>%</th></tr></thead>
+        <thead><tr><th>Record</th><th class="num">Count</th><th class="num">%</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
   </div>
 
   <!-- ============================================================ -->
-  <!-- FACTIONS TAB -->
+  <!-- DETACHMENTS TAB -->
   <!-- ============================================================ -->
-  <div class="tab-content" id="tab-factions">
+  <div class="tab-content" id="tab-detachments">
     <section>
-      <h2>Faction Breakdown</h2>
-      <table id="faction-table">
-        <thead><tr><th>Faction</th><th class="num">Lists</th><th class="num">%</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Win Rate</th><th class="num">Undefeated</th></tr></thead>
+      <h2>Detachment Breakdown</h2>
+      <table id="detachment-table">
+        <thead><tr><th>Detachment</th><th class="num">Lists</th><th class="num">%</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Win%</th><th class="num">Undefeated</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -150,15 +150,7 @@
     <section>
       <h2>Undefeated Lists</h2>
       <table id="undefeated-table">
-        <thead><tr><th>Player</th><th>Faction</th><th>Record</th><th>Event</th><th>Detachment</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <section>
-      <h2>Detachment Popularity</h2>
-      <table id="detachment-table">
-        <thead><tr><th>Detachment</th><th class="num">Count</th><th class="num">%</th></tr></thead>
+        <thead><tr><th>Player</th><th>Detachment</th><th>Record</th><th>Event</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -186,7 +178,7 @@
     <section>
       <h2>Top Players</h2>
       <table id="players-table">
-        <thead><tr><th>Player</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Games</th><th class="num">Win%</th><th>Factions</th></tr></thead>
+        <thead><tr><th>Player</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Games</th><th class="num">Win%</th><th>Detachment</th><th>Event</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -212,15 +204,15 @@
   'use strict';
 
   // --- Tab navigation ---
-  const navLinks = document.querySelectorAll('.topbar nav a');
-  const tabs = document.querySelectorAll('.tab-content');
+  var navLinks = document.querySelectorAll('.topbar nav a');
+  var tabs = document.querySelectorAll('.tab-content');
 
   function switchTab(name) {
-    tabs.forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
-    navLinks.forEach(a => a.classList.toggle('active', a.dataset.tab === name));
+    tabs.forEach(function (t) { t.classList.toggle('active', t.id === 'tab-' + name); });
+    navLinks.forEach(function (a) { a.classList.toggle('active', a.dataset.tab === name); });
   }
 
-  navLinks.forEach(a => {
+  navLinks.forEach(function (a) {
     a.addEventListener('click', function (e) {
       e.preventDefault();
       switchTab(this.dataset.tab);
@@ -228,8 +220,7 @@
     });
   });
 
-  // Restore tab from hash
-  const hash = location.hash.replace('#', '');
+  var hash = location.hash.replace('#', '');
   if (hash && document.getElementById('tab-' + hash)) switchTab(hash);
 
   // --- Data inlined at build time by build-site.js ---
@@ -248,7 +239,6 @@
   if (INLINE_META || INLINE_OPT) {
     boot(INLINE_META, INLINE_OPT);
   } else {
-    // Fallback: try fetching from data/ (local dev with a server)
     function loadJSON(url) {
       return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
     }
@@ -261,61 +251,71 @@
   }
 
   // --- Helpers ---
-  function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
   function wrColor(wr) { return wr >= 55 ? 'var(--green)' : wr >= 45 ? 'var(--yellow)' : 'var(--red)'; }
 
-  // --- Render meta report ---
+  function card(val, label) {
+    return '<div class="card"><div class="val">' + val + '</div><div class="lbl">' + label + '</div></div>';
+  }
+
+  // --- Render meta report (single-faction focused) ---
   function renderMeta(r) {
-    // Timestamp
+    var faction = (r.meta && r.meta.faction) || '—';
+    document.getElementById('faction-name').textContent = faction;
+    document.title = faction + ' — Listhammer Meta Report';
+
     document.getElementById('timestamp').textContent =
       'Generated ' + (r.meta.generatedAt || '—') + '  |  Data from ' + (r.meta.crawledAt || '—');
 
     // Summary cards
-    const factions = r.factionBreakdown ? r.factionBreakdown.length : 0;
-    const undefeated = r.undefeatedLists ? r.undefeatedLists.length : 0;
-    const events = r.eventBreakdown ? r.eventBreakdown.length : 0;
+    var dets = r.detachmentBreakdown ? r.detachmentBreakdown.filter(function (d) { return d.detachment !== 'Unknown'; }).length : 0;
+    var undefeated = r.undefeatedLists ? r.undefeatedLists.length : 0;
+    var events = r.eventBreakdown ? r.eventBreakdown.length : 0;
+    // Compute overall win rate
+    var totalW = 0, totalG = 0;
+    if (r.detachmentBreakdown) {
+      r.detachmentBreakdown.forEach(function (d) { totalW += d.wins || 0; totalG += d.totalGames || 0; });
+    }
+    var overallWR = totalG > 0 ? (totalW / totalG * 100).toFixed(1) + '%' : 'N/A';
+
     document.getElementById('summary-cards').innerHTML =
       card(r.meta.totalLists, 'Total Lists') +
-      card(factions, 'Factions') +
+      card(dets, 'Detachments') +
       card(undefeated, 'Undefeated') +
+      card(overallWR, 'Overall Win Rate') +
       card(events, 'Events');
 
-    // Faction bars
-    if (r.factionBreakdown && r.factionBreakdown.length) {
-      const maxC = r.factionBreakdown[0].count || 1;
-      document.getElementById('faction-bars').innerHTML = r.factionBreakdown.map(function (f) {
-        var w = Math.max(3, Math.round((f.count / maxC) * 100));
-        return '<div class="bar-row"><span class="bar-label">' + esc(f.faction) + '</span><div class="bar blue" style="width:' + w + '%">' + f.count + '</div></div>';
+    // Detachment popularity bars
+    var realDets = (r.detachmentBreakdown || []).filter(function (d) { return d.detachment !== 'Unknown'; });
+    if (realDets.length > 0) {
+      var maxC = realDets[0].count || 1;
+      document.getElementById('det-bars').innerHTML = realDets.map(function (d) {
+        var w = Math.max(3, Math.round((d.count / maxC) * 100));
+        return '<div class="bar-row"><span class="bar-label">' + esc(d.detachment) + '</span><div class="bar blue" style="width:' + w + '%">' + d.count + ' (' + d.percentage + '%)</div></div>';
       }).join('');
     }
 
-    // Win rate bars
-    if (r.factionWinRates && r.factionWinRates.length) {
-      document.getElementById('winrate-bars').innerHTML = r.factionWinRates.map(function (f) {
-        var w = Math.max(3, Math.round(f.winRate));
-        return '<div class="bar-row"><span class="bar-label">' + esc(f.faction) + '</span><div class="bar" style="width:' + w + '%;background:' + wrColor(f.winRate) + '">' + f.winRate + '%</div></div>';
+    // Detachment win rate bars
+    var detsWithGames = realDets.filter(function (d) { return d.winRate != null; });
+    if (detsWithGames.length > 0) {
+      document.getElementById('det-wr-bars').innerHTML = detsWithGames.map(function (d) {
+        var w = Math.max(3, Math.round(d.winRate));
+        return '<div class="bar-row"><span class="bar-label">' + esc(d.detachment) + '</span><div class="bar" style="width:' + w + '%;background:' + wrColor(d.winRate) + '">' + d.winRate + '%</div></div>';
       }).join('');
     }
 
-    // Faction table
-    if (r.factionBreakdown) {
-      document.querySelector('#faction-table tbody').innerHTML = r.factionBreakdown.map(function (f) {
-        return '<tr><td>' + esc(f.faction) + '</td><td class="num">' + f.count + '</td><td class="num">' + f.percentage + '%</td><td class="num">' + f.wins + '</td><td class="num">' + f.losses + '</td><td class="num">' + f.draws + '</td><td class="num">' + f.winRate + '%</td><td class="num">' + f.undefeatedCount + '</td></tr>';
+    // Detachment table
+    if (r.detachmentBreakdown) {
+      document.querySelector('#detachment-table tbody').innerHTML = r.detachmentBreakdown.map(function (d) {
+        var wr = d.winRate != null ? d.winRate + '%' : 'N/A';
+        return '<tr><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.percentage + '%</td><td class="num">' + d.wins + '</td><td class="num">' + d.losses + '</td><td class="num">' + d.draws + '</td><td class="num">' + wr + '</td><td class="num">' + d.undefeatedCount + '</td></tr>';
       }).join('');
     }
 
     // Undefeated table
     if (r.undefeatedLists && r.undefeatedLists.length) {
       document.querySelector('#undefeated-table tbody').innerHTML = r.undefeatedLists.map(function (u) {
-        return '<tr><td>' + esc(u.player) + '</td><td>' + esc(u.faction) + '</td><td>' + esc(u.record) + '</td><td>' + esc(u.event) + '</td><td>' + esc(u.detachment) + '</td></tr>';
-      }).join('');
-    }
-
-    // Detachments
-    if (r.detachmentBreakdown) {
-      var dets = r.detachmentBreakdown.filter(function (d) { return d.detachment !== 'Unknown'; });
-      document.querySelector('#detachment-table tbody').innerHTML = dets.map(function (d) {
-        return '<tr><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.percentage + '%</td></tr>';
+        return '<tr><td>' + esc(u.player) + '</td><td>' + esc(u.detachment) + '</td><td>' + esc(u.record) + '</td><td>' + esc(u.event) + '</td></tr>';
       }).join('');
     }
 
@@ -329,23 +329,20 @@
     // Top players
     if (r.topPlayers && r.topPlayers.length) {
       document.querySelector('#players-table tbody').innerHTML = r.topPlayers.map(function (p) {
-        return '<tr><td>' + esc(p.player) + '</td><td class="num">' + p.wins + '</td><td class="num">' + p.losses + '</td><td class="num">' + p.draws + '</td><td class="num">' + p.games + '</td><td class="num">' + p.winRate + '%</td><td>' + esc(p.factions.join(', ')) + '</td></tr>';
+        return '<tr><td>' + esc(p.player) + '</td><td class="num">' + p.wins + '</td><td class="num">' + p.losses + '</td><td class="num">' + p.draws + '</td><td class="num">' + p.games + '</td><td class="num">' + p.winRate + '%</td><td>' + esc(p.detachments.join(', ')) + '</td><td>' + esc(p.events.join(', ')) + '</td></tr>';
       }).join('');
     }
 
     // Events
     if (r.eventBreakdown && r.eventBreakdown.length) {
       document.getElementById('events-content').innerHTML = r.eventBreakdown.map(function (e) {
-        var fList = (e.factions || []).slice(0, 5).map(function (f) {
-          return '<li>' + esc(f.name) + ': ' + f.count + '</li>';
+        var dList = (e.detachments || []).slice(0, 5).map(function (d) {
+          return '<li>' + esc(d.name) + ': ' + d.count + '</li>';
         }).join('');
-        return '<div class="reasoning-section"><h4>' + esc(e.event) + ' <span style="color:var(--text2);font-weight:normal">(' + e.listCount + ' lists)</span></h4><p>Top faction: <strong>' + esc(e.topFaction) + '</strong></p><ul style="margin:0.5rem 0 0 1.5rem;color:var(--text2)">' + fList + '</ul></div>';
+        var rec = e.wins || e.losses ? ' — ' + e.wins + 'W / ' + e.losses + 'L' : '';
+        return '<div class="reasoning-section"><h4>' + esc(e.event) + ' <span style="color:var(--text2);font-weight:normal">(' + e.listCount + ' lists' + rec + ')</span></h4><p>Top detachment: <strong>' + esc(e.topDetachment) + '</strong></p><ul style="margin:0.5rem 0 0 1.5rem;color:var(--text2)">' + dList + '</ul></div>';
       }).join('');
     }
-  }
-
-  function card(val, label) {
-    return '<div class="card"><div class="val">' + val + '</div><div class="lbl">' + label + '</div></div>';
   }
 
   // --- Render optimizer ---
@@ -372,20 +369,9 @@
     html += '</div>';
     html += '</div>';
 
-    // Faction rankings
-    if (o.factionRankings && o.factionRankings.length) {
-      html += '<h3>Faction Rankings</h3>';
-      html += '<table><thead><tr><th>#</th><th>Faction</th><th class="num">Score</th><th class="num">WR%</th><th class="num">Undefeated</th><th class="num">Lists</th></tr></thead><tbody>';
-      o.factionRankings.slice(0, 15).forEach(function (f, i) {
-        var highlight = f.faction === rec.faction ? ' style="background:var(--bg3)"' : '';
-        html += '<tr' + highlight + '><td>' + (i + 1) + '</td><td>' + esc(f.faction) + '</td><td class="num">' + f.score + '</td><td class="num">' + f.winRate + '%</td><td class="num">' + f.undefeatedCount + '</td><td class="num">' + f.listCount + '</td></tr>';
-      });
-      html += '</tbody></table>';
-    }
-
     // Detachment analysis
     if (o.detachmentAnalysis && o.detachmentAnalysis.length) {
-      html += '<h3>Detachments for ' + esc(rec.faction) + '</h3>';
+      html += '<h3>Detachment Comparison</h3>';
       html += '<table><thead><tr><th>Detachment</th><th class="num">Lists</th><th class="num">WR%</th><th class="num">Undefeated</th></tr></thead><tbody>';
       o.detachmentAnalysis.forEach(function (d) {
         var highlight = d.detachment === rec.detachment ? ' style="background:var(--bg3)"' : '';
