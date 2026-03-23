@@ -1,0 +1,79 @@
+name: Crawl, Analyse & Deploy
+
+on:
+  # Run daily at 06:00 UTC
+  schedule:
+    - cron: '0 6 * * *'
+  # Manual trigger from the Actions tab
+  workflow_dispatch:
+    inputs:
+      game:
+        description: 'Game system to crawl (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - '40k'
+          - 'aos'
+
+# Only one run at a time
+concurrency:
+  group: crawl-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  crawl-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Crawl listhammer.info
+        run: |
+          GAME_FLAG=""
+          if [ -n "${{ github.event.inputs.game }}" ]; then
+            GAME_FLAG="--game ${{ github.event.inputs.game }}"
+          fi
+          node crawler.js $GAME_FLAG --delay 2000
+        timeout-minutes: 30
+
+      - name: Generate meta report
+        run: node report.js --format json
+
+      - name: Run army optimizer
+        run: node optimizer.js --format json
+
+      - name: Build site
+        run: node build-site.js
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
