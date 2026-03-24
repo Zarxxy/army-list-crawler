@@ -170,7 +170,9 @@ async function main() {
         console.log(`    faction:    ${JSON.stringify(e.faction)}`);
         console.log(`    event:      ${JSON.stringify(e.event)}`);
         console.log(`    record:     ${JSON.stringify(e.record)}`);
+        console.log(`    detachment: ${JSON.stringify(e.detachment)}`);
         console.log(`    detailUrl:  ${JSON.stringify(e.detailUrl)}`);
+        console.log(`    armyList:   ${e.armyListText ? e.armyListText.substring(0, 150) + '...' : '(none)'}`);
         if (e.rawText) console.log(`    rawText:    ${JSON.stringify(e.rawText.substring(0, 200))}`);
         if (e.rawCells) console.log(`    rawCells:   ${JSON.stringify(e.rawCells.slice(0, 6))}`);
       }
@@ -431,12 +433,29 @@ async function crawlListSection(page, section, delayMs, maxPages) {
 
     if (entries.length === 0) break;
 
-    // For each entry, try to get the full list details
+    // For each entry, try to expand its row to get the army list text.
+    // Listhammer uses inline expandable rows — clicking a row reveals
+    // a dropdown with the full army list, rather than navigating to a detail page.
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
       console.log(`  [${i + 1}/${entries.length}] ${entry.playerName || entry.faction || 'Unknown'}`);
 
-      if (entry.detailUrl) {
+      // Try to click the row to expand inline army list dropdown
+      if (!entry.armyListText) {
+        const armyText = await expandRowAndExtract(page, i, delayMs);
+        if (armyText) {
+          entry.armyListText = armyText;
+          // Extract detachment from the army list text
+          const detMatch = armyText.match(/Detachment:\s*(.+?)(?:\n|$)/i) ||
+                           armyText.match(/Detachment\s*[-–:]\s*(.+?)(?:\n|$)/i);
+          if (detMatch && !entry.detachment) {
+            entry.detachment = detMatch[1].trim();
+          }
+        }
+      }
+
+      // Fallback: navigate to detail page if we have a URL and still no list text
+      if (!entry.armyListText && entry.detailUrl) {
         const details = await crawlListDetail(page, entry.detailUrl, delayMs);
         allLists.push({ ...entry, ...details });
       } else {
@@ -450,6 +469,9 @@ async function crawlListSection(page, section, delayMs, maxPages) {
 
     await sleep(delayMs);
   }
+
+  const withArmy = allLists.filter(l => l.armyListText).length;
+  console.log(`  Section complete: ${allLists.length} entries, ${withArmy} with army list text`);
 
   return allLists;
 }
@@ -1036,6 +1058,198 @@ function reorderParsedParts(parts, factionPatterns, detachmentNames) {
 /**
  * Crawl a single army list detail page to get the full list content.
  */
+/**
+ * Click on a table row to expand its inline dropdown and extract the army list text.
+ * Listhammer.info uses expandable table rows — clicking a row reveals the full list.
+ * Returns the army list text or null if extraction failed.
+ */
+async function expandRowAndExtract(page, rowIndex, delayMs) {
+  try {
+    // Get the current number of visible elements before clicking
+    const beforeState = await page.evaluate(() => {
+      return {
+        expandedCount: document.querySelectorAll(
+          'tr.expanded, tr.open, tr.active, tr[class*="expand"], ' +
+          'tr + tr.detail, tr + tr[class*="detail"], tr + tr[class*="content"], ' +
+          'div[class*="expand"], div[class*="dropdown"], div[class*="collapse"][class*="show"], ' +
+          'div[class*="army"], div[class*="list-content"], pre, code.army-list'
+        ).length,
+        bodyHeight: document.body.scrollHeight,
+      };
+    });
+
+    // Find clickable elements in the row — try the expand icon/button first, then the row itself
+    const clicked = await page.evaluate((idx) => {
+      const table = document.querySelector('table');
+      if (!table) return false;
+
+      // Get data rows (skip header)
+      const allRows = table.querySelectorAll('tbody tr, tr');
+      const dataRows = [];
+      for (const row of allRows) {
+        if (row.closest('thead')) continue;
+        if (row.querySelectorAll('th').length === row.querySelectorAll('td, th').length) continue;
+        // Skip rows that look like expanded detail rows (no regular cells, or single wide cell)
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 1 && cells[0].colSpan > 1) continue;
+        if (cells.length < 2) continue;
+        dataRows.push(row);
+      }
+
+      if (idx >= dataRows.length) return false;
+      const targetRow = dataRows[idx];
+
+      // Try clicking expand icon/button first (often first cell has an arrow/chevron)
+      const expandBtn = targetRow.querySelector(
+        'button, [class*="expand"], [class*="toggle"], [class*="chevron"], ' +
+        '[class*="arrow"], [class*="icon"], td:first-child svg, td:first-child i, ' +
+        'td:first-child span[class], details summary'
+      );
+      if (expandBtn) {
+        expandBtn.click();
+        return true;
+      }
+
+      // Click the row itself
+      targetRow.click();
+      return true;
+    }, rowIndex);
+
+    if (!clicked) return null;
+
+    // Wait for the dropdown to appear
+    await sleep(800);
+
+    // Try to detect and extract the expanded army list content
+    const armyText = await page.evaluate((idx) => {
+      const table = document.querySelector('table');
+      if (!table) return null;
+
+      // Strategy 1: Look for a new detail/expanded row that appeared after the clicked row
+      const allRows = table.querySelectorAll('tbody tr, tr');
+      const dataRows = [];
+      const allRowsList = [];
+      for (const row of allRows) {
+        if (row.closest('thead')) continue;
+        allRowsList.push(row);
+        const cells = row.querySelectorAll('td');
+        const isDetailRow = (cells.length === 1 && cells[0].colSpan > 1) ||
+                            row.classList.toString().match(/detail|expand|content|collapse/i);
+        if (!isDetailRow && cells.length >= 2) {
+          dataRows.push({ row, indexInAll: allRowsList.length - 1 });
+        }
+      }
+
+      if (idx >= dataRows.length) return null;
+
+      const targetAllIdx = dataRows[idx].indexInAll;
+
+      // Check the row right after our target in the full row list
+      for (let i = targetAllIdx + 1; i < allRowsList.length && i <= targetAllIdx + 3; i++) {
+        const nextRow = allRowsList[i];
+        const cells = nextRow.querySelectorAll('td');
+        const text = nextRow.textContent.trim();
+
+        // Expanded detail rows typically have a single cell spanning multiple columns
+        // or contain army list keywords
+        if (
+          text.length > 50 &&
+          (
+            (cells.length === 1 && cells[0].colSpan > 1) ||
+            nextRow.classList.toString().match(/detail|expand|content|collapse|open|active/i) ||
+            text.includes('pts') || text.includes('Detachment') ||
+            text.includes('Enhancement') || text.includes('Warlord') ||
+            text.includes('points')
+          )
+        ) {
+          return text.substring(0, 10000);
+        }
+      }
+
+      // Strategy 2: Look for expanded content anywhere on the page
+      // (some frameworks render the dropdown outside the table)
+      const expandedEls = document.querySelectorAll(
+        '.expanded-content, [class*="army-list"], [class*="list-detail"], ' +
+        '[class*="dropdown-content"], [class*="collapse show"], [class*="panel-open"], ' +
+        'div[class*="expand"][style*="display: block"], div[class*="expand"]:not([style*="display: none"]), ' +
+        'pre, code'
+      );
+      for (const el of expandedEls) {
+        const text = el.textContent.trim();
+        if (
+          text.length > 50 &&
+          (text.includes('pts') || text.includes('Detachment') ||
+           text.includes('Enhancement') || text.includes('Warlord'))
+        ) {
+          return text.substring(0, 10000);
+        }
+      }
+
+      // Strategy 3: Check if the page DOM grew — find any new large text blocks
+      // Look for any visible element with army list content
+      const allDivs = document.querySelectorAll('div, section, article, td');
+      for (const el of allDivs) {
+        // Only check elements that are visible and not the table itself
+        if (el.closest('thead') || el === table) continue;
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') continue;
+
+        const text = el.textContent.trim();
+        // Army list text is typically 200+ chars and contains point values
+        if (text.length > 200 && text.length < 15000) {
+          const hasPts = (text.match(/\d+\s*pts/gi) || []).length >= 3;
+          if (hasPts) {
+            // Make sure we get the most specific element
+            const children = el.querySelectorAll('div, section, article');
+            let childMatches = false;
+            for (const child of children) {
+              const childText = child.textContent.trim();
+              if (childText.length > 200 && (childText.match(/\d+\s*pts/gi) || []).length >= 3) {
+                childMatches = true;
+                break;
+              }
+            }
+            if (!childMatches) {
+              return text.substring(0, 10000);
+            }
+          }
+        }
+      }
+
+      return null;
+    }, rowIndex);
+
+    // Collapse the row again by clicking it (to avoid DOM pollution for next row)
+    await page.evaluate((idx) => {
+      const table = document.querySelector('table');
+      if (!table) return;
+      const allRows = table.querySelectorAll('tbody tr, tr');
+      const dataRows = [];
+      for (const row of allRows) {
+        if (row.closest('thead')) continue;
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 1 && cells[0].colSpan > 1) continue;
+        if (cells.length < 2) continue;
+        dataRows.push(row);
+      }
+      if (idx < dataRows.length) {
+        const expandBtn = dataRows[idx].querySelector(
+          'button, [class*="expand"], [class*="toggle"], [class*="chevron"], ' +
+          '[class*="arrow"], [class*="icon"], td:first-child svg, td:first-child i'
+        );
+        if (expandBtn) expandBtn.click();
+        else dataRows[idx].click();
+      }
+    }, rowIndex);
+    await sleep(300);
+
+    return armyText;
+  } catch (err) {
+    console.warn(`    Failed to expand row ${rowIndex}: ${err.message}`);
+    return null;
+  }
+}
+
 async function crawlListDetail(page, url, delayMs) {
   const currentUrl = page.url();
 
