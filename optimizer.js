@@ -193,8 +193,11 @@ function optimize(lists, metaReport) {
   const totalUndefeated = (metaReport.undefeatedLists || []).length;
   const overallWinRate = pct(totalWins, totalGames);
 
-  // Best detachment = highest win rate with at least 2 appearances
-  const bestDetachment = detachmentStats.find((d) => d.count >= 2) || detachmentStats[0];
+  // Best detachment = most popular (highest count), not highest win rate
+  const bestDetachment = detachmentStats.slice().sort((a, b) => b.count - a.count)[0];
+
+  // Sort detachments by popularity for display
+  const detachmentsByPopularity = detachmentStats.slice().sort((a, b) => b.count - a.count);
 
   // Categorise lists by performance
   const winningLists = lists.filter((l) => {
@@ -223,8 +226,8 @@ function optimize(lists, metaReport) {
   // Enhancement analysis
   const enhancementAnalysis = analyseEnhancements(analysisSet);
 
-  // Build the concrete army list
-  const concreteList = buildConcreteArmy(analysisSet, parsedUndefeated, bestDetachment, unitAnalysis);
+  // Build the concrete army list from aggregate data
+  const concreteList = buildConcreteArmy(analysisSet, parsedUndefeated, bestDetachment, unitAnalysis, enhancementAnalysis);
 
   // Co-occurrence analysis — which units tend to appear together in winning lists
   const coOccurrence = analyseCoOccurrence(analysisSet);
@@ -250,7 +253,7 @@ function optimize(lists, metaReport) {
       score: Math.round(overallWinRate * 3 + totalUndefeated * 10),
     },
     concreteList,
-    detachmentAnalysis: detachmentStats,
+    detachmentAnalysis: detachmentsByPopularity,
     unitAnalysis,
     enhancementAnalysis,
     coOccurrence: coOccurrence.slice(0, 15),
@@ -378,96 +381,64 @@ function analyseCoOccurrence(parsedLists) {
 // Build a concrete recommended army list (~2000pts)
 // ---------------------------------------------------------------------------
 
-function buildConcreteArmy(parsedLists, parsedUndefeated, bestDetachment, unitAnalysis) {
-  // Strategy: Find the most "average" winning list composition.
-  // 1. Score each parsed list by how well it represents the meta (sum of unit frequencies)
-  // 2. Use the highest-scoring list as the template
-  // 3. Alternatively, if we have undefeated lists, prefer those
+function buildConcreteArmy(parsedLists, parsedUndefeated, bestDetachment, unitAnalysis, enhancementAnalysis) {
+  // Strategy: Build the "best" list from aggregate data across ALL lists.
+  // The most popular units (by frequency) are the ones that keep showing up
+  // in tournament lists — that's the meta telling us what works.
+  //
+  // 1. Pick the most popular detachment (already done — bestDetachment is by count)
+  // 2. Add units sorted by frequency, respecting typical copy counts
+  // 3. Fill up to ~2000pts
+  // 4. Pick the most popular enhancements
 
-  const candidates = parsedUndefeated.length > 0 ? parsedUndefeated : parsedLists;
-
-  // Build a frequency map from unit analysis for quick lookup
-  const freqMap = {};
-  for (const u of unitAnalysis.units) {
-    freqMap[u.name] = u.frequency;
-  }
-
-  // Score each list: sum of unit frequencies (higher = more "meta-representative")
-  let bestList = null;
-  let bestScore = -1;
-
-  for (const list of candidates) {
-    const unitNames = [...new Set(list.parsed.units.map((u) => u.name))];
-    const score = unitNames.reduce((s, name) => s + (freqMap[name] || 0), 0);
-    if (score > bestScore) {
-      bestScore = score;
-      bestList = list;
-    }
-  }
-
-  if (!bestList) {
-    return buildSyntheticArmy(unitAnalysis, bestDetachment);
-  }
-
-  // Build the concrete list from the template
-  const templateUnits = bestList.parsed.units.map((u) => {
-    const analysis = unitAnalysis.units.find((a) => a.name === u.name);
-    return {
-      name: u.name,
-      points: u.points,
-      metaFrequency: analysis ? analysis.frequency : 0,
-      tier: analysis ? (analysis.frequency >= 40 ? 'core' : analysis.frequency >= 20 ? 'common' : 'flex') : 'flex',
-    };
-  });
-
-  const totalPoints = templateUnits.reduce((s, u) => s + u.points, 0);
-
-  return {
-    source: bestList.record && bestList.record.losses === 0 ? 'undefeated' : 'top-performing',
-    sourcePlayer: bestList.playerName || bestList.player || 'Unknown',
-    sourceEvent: bestList.event || 'Unknown',
-    sourceRecord: bestList.record ? `${bestList.record.wins}-${bestList.record.losses}-${bestList.record.draws}` : 'N/A',
-    detachment: bestList.parsed.detachment || bestDetachment.detachment,
-    enhancements: bestList.parsed.enhancements,
-    warlord: bestList.parsed.warlord,
-    units: templateUnits,
-    totalPoints,
-    metaScore: Math.round(bestScore),
-  };
-}
-
-// Fallback: synthesise a list from the most popular units
-function buildSyntheticArmy(unitAnalysis, bestDetachment) {
   const units = [];
-  let points = 0;
+  let totalPoints = 0;
 
-  for (const u of unitAnalysis.units) {
-    if (points + u.typicalPoints > TARGET_POINTS + 50) continue;
-    const copies = Math.min(Math.round(u.avgCopies), u.typicalPoints > 0 ? Math.floor((TARGET_POINTS - points) / u.typicalPoints) : 1);
-    for (let i = 0; i < Math.max(1, copies); i++) {
-      if (points + u.typicalPoints > TARGET_POINTS + 50) break;
+  // Sort units by frequency (most common first) — this is the core signal
+  const sortedUnits = unitAnalysis.units
+    .filter((u) => u.typicalPoints > 0)
+    .sort((a, b) => b.frequency - a.frequency || b.appearances - a.appearances);
+
+  for (const u of sortedUnits) {
+    if (totalPoints >= TARGET_POINTS) break;
+
+    // How many copies of this unit do lists typically run?
+    const copies = Math.max(1, Math.round(u.avgCopies));
+
+    for (let c = 0; c < copies; c++) {
+      if (totalPoints + u.typicalPoints > TARGET_POINTS + 50) break;
       units.push({
         name: u.name,
         points: u.typicalPoints,
         metaFrequency: u.frequency,
+        avgCopies: u.avgCopies,
         tier: u.frequency >= 40 ? 'core' : u.frequency >= 20 ? 'common' : 'flex',
       });
-      points += u.typicalPoints;
+      totalPoints += u.typicalPoints;
     }
-    if (points >= TARGET_POINTS - 100) break;
   }
 
+  // Pick the top enhancements
+  const topEnhancements = enhancementAnalysis.enhancements.slice(0, 4).map((e) => e.name);
+
+  // Find the most common warlord across parsed lists
+  const warlordCounts = {};
+  for (const list of parsedLists) {
+    if (list.parsed.warlord) {
+      warlordCounts[list.parsed.warlord] = (warlordCounts[list.parsed.warlord] || 0) + 1;
+    }
+  }
+  const topWarlord = Object.entries(warlordCounts).sort((a, b) => b[1] - a[1])[0];
+
   return {
-    source: 'synthetic',
-    sourcePlayer: null,
-    sourceEvent: null,
-    sourceRecord: null,
+    source: 'aggregate',
+    basedOnLists: parsedLists.length,
     detachment: bestDetachment.detachment,
-    enhancements: [],
-    warlord: null,
+    detachmentFrequency: pct(bestDetachment.count, parsedLists.length + (parsedLists.length === 0 ? 1 : 0)),
+    enhancements: topEnhancements,
+    warlord: topWarlord ? topWarlord[0] : null,
     units,
-    totalPoints: points,
-    metaScore: 0,
+    totalPoints,
   };
 }
 
@@ -565,17 +536,12 @@ function renderText(result) {
   const cl = result.concreteList;
   if (cl) {
     lines.push(hr2);
-    lines.push('  RECOMMENDED ARMY LIST');
+    lines.push('  RECOMMENDED ARMY LIST (built from aggregate meta data)');
     lines.push(hr2);
-    if (cl.source !== 'synthetic') {
-      lines.push(`  Based on: ${cl.sourcePlayer} (${cl.sourceRecord}) at ${cl.sourceEvent}`);
-      lines.push(`  Source: ${cl.source === 'undefeated' ? 'Undefeated list' : 'Top-performing list'}`);
-    } else {
-      lines.push(`  Source: Synthesised from most common units`);
-    }
-    lines.push(`  Detachment: ${cl.detachment}`);
+    lines.push(`  Based on: ${cl.basedOnLists} tournament lists`);
+    lines.push(`  Detachment: ${cl.detachment} (${cl.detachmentFrequency}% of lists)`);
     if (cl.warlord) lines.push(`  Warlord: ${cl.warlord}`);
-    if (cl.enhancements.length > 0) lines.push(`  Enhancements: ${cl.enhancements.join(', ')}`);
+    if (cl.enhancements && cl.enhancements.length > 0) lines.push(`  Enhancements: ${cl.enhancements.join(', ')}`);
     lines.push(`  Total: ${cl.totalPoints}pts`);
     lines.push('');
 

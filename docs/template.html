@@ -369,31 +369,25 @@
     html += '</div>';
     html += '</div>';
 
-    // Concrete army list
+    // Concrete army list — built from aggregate data across all lists
     if (cl && cl.units && cl.units.length) {
       html += '<h3>Recommended Army List — ' + cl.totalPoints + 'pts</h3>';
-      if (cl.source !== 'synthetic') {
-        html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Based on <strong>' + esc(cl.sourcePlayer) + '</strong> (' + esc(cl.sourceRecord) + ') at ' + esc(cl.sourceEvent) + ' — ' + (cl.source === 'undefeated' ? 'Undefeated list' : 'Top-performing list') + '</p>';
-      } else {
-        html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Synthesised from the most common units across winning lists</p>';
-      }
+      html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Built from the most popular units across ' + cl.basedOnLists + ' tournament lists. The most-played units are the meta.</p>';
 
       // List header
-      if (cl.detachment || cl.warlord || cl.enhancements.length) {
-        html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:0.8rem;font-size:0.88rem">';
-        if (cl.detachment) html += '<div><span style="color:var(--text2)">Detachment:</span> <strong>' + esc(cl.detachment) + '</strong></div>';
-        if (cl.warlord) html += '<div><span style="color:var(--text2)">Warlord:</span> ' + esc(cl.warlord) + '</div>';
-        if (cl.enhancements.length) html += '<div><span style="color:var(--text2)">Enhancements:</span> ' + cl.enhancements.map(function(e) { return esc(e); }).join(', ') + '</div>';
-        html += '</div>';
-      }
+      html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:0.8rem;font-size:0.88rem">';
+      if (cl.detachment) html += '<div><span style="color:var(--text2)">Detachment:</span> <strong>' + esc(cl.detachment) + '</strong> <span style="color:var(--text2)">(' + cl.detachmentFrequency + '% of lists)</span></div>';
+      if (cl.warlord) html += '<div><span style="color:var(--text2)">Warlord:</span> ' + esc(cl.warlord) + '</div>';
+      if (cl.enhancements && cl.enhancements.length) html += '<div><span style="color:var(--text2)">Enhancements:</span> ' + cl.enhancements.map(function(e) { return esc(e); }).join(', ') + '</div>';
+      html += '</div>';
 
       // Group by tier
       var tiers = { core: [], common: [], flex: [] };
       cl.units.forEach(function (u) { (tiers[u.tier] || tiers.flex).push(u); });
 
-      if (tiers.core.length) html += tierBlock('Core Units — Must Takes', 'core', tiers.core);
-      if (tiers.common.length) html += tierBlock('Common Picks', 'common', tiers.common);
-      if (tiers.flex.length) html += tierBlock('Flex Slots', 'flex', tiers.flex);
+      if (tiers.core.length) html += tierBlock('Core Units — In 40%+ of lists', 'core', tiers.core);
+      if (tiers.common.length) html += tierBlock('Common Picks — In 20-39% of lists', 'common', tiers.common);
+      if (tiers.flex.length) html += tierBlock('Flex Slots — In &lt;20% of lists', 'flex', tiers.flex);
     }
 
     // Detachment comparison
