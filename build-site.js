@@ -66,11 +66,30 @@ function main() {
     console.warn('  Warning: optimizer report not found — run "npm run optimize" first');
   }
 
+  // AI analysis report
+  const aiSrc = path.join(reportsDir, 'ai-analysis-latest.json');
+  let aiJSON = 'null';
+  if (fs.existsSync(aiSrc)) {
+    const aiData = JSON.parse(fs.readFileSync(aiSrc, 'utf-8'));
+    // Only embed if the analysis was not skipped / is not an empty placeholder
+    if (!aiData.skipped) {
+      aiJSON = JSON.stringify(aiData);
+      fs.copyFileSync(aiSrc, path.join(dataDir, 'ai-analysis.json'));
+      console.log('  Embedded AI analysis');
+      embedded++;
+    } else {
+      console.warn(`  AI analysis skipped (${aiData.reason || 'no reason given'}) — not embedded`);
+    }
+  } else {
+    console.warn('  Warning: AI analysis not found — run "npm run ai-analysis" first');
+  }
+
   // Inject data into the template
   // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
   // We need to replace both the comment AND the trailing null to avoid syntax errors
   html = html.replace('/*__META_REPORT_DATA__*/null', metaJSON);
   html = html.replace('/*__OPTIMIZER_DATA__*/null', optJSON);
+  html = html.replace('/*__AI_ANALYSIS_DATA__*/null', aiJSON);
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 

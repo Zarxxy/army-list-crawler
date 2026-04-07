@@ -89,6 +89,34 @@
   /* Loading / empty */
   .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text2); }
   .notice code { background: var(--bg3); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+
+  /* AI Analysis */
+  .ai-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(90deg,#1a2332,#1c2a1c); border: 1px solid #2ecc71; border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.78rem; color: var(--green); margin-bottom: 1.2rem; }
+  .ai-summary { background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.2rem 1.4rem; margin: 1rem 0; line-height: 1.8; color: var(--text); font-size: 0.92rem; white-space: pre-wrap; }
+  .tier-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0; }
+  .tier-card { border-radius: var(--radius); overflow: hidden; }
+  .tier-card-header { padding: 0.5rem 1rem; font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; }
+  .tier-card-header.tier-S { background: linear-gradient(90deg,#f39c12,#e67e22); color: #000; }
+  .tier-card-header.tier-A { background: linear-gradient(90deg,#2ecc71,#27ae60); color: #000; }
+  .tier-card-header.tier-B { background: linear-gradient(90deg,#3498db,#2980b9); color: #fff; }
+  .tier-card-header.tier-C { background: linear-gradient(90deg,#8b949e,#636d76); color: #fff; }
+  .tier-card-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; padding: 0.8rem 1rem; font-size: 0.87rem; color: var(--text2); line-height: 1.6; }
+  .tier-card-body strong { color: var(--text); }
+  .ai-section { margin: 1.5rem 0; }
+  .ai-prose { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; font-size: 0.9rem; color: var(--text); line-height: 1.8; white-space: pre-wrap; }
+  .key-units-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 0.6rem; margin: 0.8rem 0; }
+  .key-unit-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 0.9rem; }
+  .key-unit-card .ku-name { font-weight: 600; color: var(--accent2); margin-bottom: 0.2rem; font-size: 0.88rem; }
+  .key-unit-card .ku-role { font-size: 0.8rem; color: var(--text2); }
+  .key-unit-card .ku-freq { font-size: 0.75rem; color: var(--green); margin-top: 0.2rem; }
+  .tips-list { list-style: none; margin: 0.5rem 0; }
+  .tips-list li { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 1rem; margin: 0.4rem 0; font-size: 0.88rem; color: var(--text); display: flex; gap: 0.6rem; }
+  .tips-list li::before { content: "▸"; color: var(--accent); flex-shrink: 0; }
+  .synergy-list { margin: 0.5rem 0; }
+  .synergy-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 1rem; margin: 0.4rem 0; font-size: 0.87rem; }
+  .synergy-item .syn-units { color: var(--accent2); font-weight: 600; margin-bottom: 0.2rem; }
+  .synergy-item .syn-exp { color: var(--text2); }
+  .roster-block { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; font-family: 'Courier New', Courier, monospace; font-size: 0.83rem; color: var(--text); white-space: pre-wrap; line-height: 1.7; }
 </style>
 </head>
 <body>
@@ -98,6 +126,7 @@
   <span class="faction-badge" id="faction-name">—</span>
   <nav>
     <a href="#overview" class="active" data-tab="overview">Overview</a>
+    <a href="#ai-analysis" data-tab="ai-analysis">AI Analysis</a>
     <a href="#detachments" data-tab="detachments">Detachments</a>
     <a href="#optimizer" data-tab="optimizer">Optimizer</a>
     <a href="#players" data-tab="players">Players</a>
@@ -132,6 +161,21 @@
         <thead><tr><th>Record</th><th class="num">Count</th><th class="num">%</th></tr></thead>
         <tbody></tbody>
       </table>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- AI ANALYSIS TAB -->
+  <!-- ============================================================ -->
+  <div class="tab-content" id="tab-ai-analysis">
+    <section>
+      <h2>AI Meta Analysis</h2>
+      <div id="ai-analysis-content">
+        <div class="notice">
+          <p>No AI analysis available yet.</p>
+          <p>Set <code>ANTHROPIC_API_KEY</code> as a repository secret in GitHub Actions, then run the workflow.</p>
+        </div>
+      </div>
     </section>
   </div>
 
@@ -226,28 +270,32 @@
   // --- Data inlined at build time by build-site.js ---
   var INLINE_META = /*__META_REPORT_DATA__*/null;
   var INLINE_OPT  = /*__OPTIMIZER_DATA__*/null;
+  var INLINE_AI   = /*__AI_ANALYSIS_DATA__*/null;
 
-  function boot(metaReport, optimizerReport) {
+  function boot(metaReport, optimizerReport, aiAnalysis) {
     if (metaReport) renderMeta(metaReport);
     if (optimizerReport) renderOptimizer(optimizerReport);
+    if (aiAnalysis) renderAIAnalysis(aiAnalysis);
     if (!metaReport && !optimizerReport) {
       document.getElementById('summary-cards').innerHTML =
         '<div class="notice" style="grid-column:1/-1"><p>No data available yet.</p><p>The GitHub Actions workflow runs daily to refresh data.</p></div>';
     }
   }
 
-  if (INLINE_META || INLINE_OPT) {
-    boot(INLINE_META, INLINE_OPT);
+  if (INLINE_META || INLINE_OPT || INLINE_AI) {
+    boot(INLINE_META, INLINE_OPT, INLINE_AI);
   } else {
     function loadJSON(url) {
       return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
     }
     var metaReport = null;
     var optimizerReport = null;
+    var aiAnalysis = null;
     Promise.allSettled([
       loadJSON('data/meta-report.json').then(function (d) { metaReport = d; }),
       loadJSON('data/optimizer.json').then(function (d) { optimizerReport = d; }),
-    ]).then(function () { boot(metaReport, optimizerReport); });
+      loadJSON('data/ai-analysis.json').then(function (d) { aiAnalysis = d; }),
+    ]).then(function () { boot(metaReport, optimizerReport, aiAnalysis); });
   }
 
   // --- Helpers ---
@@ -444,6 +492,129 @@
     });
     h += '</div></div>';
     return h;
+  }
+
+  // --- Render AI analysis ---
+  function renderAIAnalysis(ai) {
+    var el = document.getElementById('ai-analysis-content');
+    if (!ai || ai.skipped) {
+      var reason = ai && ai.reason ? ai.reason : 'ANTHROPIC_API_KEY not set';
+      el.innerHTML = '<div class="notice"><p>AI analysis not available.</p><p>Reason: ' + esc(reason) + '</p><p>Set <code>ANTHROPIC_API_KEY</code> as a GitHub Actions secret and re-run the workflow.</p></div>';
+      return;
+    }
+
+    var html = '';
+
+    // Badge + timestamp
+    html += '<div class="ai-badge">&#9881; Generated by ' + esc(ai.model || 'Claude AI') + ' &middot; ' + esc(ai.generatedAt || '') + '</div>';
+
+    // Meta summary
+    if (ai.metaSummary) {
+      html += '<div class="ai-section">';
+      html += '<h3>Meta Summary</h3>';
+      html += '<div class="ai-summary">' + esc(ai.metaSummary) + '</div>';
+      html += '</div>';
+    }
+
+    // Detachment tier list
+    if (ai.detachmentTierList && ai.detachmentTierList.length) {
+      html += '<div class="ai-section">';
+      html += '<h3>Detachment Tier List</h3>';
+      html += '<div class="tier-list">';
+      ai.detachmentTierList.forEach(function (d) {
+        var tierCls = 'tier-' + (d.tier || 'B');
+        html += '<div class="tier-card">';
+        html += '<div class="tier-card-header ' + tierCls + '">[' + esc(d.tier) + '] ' + esc(d.detachment) + '</div>';
+        html += '<div class="tier-card-body">';
+        if (d.winRate) html += '<div><strong>Win Rate:</strong> ' + esc(String(d.winRate)) + '</div>';
+        if (d.listCount) html += '<div><strong>Lists:</strong> ' + esc(String(d.listCount)) + '</div>';
+        if (d.undefeated) html += '<div><strong>Undefeated:</strong> ' + esc(String(d.undefeated)) + '</div>';
+        if (d.reasoning) html += '<div style="margin-top:0.5rem">' + esc(d.reasoning) + '</div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // Best list analysis
+    if (ai.bestListAnalysis) {
+      var bla = ai.bestListAnalysis;
+      html += '<div class="ai-section">';
+      html += '<h3>Best List Analysis' + (bla.detachment ? ' — ' + esc(bla.detachment) : '') + '</h3>';
+
+      if (bla.overview) {
+        html += '<div class="ai-prose">' + esc(bla.overview) + '</div>';
+      }
+
+      if (bla.keyUnits && bla.keyUnits.length) {
+        html += '<h3>Key Units</h3>';
+        html += '<div class="key-units-grid">';
+        bla.keyUnits.forEach(function (u) {
+          html += '<div class="key-unit-card">';
+          html += '<div class="ku-name">' + esc(u.name) + '</div>';
+          html += '<div class="ku-role">' + esc(u.role) + '</div>';
+          if (u.frequency) html += '<div class="ku-freq">' + esc(String(u.frequency)) + ' appearance rate</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      if (bla.keySynergies && bla.keySynergies.length) {
+        html += '<h3>Key Synergies</h3>';
+        html += '<div class="synergy-list">';
+        bla.keySynergies.forEach(function (s) {
+          html += '<div class="synergy-item">';
+          html += '<div class="syn-units">' + esc(s.units) + '</div>';
+          html += '<div class="syn-exp">' + esc(s.explanation) + '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      if (bla.enhancements) {
+        html += '<h3>Enhancements</h3>';
+        html += '<div class="ai-prose">' + esc(bla.enhancements) + '</div>';
+      }
+
+      if (bla.fullRecommendedList) {
+        html += '<h3>Full Recommended List (2000pts)</h3>';
+        html += '<div class="roster-block">' + esc(bla.fullRecommendedList) + '</div>';
+      }
+
+      html += '</div>';
+    }
+
+    // Strategic advice
+    if (ai.strategicAdvice) {
+      var sa = ai.strategicAdvice;
+      html += '<div class="ai-section">';
+      html += '<h3>Strategic Advice</h3>';
+      if (sa.overview) {
+        html += '<div class="ai-prose">' + esc(sa.overview) + '</div>';
+      }
+      if (sa.tips && sa.tips.length) {
+        html += '<ul class="tips-list">';
+        sa.tips.forEach(function (tip) {
+          html += '<li>' + esc(tip) + '</li>';
+        });
+        html += '</ul>';
+      }
+      if (sa.matchupAdvice) {
+        html += '<h3>Matchup Advice</h3>';
+        html += '<div class="ai-prose">' + esc(sa.matchupAdvice) + '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Meta trends
+    if (ai.metaTrends) {
+      html += '<div class="ai-section">';
+      html += '<h3>Meta Trends &amp; Outlook</h3>';
+      html += '<div class="ai-prose">' + esc(ai.metaTrends) + '</div>';
+      html += '</div>';
+    }
+
+    el.innerHTML = html;
   }
 
 })();

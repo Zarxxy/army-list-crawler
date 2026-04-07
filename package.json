@@ -12,13 +12,15 @@
     "optimize": "node optimizer.js",
     "optimize:json": "node optimizer.js --format json",
     "optimize:text": "node optimizer.js --format text",
+    "ai-analysis": "node ai-analysis.js",
     "build-site": "node build-site.js",
-    "build-all": "node report.js && node optimizer.js && node build-site.js"
+    "build-all": "node report.js && node optimizer.js && node ai-analysis.js && node build-site.js"
   },
   "keywords": ["warhammer", "40k", "death-guard", "army-lists", "meta-analysis", "crawler", "listhammer"],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "playwright": "^1.58.2"
   }
 }

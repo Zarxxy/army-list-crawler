@@ -2,7 +2,9 @@ name: Crawl, Analyse & Deploy
 
 on:
   push:
-    branches: ['claude/army-lists-crawler-osq7I']
+    branches:
+      - 'claude/army-lists-crawler-osq7I'
+      - 'claude/death-guard-meta-analysis-wAu8A'
   # Run daily at 06:00 UTC
   schedule:
     - cron: '0 6 * * *'
@@ -68,6 +70,14 @@ jobs:
 
       - name: Run army optimizer
         run: node optimizer.js --format json
+
+      - name: Generate AI meta analysis
+        # Requires ANTHROPIC_API_KEY to be set as a repository secret.
+        # If the secret is not set the step produces an empty placeholder
+        # and the pipeline continues normally.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node ai-analysis.js
 
       - name: Build site
         run: node build-site.js
