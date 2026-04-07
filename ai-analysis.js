@@ -43,7 +43,7 @@ const listsFile  = getArg('--lists')     || path.join(__dirname, 'output',  'arm
 const reportFile = getArg('--report')    || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const optimFile  = getArg('--optimizer') || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')    || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')     || 'gemini-2.0-flash';
+const modelId    = getArg('--model')     || 'gemini-1.5-flash';  // 1.5-flash has more stable free-tier quotas
 const maxTokens  = parseInt(getArg('--max-tokens') || '4096', 10);
 
 // ---------------------------------------------------------------------------
@@ -83,7 +83,12 @@ function emptyResult(faction, reason) {
 
 // ---------------------------------------------------------------------------
 // Gemini REST call  (uses native fetch — available in Node ≥ 18)
+// Retries up to 4 times on 429 (rate limit) with exponential backoff.
 // ---------------------------------------------------------------------------
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function callGemini(apiKey, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
@@ -96,20 +101,37 @@ async function callGemini(apiKey, prompt) {
     },
   };
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const MAX_RETRIES = 4;
+  const BASE_DELAY_MS = 10_000; // 10 s — free tier resets quickly
 
-  if (!res.ok) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
     const errText = await res.text();
+
+    // 429 = rate limited — back off and retry
+    if (res.status === 429 && attempt < MAX_RETRIES) {
+      // Honour Retry-After header if present, otherwise use exponential backoff
+      const retryAfter = res.headers.get('Retry-After');
+      const waitMs = retryAfter
+        ? parseInt(retryAfter, 10) * 1000
+        : BASE_DELAY_MS * Math.pow(2, attempt);  // 10s, 20s, 40s, 80s
+      console.warn(`Gemini 429 rate limit (attempt ${attempt + 1}/${MAX_RETRIES + 1}). Retrying in ${Math.round(waitMs / 1000)}s…`);
+      await sleep(waitMs);
+      continue;
+    }
+
     throw new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
   }
-
-  const data = await res.json();
-  // Extract text from the first candidate
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 // ---------------------------------------------------------------------------
