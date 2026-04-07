@@ -43,7 +43,7 @@ const listsFile  = getArg('--lists')     || path.join(__dirname, 'output',  'arm
 const reportFile = getArg('--report')    || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const optimFile  = getArg('--optimizer') || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')    || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')     || 'gemini-1.5-flash';  // 1.5-flash has more stable free-tier quotas
+const modelId    = getArg('--model')     || 'gemini-2.0-flash-lite';  // free-tier optimised, high rate limits
 const maxTokens  = parseInt(getArg('--max-tokens') || '4096', 10);
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ function sleep(ms) {
 }
 
 async function callGemini(apiKey, prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/${modelId}:generateContent?key=${apiKey}`;
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
