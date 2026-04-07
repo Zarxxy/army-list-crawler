@@ -47,7 +47,7 @@ const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'me
 const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
 const modelId    = getArg('--model')      || 'claude-opus-4-6';
-const maxTokens  = parseInt(getArg('--max-tokens') || '4096', 10);
+const maxTokens  = parseInt(getArg('--max-tokens') || '8192', 10);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -179,29 +179,30 @@ function buildPrompt(metaReport, optimizerReport) {
   lines.push('');
   lines.push('Produce a comprehensive Death Guard meta analysis. Be detailed, specific, and reference the actual data.');
   lines.push('');
-  lines.push('Respond with ONLY valid JSON — no markdown fences, no extra text. Use this exact structure:');
+  lines.push('IMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no text before or after the JSON object. Start your response with { and end with }.');
+  lines.push('');
+  lines.push('Use this exact JSON structure (keep all string values concise — aim for the whole response to stay under 3000 tokens):');
   lines.push(JSON.stringify({
     generatedAt: '<ISO timestamp>',
     model: '<model name>',
     faction,
-    metaSummary: '<2-4 paragraph narrative overview referencing key statistics>',
+    metaSummary: '<2-3 paragraph narrative overview referencing key statistics>',
     detachmentTierList: [
-      { tier: 'S', detachment: '<name>', reasoning: '<why this tier>', winRate: '<pct>', listCount: '<n>', undefeated: '<n>' },
+      { tier: 'S|A|B|C', detachment: '<name>', reasoning: '<1-2 sentences>', winRate: '<pct>', listCount: '<n>', undefeated: '<n>' },
     ],
     bestListAnalysis: {
       detachment: '<name>',
-      overview: '<2-3 paragraphs on why this is the best archetype>',
+      overview: '<1-2 paragraphs on why this is the best archetype>',
       keyUnits: [{ name: '<unit>', role: '<why key>', frequency: '<meta %>' }],
-      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<why these work together>' }],
-      enhancements: '<which enhancements and why>',
-      fullRecommendedList: '<full 2000pt roster with unit names and points>',
+      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<1 sentence>' }],
+      enhancements: '<key enhancements and why, 1-2 sentences>',
     },
     strategicAdvice: {
-      overview: '<how to play Death Guard in the current meta>',
-      tips: ['<tip>', '<tip>', '<tip>', '<tip>', '<tip>'],
-      matchupAdvice: '<favourable/unfavourable matchups>',
+      overview: '<1-2 paragraphs on how to play Death Guard>',
+      tips: ['<tip 1>', '<tip 2>', '<tip 3>', '<tip 4>', '<tip 5>'],
+      matchupAdvice: '<1-2 sentences on favourable/unfavourable matchups>',
     },
-    metaTrends: '<what is rising/falling, what to expect next>',
+    metaTrends: '<1-2 sentences on what is rising/falling>',
   }, null, 2));
 
   return lines.join('\n');
@@ -348,7 +349,11 @@ async function main() {
 
     const message = await stream.finalMessage();
     rawContent = message.content.find(b => b.type === 'text')?.text || '';
-    console.log(`\nClaude responded (${rawContent.length} chars, ${message.usage.output_tokens} output tokens).`);
+    const stopReason = message.stop_reason;
+    console.log(`\nClaude responded (${rawContent.length} chars, ${message.usage.output_tokens} output tokens, stop_reason: ${stopReason}).`);
+    if (stopReason === 'max_tokens') {
+      console.warn('WARNING: Response was cut off at max_tokens limit — JSON may be truncated.');
+    }
   } catch (err) {
     console.error('Anthropic API call failed:', err.message);
     writeOutput(emptyResult(faction, `API error: ${err.message}`), `AI analysis failed: ${err.message}\n`);
@@ -382,7 +387,8 @@ async function main() {
   let result = extractJSON(rawContent);
   if (!result) {
     console.error('Failed to parse Claude response as JSON.');
-    console.error('Raw response (first 500 chars):', rawContent.slice(0, 500));
+    console.error('Raw response — first 500 chars:', rawContent.slice(0, 500));
+    console.error('Raw response — last  300 chars:', rawContent.slice(-300));
     result = {
       generatedAt: new Date().toISOString(),
       model: modelId,
