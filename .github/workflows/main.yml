@@ -3,6 +3,7 @@ name: Crawl, Analyse & Deploy
 on:
   push:
     branches:
+      - 'main'
       - 'claude/army-lists-crawler-osq7I'
       - 'claude/death-guard-meta-analysis-wAu8A'
   # Run daily at 06:00 UTC
@@ -20,7 +21,7 @@ on:
           - '40k'
           - 'aos'
 
-# Only one run at a time
+# Only one deploy at a time
 concurrency:
   group: crawl-deploy
   cancel-in-progress: true
@@ -31,7 +32,36 @@ permissions:
   id-token: write
 
 jobs:
+  # ── Job 1: Run tests on every push to every branch ─────────────────────────
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  # ── Job 2: Crawl, analyse, and deploy — only on main / schedule / manual ───
   crawl-and-deploy:
+    name: Crawl, Analyse & Deploy
+    needs: test
+    # Only deploy from main branch (required by the GitHub Pages environment
+    # protection rules). Schedule and workflow_dispatch always run on main.
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -48,9 +78,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run tests
-        run: npm test
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
