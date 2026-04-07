@@ -5,9 +5,6 @@ on:
     branches:
       - 'claude/army-lists-crawler-osq7I'
       - 'claude/death-guard-meta-analysis-wAu8A'
-  # Run daily at 06:00 UTC
-  schedule:
-    - cron: '0 6 * * *'
   # Manual trigger from the Actions tab
   workflow_dispatch:
     inputs:
@@ -59,7 +56,6 @@ jobs:
     # protection rules). Schedule and workflow_dispatch always run on main.
     if: |
       github.ref == 'refs/heads/claude/army-lists-crawler-osq7I' ||
-      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
