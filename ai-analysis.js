@@ -1,26 +1,29 @@
 /**
  * ai-analysis.js
  *
- * Generates an AI-powered Death Guard meta analysis using Google Gemini Flash
- * (free tier — no credit card required). Uses the native fetch() API so no
- * extra npm package is needed.
+ * Generates an AI-powered Death Guard meta analysis using the Anthropic API
+ * (claude-opus-4-6). Reads the crawled army lists, meta report, and optimizer
+ * output, then asks Claude to produce:
  *
- * Free tier limits (google ai studio):
- *   gemini-2.0-flash  — 1,500 requests/day, 1M tokens/min
+ *   - A meta summary
+ *   - A detachment tier list (S / A / B / C) with reasoning
+ *   - "Best list" breakdown — key units, synergies, enhancements, full roster
+ *   - Strategic advice and meta trends
  *
- * Get a free API key at: https://aistudio.google.com/app/apikey
+ * Output: reports/ai-analysis-latest.json  (+ timestamped copy)
+ *         reports/ai-analysis-latest.txt   (+ timestamped copy)
  *
  * The script exits with code 0 even if the API key is missing so the
  * GitHub Actions pipeline is never blocked by this step.
  *
  * Usage:
  *   node ai-analysis.js
- *   GEMINI_API_KEY=AIza... node ai-analysis.js
+ *   ANTHROPIC_API_KEY=sk-ant-... node ai-analysis.js
  *   node ai-analysis.js --lists ./output/army-lists-latest.json
  *   node ai-analysis.js --report ./reports/meta-report-latest.json
  *   node ai-analysis.js --optimizer ./reports/optimizer-latest.json
  *   node ai-analysis.js --output ./reports
- *   node ai-analysis.js --model gemini-1.5-flash
+ *   node ai-analysis.js --model claude-haiku-4-5
  */
 
 'use strict';
@@ -39,11 +42,11 @@ function getArg(flag) {
   return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
 }
 
-const listsFile  = getArg('--lists')     || path.join(__dirname, 'output',  'army-lists-latest.json');
-const reportFile = getArg('--report')    || path.join(__dirname, 'reports', 'meta-report-latest.json');
-const optimFile  = getArg('--optimizer') || path.join(__dirname, 'reports', 'optimizer-latest.json');
-const outputDir  = getArg('--output')    || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')     || 'gemini-2.0-flash-lite';  // free-tier optimised, high rate limits
+const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'army-lists-latest.json');
+const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
+const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
+const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
+const modelId    = getArg('--model')      || 'claude-opus-4-6';
 const maxTokens  = parseInt(getArg('--max-tokens') || '4096', 10);
 
 // ---------------------------------------------------------------------------
@@ -60,10 +63,10 @@ function writeOutput(result, text) {
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
 
-  fs.writeFileSync(path.join(outputDir, `ai-analysis-${ts}.json`),   JSON.stringify(result, null, 2), 'utf-8');
-  fs.writeFileSync(path.join(outputDir, 'ai-analysis-latest.json'),  JSON.stringify(result, null, 2), 'utf-8');
-  fs.writeFileSync(path.join(outputDir, `ai-analysis-${ts}.txt`),    text, 'utf-8');
-  fs.writeFileSync(path.join(outputDir, 'ai-analysis-latest.txt'),   text, 'utf-8');
+  fs.writeFileSync(path.join(outputDir, `ai-analysis-${ts}.json`),  JSON.stringify(result, null, 2), 'utf-8');
+  fs.writeFileSync(path.join(outputDir, 'ai-analysis-latest.json'), JSON.stringify(result, null, 2), 'utf-8');
+  fs.writeFileSync(path.join(outputDir, `ai-analysis-${ts}.txt`),   text, 'utf-8');
+  fs.writeFileSync(path.join(outputDir, 'ai-analysis-latest.txt'),  text, 'utf-8');
 }
 
 function emptyResult(faction, reason) {
@@ -82,59 +85,6 @@ function emptyResult(faction, reason) {
 }
 
 // ---------------------------------------------------------------------------
-// Gemini REST call  (uses native fetch — available in Node ≥ 18)
-// Retries up to 4 times on 429 (rate limit) with exponential backoff.
-// ---------------------------------------------------------------------------
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function callGemini(apiKey, prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1/models/${modelId}:generateContent?key=${apiKey}`;
-
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      maxOutputTokens: maxTokens,
-      temperature: 0.4,
-    },
-  };
-
-  const MAX_RETRIES = 4;
-  const BASE_DELAY_MS = 10_000; // 10 s — free tier resets quickly
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    }
-
-    const errText = await res.text();
-
-    // 429 = rate limited — back off and retry
-    if (res.status === 429 && attempt < MAX_RETRIES) {
-      // Honour Retry-After header if present, otherwise use exponential backoff
-      const retryAfter = res.headers.get('Retry-After');
-      const waitMs = retryAfter
-        ? parseInt(retryAfter, 10) * 1000
-        : BASE_DELAY_MS * Math.pow(2, attempt);  // 10s, 20s, 40s, 80s
-      console.warn(`Gemini 429 rate limit (attempt ${attempt + 1}/${MAX_RETRIES + 1}). Retrying in ${Math.round(waitMs / 1000)}s…`);
-      await sleep(waitMs);
-      continue;
-    }
-
-    throw new Error(`Gemini API error ${res.status}: ${errText.slice(0, 300)}`);
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Build the prompt
 // ---------------------------------------------------------------------------
 
@@ -145,10 +95,10 @@ function buildPrompt(metaReport, optimizerReport) {
   const topPlayers  = (metaReport.topPlayers || []).slice(0, 10);
   const undefeated  = (metaReport.undefeatedLists || []);
 
-  const unitAnalysis  = optimizerReport?.unitAnalysis?.units        || [];
-  const enhancements  = optimizerReport?.enhancementAnalysis?.enhancements || [];
-  const coOccurrence  = optimizerReport?.coOccurrence               || [];
-  const concreteList  = optimizerReport?.concreteList               || null;
+  const unitAnalysis = optimizerReport?.unitAnalysis?.units        || [];
+  const enhancements = optimizerReport?.enhancementAnalysis?.enhancements || [];
+  const coOccurrence = optimizerReport?.coOccurrence               || [];
+  const concreteList = optimizerReport?.concreteList               || null;
 
   const lines = [];
 
@@ -233,7 +183,7 @@ function buildPrompt(metaReport, optimizerReport) {
   lines.push(JSON.stringify({
     generatedAt: '<ISO timestamp>',
     model: '<model name>',
-    faction: faction,
+    faction,
     metaSummary: '<2-4 paragraph narrative overview referencing key statistics>',
     detachmentTierList: [
       { tier: 'S', detachment: '<name>', reasoning: '<why this tier>', winRate: '<pct>', listCount: '<n>', undefeated: '<n>' },
@@ -241,8 +191,8 @@ function buildPrompt(metaReport, optimizerReport) {
     bestListAnalysis: {
       detachment: '<name>',
       overview: '<2-3 paragraphs on why this is the best archetype>',
-      keyUnits: [{ name: '<unit>', role: '<why key>', frequency: '<meta %>'}],
-      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<why these work together>'}],
+      keyUnits: [{ name: '<unit>', role: '<why key>', frequency: '<meta %>' }],
+      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<why these work together>' }],
       enhancements: '<which enhancements and why>',
       fullRecommendedList: '<full 2000pt roster with unit names and points>',
     },
@@ -262,30 +212,25 @@ function buildPrompt(metaReport, optimizerReport) {
 // ---------------------------------------------------------------------------
 
 function renderText(result) {
-  const hr = '='.repeat(74);
+  const hr  = '='.repeat(74);
   const hr2 = '-'.repeat(74);
   const lines = [];
 
   lines.push(hr);
   lines.push(`  ${result.faction || 'DEATH GUARD'} — AI META ANALYSIS`);
   lines.push(hr);
-  lines.push(`  Generated by: ${result.model || 'Gemini AI'}`);
+  lines.push(`  Generated by: ${result.model || 'Claude AI'}`);
   lines.push(`  Timestamp:    ${result.generatedAt || new Date().toISOString()}`);
   lines.push('');
 
   if (result.metaSummary) {
-    lines.push(hr2);
-    lines.push('  META SUMMARY');
-    lines.push(hr2);
-    lines.push('');
-    for (const para of result.metaSummary.split('\n')) lines.push(`  ${para}`);
+    lines.push(hr2); lines.push('  META SUMMARY'); lines.push(hr2); lines.push('');
+    for (const p of result.metaSummary.split('\n')) lines.push(`  ${p}`);
     lines.push('');
   }
 
   if (result.detachmentTierList?.length) {
-    lines.push(hr2);
-    lines.push('  DETACHMENT TIER LIST');
-    lines.push(hr2);
+    lines.push(hr2); lines.push('  DETACHMENT TIER LIST'); lines.push(hr2);
     for (const d of result.detachmentTierList) {
       lines.push(`  [${d.tier}] ${d.detachment}  —  WR: ${d.winRate}  |  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
       lines.push(`      ${d.reasoning}`);
@@ -295,13 +240,9 @@ function renderText(result) {
 
   if (result.bestListAnalysis) {
     const bla = result.bestListAnalysis;
-    lines.push(hr2);
-    lines.push(`  BEST LIST ANALYSIS — ${bla.detachment || ''}`);
-    lines.push(hr2);
+    lines.push(hr2); lines.push(`  BEST LIST ANALYSIS — ${bla.detachment || ''}`); lines.push(hr2); lines.push('');
+    for (const p of (bla.overview || '').split('\n')) lines.push(`  ${p}`);
     lines.push('');
-    for (const para of (bla.overview || '').split('\n')) lines.push(`  ${para}`);
-    lines.push('');
-
     if (bla.keyUnits?.length) {
       lines.push('  Key Units:');
       for (const u of bla.keyUnits) lines.push(`    ${(u.name || '').padEnd(35)} [${u.frequency}] — ${u.role}`);
@@ -309,26 +250,20 @@ function renderText(result) {
     }
     if (bla.keySynergies?.length) {
       lines.push('  Key Synergies:');
-      for (const s of bla.keySynergies) {
-        lines.push(`    ${s.units}`);
-        lines.push(`      ${s.explanation}`);
-      }
+      for (const s of bla.keySynergies) { lines.push(`    ${s.units}`); lines.push(`      ${s.explanation}`); }
       lines.push('');
     }
     if (bla.enhancements) { lines.push(`  Enhancements: ${bla.enhancements}`); lines.push(''); }
     if (bla.fullRecommendedList) {
       lines.push('  Recommended Army List:');
-      for (const line of bla.fullRecommendedList.split('\n')) lines.push(`    ${line}`);
+      for (const l of bla.fullRecommendedList.split('\n')) lines.push(`    ${l}`);
       lines.push('');
     }
   }
 
   if (result.strategicAdvice) {
     const sa = result.strategicAdvice;
-    lines.push(hr2);
-    lines.push('  STRATEGIC ADVICE');
-    lines.push(hr2);
-    lines.push('');
+    lines.push(hr2); lines.push('  STRATEGIC ADVICE'); lines.push(hr2); lines.push('');
     if (sa.overview) { for (const p of sa.overview.split('\n')) lines.push(`  ${p}`); lines.push(''); }
     if (sa.tips?.length) {
       lines.push('  Tips:');
@@ -343,10 +278,7 @@ function renderText(result) {
   }
 
   if (result.metaTrends) {
-    lines.push(hr2);
-    lines.push('  META TRENDS');
-    lines.push(hr2);
-    lines.push('');
+    lines.push(hr2); lines.push('  META TRENDS'); lines.push(hr2); lines.push('');
     for (const p of result.metaTrends.split('\n')) lines.push(`  ${p}`);
     lines.push('');
   }
@@ -360,12 +292,11 @@ function renderText(result) {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    console.warn('GEMINI_API_KEY not set — skipping AI analysis. Writing empty placeholder.');
-    console.warn('Get a free key at: https://aistudio.google.com/app/apikey');
-    writeOutput(emptyResult('Death Guard', 'GEMINI_API_KEY not set'), 'AI analysis skipped: GEMINI_API_KEY not set.\n');
+    console.warn('ANTHROPIC_API_KEY not set — skipping AI analysis. Writing empty placeholder.');
+    writeOutput(emptyResult('Death Guard', 'ANTHROPIC_API_KEY not set'), 'AI analysis skipped: ANTHROPIC_API_KEY not set.\n');
     process.exit(0);
   }
 
@@ -385,23 +316,46 @@ async function main() {
     process.exit(0);
   }
 
+  let Anthropic;
+  try {
+    Anthropic = require('@anthropic-ai/sdk');
+  } catch (err) {
+    console.error('Could not load @anthropic-ai/sdk. Run "npm install" first.');
+    const faction = metaReport.meta?.faction || 'Death Guard';
+    writeOutput(emptyResult(faction, '@anthropic-ai/sdk not installed'), 'AI analysis skipped: SDK not installed.\n');
+    process.exit(0);
+  }
+
+  // SDK handles retries automatically (default max_retries=2); bump to 4 for robustness
+  const client = new Anthropic({ apiKey, maxRetries: 4 });
   const faction = metaReport.meta?.faction || 'Death Guard';
   const prompt  = buildPrompt(metaReport, optimizerReport);
 
-  console.log(`Sending prompt to ${modelId}…`);
+  console.log(`Sending prompt to ${modelId} (max_tokens: ${maxTokens})…`);
   console.log(`Data: ${metaReport.meta?.totalLists || 0} lists, ${(metaReport.detachmentBreakdown || []).length} detachments`);
 
   let rawContent;
   try {
-    rawContent = await callGemini(apiKey, prompt);
-    console.log(`Gemini responded (${rawContent.length} chars).`);
+    // Use streaming — safe for long prompts and large outputs, avoids HTTP timeouts
+    const stream = client.messages.stream({
+      model: modelId,
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    // Stream progress to console so CI logs show activity
+    stream.on('text', text => process.stdout.write(text));
+
+    const message = await stream.finalMessage();
+    rawContent = message.content.find(b => b.type === 'text')?.text || '';
+    console.log(`\nClaude responded (${rawContent.length} chars, ${message.usage.output_tokens} output tokens).`);
   } catch (err) {
-    console.error('Gemini API call failed:', err.message);
+    console.error('Anthropic API call failed:', err.message);
     writeOutput(emptyResult(faction, `API error: ${err.message}`), `AI analysis failed: ${err.message}\n`);
     process.exit(0);
   }
 
-  // Strip markdown fences if the model wrapped the JSON anyway
+  // Strip markdown fences if Claude wrapped the JSON anyway
   let jsonStr = rawContent.trim();
   const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) jsonStr = fenceMatch[1].trim();
@@ -410,7 +364,7 @@ async function main() {
   try {
     result = JSON.parse(jsonStr);
   } catch (err) {
-    console.error('Failed to parse Gemini response as JSON:', err.message);
+    console.error('Failed to parse Claude response as JSON:', err.message);
     console.error('Raw response (first 500 chars):', rawContent.slice(0, 500));
     result = {
       generatedAt: new Date().toISOString(),

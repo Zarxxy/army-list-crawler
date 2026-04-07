@@ -101,12 +101,11 @@ jobs:
         run: node optimizer.js --format json
 
       - name: Generate AI meta analysis
-        # Requires GEMINI_API_KEY to be set as a repository secret.
-        # Get a FREE key (no credit card) at https://aistudio.google.com/app/apikey
+        # Requires ANTHROPIC_API_KEY to be set as a repository secret.
         # If the secret is not set the step produces an empty placeholder
         # and the pipeline continues normally.
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node ai-analysis.js
 
       - name: Build site

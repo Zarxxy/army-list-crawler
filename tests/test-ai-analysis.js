@@ -96,7 +96,7 @@ test('placeholder JSON has a reason field when no API key', () => {
   runAI({ GEMINI_API_KEY: '' });
   const result = readLatest();
   assert.ok(result.reason, 'reason field is empty');
-  assert.ok(result.reason.toLowerCase().includes('gemini_api_key'), `unexpected reason: ${result.reason}`);
+  assert.ok(result.reason.toLowerCase().includes('anthropic_api_key'), `unexpected reason: ${result.reason}`);
 });
 
 test('placeholder JSON has faction field', () => {
