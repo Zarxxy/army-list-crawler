@@ -1,0 +1,65 @@
+{
+  "crawledAt": "2024-01-15T10:00:00.000Z",
+  "game": "40k",
+  "factionFilter": "Death Guard",
+  "sections": {
+    "All": [
+      {
+        "playerName": "Alice Smith",
+        "faction": "Death Guard",
+        "event": "GT Showdown 2024",
+        "date": "2024-01-10",
+        "record": "5-1",
+        "detachment": "Plague Company",
+        "armyListText": "Detachment: Plague Company\n\nWarlord: Daemon Prince of Nurgle [210pts]\nEnhancements: Suppurating Plate\n\nDaemon Prince of Nurgle [210pts]\nPlague Marines [160pts]\nPlague Marines [160pts]\nCultists [50pts]\nPoxwalkers [60pts]\nMortarion [480pts]\nDeath Guard Predator [110pts]\nDeath Guard Predator [110pts]\nFoul Blightspawn [70pts]\nLord of Virulence [110pts]\nPlague Surgeon [60pts]\n\nTotal: 1580pts"
+      },
+      {
+        "playerName": "Bob Jones",
+        "faction": "Death Guard",
+        "event": "GT Showdown 2024",
+        "date": "2024-01-10",
+        "record": "4-2",
+        "detachment": "Plague Company",
+        "armyListText": "Detachment: Plague Company\n\nWarlord: Daemon Prince of Nurgle [210pts]\nEnhancements: Suppurating Plate\n\nDaemon Prince of Nurgle [210pts]\nPlague Marines [160pts]\nPlague Marines [160pts]\nPoxwalkers [60pts]\nPoxwalkers [60pts]\nMortarion [480pts]\nFoul Blightspawn [70pts]\nLord of Virulence [110pts]\n\nTotal: 1520pts"
+      },
+      {
+        "playerName": "Carol White",
+        "faction": "Death Guard",
+        "event": "Local RTT Jan",
+        "date": "2024-01-12",
+        "record": "3-0",
+        "detachment": "Inexorable Advance",
+        "armyListText": "Detachment: Inexorable Advance\n\nWarlord: Lord of Virulence [110pts]\nEnhancements: Droning Halo\n\nPlague Marines [160pts]\nPlague Marines [160pts]\nBlightlord Terminators [220pts]\nBlightlord Terminators [220pts]\nMortarion [480pts]\nFoul Blightspawn [70pts]\nDaemon Prince of Nurgle [210pts]\n\nTotal: 1630pts"
+      },
+      {
+        "playerName": "Dan Brown",
+        "faction": "Death Guard",
+        "event": "Local RTT Jan",
+        "date": "2024-01-12",
+        "record": "2-1",
+        "detachment": "Plague Company",
+        "armyListText": "Detachment: Plague Company\n\nWarlord: Daemon Prince of Nurgle [210pts]\n\nPlague Marines [160pts]\nCultists [50pts]\nMortarion [480pts]\nFoul Blightspawn [70pts]\nLord of Virulence [110pts]\n\nTotal: 1080pts"
+      },
+      {
+        "playerName": "Eve Davis",
+        "faction": "Death Guard",
+        "event": "GT Showdown 2024",
+        "date": "2024-01-10",
+        "record": "3-3",
+        "detachment": "Plague Company",
+        "armyListText": "Detachment: Plague Company\n\nWarlord: Mortarion [480pts]\n\nPlague Marines [160pts]\nDaemon Prince of Nurgle [210pts]\nPoxwalkers [60pts]\nFoul Blightspawn [70pts]\n\nTotal: 980pts"
+      }
+    ],
+    "Undefeated": [
+      {
+        "playerName": "Carol White",
+        "faction": "Death Guard",
+        "event": "Local RTT Jan",
+        "date": "2024-01-12",
+        "record": "3-0",
+        "detachment": "Inexorable Advance",
+        "armyListText": "Detachment: Inexorable Advance\n\nWarlord: Lord of Virulence [110pts]\nEnhancements: Droning Halo\n\nPlague Marines [160pts]\nPlague Marines [160pts]\nBlightlord Terminators [220pts]\nBlightlord Terminators [220pts]\nMortarion [480pts]\nFoul Blightspawn [70pts]\nDaemon Prince of Nurgle [210pts]\n\nTotal: 1630pts"
+      }
+    ]
+  }
+}
