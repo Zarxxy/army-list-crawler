@@ -3,7 +3,6 @@ name: Crawl, Analyse & Deploy
 on:
   push:
     branches:
-      - 'main'
       - 'claude/army-lists-crawler-osq7I'
       - 'claude/death-guard-meta-analysis-wAu8A'
   # Run daily at 06:00 UTC
@@ -59,7 +58,7 @@ jobs:
     # Only deploy from main branch (required by the GitHub Pages environment
     # protection rules). Schedule and workflow_dispatch always run on main.
     if: |
-      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/claude/army-lists-crawler-osq7I' ||
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
