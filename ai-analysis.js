@@ -355,23 +355,41 @@ async function main() {
     process.exit(0);
   }
 
-  // Strip markdown fences if Claude wrapped the JSON anyway
-  let jsonStr = rawContent.trim();
-  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+  // Extract the JSON object from Claude's response.
+  // Claude sometimes wraps it in markdown fences or adds preamble text.
+  function extractJSON(raw) {
+    const trimmed = raw.trim();
 
-  let result;
-  try {
-    result = JSON.parse(jsonStr);
-  } catch (err) {
-    console.error('Failed to parse Claude response as JSON:', err.message);
+    // 1. Try bare parse first (ideal case)
+    try { return JSON.parse(trimmed); } catch {}
+
+    // 2. Markdown fence: ```json ... ``` or ``` ... ```
+    const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      try { return JSON.parse(fenceMatch[1].trim()); } catch {}
+    }
+
+    // 3. Extract the outermost { … } block (handles preamble/postamble text)
+    const firstBrace = trimmed.indexOf('{');
+    const lastBrace  = trimmed.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      try { return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)); } catch {}
+    }
+
+    return null;
+  }
+
+  let result = extractJSON(rawContent);
+  if (!result) {
+    console.error('Failed to parse Claude response as JSON.');
     console.error('Raw response (first 500 chars):', rawContent.slice(0, 500));
     result = {
       generatedAt: new Date().toISOString(),
       model: modelId,
       faction,
       parseError: true,
-      metaSummary: rawContent,
+      rawResponse: rawContent.slice(0, 2000), // truncated for diagnostics only
+      metaSummary: null,
       detachmentTierList: [],
       bestListAnalysis: null,
       strategicAdvice: null,
