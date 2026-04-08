@@ -90,6 +90,10 @@
   .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text2); }
   .notice code { background: var(--bg3); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
 
+  /* Dataset caveat + tab notes */
+  .data-caveat { background: var(--bg2); border-left: 3px solid var(--yellow); border-radius: 0 var(--radius) var(--radius) 0; padding: 0.7rem 1.2rem; margin: 0 0 1.2rem; font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
+  .tab-note { color: var(--text2); font-size: 0.8rem; margin: -0.4rem 0 0.9rem; font-style: italic; }
+
   /* AI Analysis */
   .ai-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(90deg,#1a2332,#1c2a1c); border: 1px solid #2ecc71; border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.78rem; color: var(--green); margin-bottom: 1.2rem; }
   .ai-summary { background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.2rem 1.4rem; margin: 1rem 0; line-height: 1.8; color: var(--text); font-size: 0.92rem; white-space: pre-wrap; }
@@ -100,6 +104,7 @@
   .tier-card-header.tier-A { background: linear-gradient(90deg,#2ecc71,#27ae60); color: #000; }
   .tier-card-header.tier-B { background: linear-gradient(90deg,#3498db,#2980b9); color: #fff; }
   .tier-card-header.tier-C { background: linear-gradient(90deg,#8b949e,#636d76); color: #fff; }
+  .tier-card-header.tier-insufficient { background: linear-gradient(90deg,#2d333b,#3d444f); color: var(--text2); border: 1px solid var(--border); }
   .tier-card-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; padding: 0.8rem 1rem; font-size: 0.87rem; color: var(--text2); line-height: 1.6; }
   .tier-card-body strong { color: var(--text); }
   .ai-section { margin: 1.5rem 0; }
@@ -137,6 +142,9 @@
 <div class="container">
   <div class="timestamp" id="timestamp"></div>
 
+  <!-- Site-wide dataset caveat — populated by renderMeta() -->
+  <div id="site-caveat" class="data-caveat" style="display:none"></div>
+
   <!-- ============================================================ -->
   <!-- OVERVIEW TAB -->
   <!-- ============================================================ -->
@@ -152,6 +160,7 @@
 
     <section>
       <h2>Detachment Win Rates</h2>
+      <p class="tab-note">Among top-finishing lists only — not representative of general field performance. Sample size varies per detachment.</p>
       <div class="bar-chart" id="det-wr-bars"></div>
     </section>
 
@@ -185,8 +194,9 @@
   <div class="tab-content" id="tab-detachments">
     <section>
       <h2>Detachment Breakdown</h2>
+      <p class="tab-note" id="det-table-note"></p>
       <table id="detachment-table">
-        <thead><tr><th>Detachment</th><th class="num">Lists</th><th class="num">%</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Win%</th><th class="num">Undefeated</th></tr></thead>
+        <thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">%</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Win% (top-finishers)</th><th class="num">Undefeated</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -221,6 +231,7 @@
   <div class="tab-content" id="tab-players">
     <section>
       <h2>Top Players</h2>
+      <p class="tab-note">Win rates reflect performance among tournament top-finishers only and are elevated vs. the general field.</p>
       <table id="players-table">
         <thead><tr><th>Player</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Games</th><th class="num">Win%</th><th>Detachment</th><th>Event</th></tr></thead>
         <tbody></tbody>
@@ -315,6 +326,17 @@
     document.getElementById('timestamp').textContent =
       'Generated ' + (r.meta.generatedAt || '—') + '  |  Data from ' + (r.meta.crawledAt || '—');
 
+    // Site-wide dataset caveat banner
+    var caveatEl = document.getElementById('site-caveat');
+    if (caveatEl) {
+      caveatEl.innerHTML = '&#9888; <strong>Dataset note:</strong> All ' + esc(faction) + ' lists are <strong>1st/2nd place tournament finishes only</strong>. Win rates are elevated vs. the general field &#8212; compare figures <em>within</em> this dataset, not as absolute benchmarks. Tier ratings require n&#8805;3 lists.';
+      caveatEl.style.display = '';
+    }
+
+    // Detachment table note
+    var detNoteEl = document.getElementById('det-table-note');
+    if (detNoteEl) detNoteEl.textContent = 'Win% reflects results among 1st/2nd place finishers only. Detachments with fewer than 3 lists yield low-confidence figures \u2014 treat as anecdotal.';
+
     // Summary cards
     var dets = r.detachmentBreakdown ? r.detachmentBreakdown.filter(function (d) { return d.detachment !== 'Unknown'; }).length : 0;
     var undefeated = r.undefeatedLists ? r.undefeatedLists.length : 0;
@@ -330,7 +352,7 @@
       card(r.meta.totalLists, 'Total Lists') +
       card(dets, 'Detachments') +
       card(undefeated, 'Undefeated') +
-      card(overallWR, 'Overall Win Rate') +
+      card(overallWR, 'Win Rate (top-finishers)') +
       card(events, 'Events');
 
     // Detachment popularity bars
@@ -409,7 +431,7 @@
     html += '<div class="faction-name">' + esc(rec.faction) + '</div>';
     html += '<div class="det-name">' + esc(rec.detachment) + ' — ' + rec.detachmentWinRate + '% Win Rate</div>';
     html += '<div class="rec-stats">';
-    html += recStat(rec.winRate + '%', 'Win Rate');
+    html += recStat(rec.winRate + '%', 'Win Rate (top-finishers)');
     html += recStat(rec.score, 'Score');
     html += recStat(rec.undefeatedCount, 'Undefeated');
     html += recStat(o.meta.winningListsAnalysed, 'Winning Lists');
@@ -441,7 +463,8 @@
     // Detachment comparison
     if (o.detachmentAnalysis && o.detachmentAnalysis.length) {
       html += '<h3>Detachment Comparison</h3>';
-      html += '<table><thead><tr><th>Detachment</th><th class="num">Lists</th><th class="num">WR%</th><th class="num">Undefeated</th></tr></thead><tbody>';
+      html += '<p class="tab-note">Win rates are among top-finishing lists only. Detachments with n&lt;3 lists are low-confidence.</p>';
+      html += '<table><thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">WR% (top-finishers)</th><th class="num">Undefeated</th></tr></thead><tbody>';
       o.detachmentAnalysis.forEach(function (d) {
         var highlight = d.detachment === rec.detachment ? ' style="background:var(--bg3)"' : '';
         html += '<tr' + highlight + '><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.winRate + '%</td><td class="num">' + d.undefeated + '</td></tr>';
@@ -515,6 +538,9 @@
       return;
     }
 
+    // Dataset caveat for AI tab
+    html += '<div class="data-caveat">&#9888; <strong>AI Analysis note:</strong> The model was instructed to apply sample-size weighting. Detachments with n&lt;3 lists are rated &#8220;Insufficient data&#8221;. All win rates include n= notation and use &#8220;among top-finishing lists&#8221; framing throughout.</div>';
+
     // Meta summary
     if (ai.metaSummary) {
       html += '<div class="ai-section">';
@@ -529,14 +555,16 @@
       html += '<h3>Detachment Tier List</h3>';
       html += '<div class="tier-list">';
       ai.detachmentTierList.forEach(function (d) {
-        var tierCls = 'tier-' + (d.tier || 'B');
+        var tierKey = d.insufficientData ? 'insufficient' : (d.tier || 'B');
+        var tierCls = 'tier-' + tierKey;
         html += '<div class="tier-card">';
         html += '<div class="tier-card-header ' + tierCls + '">[' + esc(d.tier) + '] ' + esc(d.detachment) + '</div>';
         html += '<div class="tier-card-body">';
         if (d.winRate) html += '<div><strong>Win Rate:</strong> ' + esc(String(d.winRate)) + '</div>';
-        if (d.listCount) html += '<div><strong>Lists:</strong> ' + esc(String(d.listCount)) + '</div>';
-        if (d.undefeated) html += '<div><strong>Undefeated:</strong> ' + esc(String(d.undefeated)) + '</div>';
+        if (d.listCount != null) html += '<div><strong>Lists (n=):</strong> ' + esc(String(d.listCount)) + '</div>';
+        if (d.undefeated != null) html += '<div><strong>Undefeated:</strong> ' + esc(String(d.undefeated)) + '</div>';
         if (d.reasoning) html += '<div style="margin-top:0.5rem">' + esc(d.reasoning) + '</div>';
+        if (d.sampleNote) html += '<div style="margin-top:0.4rem;color:var(--yellow);font-size:0.8rem">&#9888; ' + esc(d.sampleNote) + '</div>';
         html += '</div></div>';
       });
       html += '</div>';
