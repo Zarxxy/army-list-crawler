@@ -112,29 +112,44 @@ function buildPrompt(metaReport, optimizerReport) {
   lines.push('');
   lines.push('DATASET CONTEXT: This dataset contains ONLY top-finishing tournament lists (1st and 2nd');
   lines.push('place results). Win rates are artificially inflated and are NOT representative of general');
-  lines.push('field performance. Use them comparatively within this dataset only.');
+  lines.push('field performance.');
   lines.push('');
   lines.push('RULE 1 — MINIMUM SAMPLE THRESHOLD:');
-  lines.push('Do NOT assign S/A/B/C to any detachment with listCount < 3.');
-  lines.push('Set tier to "Insufficient data" and insufficientData to true. Note the actual count.');
+  lines.push('Any detachment with listCount < 3 → tier = "Insufficient data", insufficientData = true.');
+  lines.push('A single strong result is no signal at all.');
   lines.push('');
-  lines.push('RULE 2 — WEIGHT SAMPLE SIZE:');
-  lines.push('100% WR (n=1) must NEVER rank above 80%+ WR (n=5+). Confidence scales with n.');
-  lines.push('Prefer high-n data over high-percentage low-n data.');
+  lines.push('RULE 2 — TIERS ARE BASED ON POPULARITY AND UNDEFEATED RUNS ONLY:');
+  lines.push('Do NOT use win rate to assign tiers. Tier is determined by:');
+  lines.push('  • list count (how many top players chose this detachment)');
+  lines.push('  • number of undefeated runs');
+  lines.push('A detachment with 1 list and 100% WR is NOT tier-able. A detachment with 16 lists');
+  lines.push('and 4 undefeated runs is S-tier regardless of its win rate.');
   lines.push('');
-  lines.push('RULE 3 — ALWAYS SHOW n= IN WIN RATES:');
-  lines.push('Format ALL win rates as "<pct>% (n=<listCount>)" — e.g. "84% (n=16)" not "84%".');
-  lines.push('The sample size MUST always be visible next to every win rate figure.');
+  lines.push('RULE 3 — TIER REASONING FORMAT:');
+  lines.push('State: "<Tier> — <N> top-finishing lists, <U> undefeated runs[, brief tactical note]"');
+  lines.push('NEVER mention win rate in tier reasoning or tier descriptions.');
+  lines.push('Example: "S — 16 top-finishing lists, 4 undefeated runs — dominant presence across events."');
+  lines.push('Example: "Insufficient data — n=1; a single list cannot be evaluated."');
   lines.push('');
-  lines.push('RULE 4 — EXPLICIT TIER REASONING:');
-  lines.push('For each tier entry, state WHY: reference n, win rate in context of n, and undefeated count.');
-  lines.push('Good: "Rated S — highest list count (n=16), 84% WR, 4 undefeated finishes — high confidence."');
-  lines.push('Good: "Insufficient data — n=1; single run cannot be evaluated reliably."');
+  lines.push('RULE 4 — META SUMMARY FRAMING:');
+  lines.push('Lead with player choice and undefeated runs, not win rates.');
+  lines.push('Use: "X% of top-finishing lists used this detachment" and "produced Y undefeated runs".');
+  lines.push('NEVER write "X wins Y% of games" or frame win rate as a measure of detachment quality.');
   lines.push('');
-  lines.push('RULE 5 — CORRECT WIN RATE FRAMING:');
-  lines.push('NEVER write "X wins 84% of games" or treat win rates as absolute.');
-  lines.push('ALWAYS write: "Among top-finishing lists in this dataset, X achieved 84% WR (n=16)."');
-  lines.push('Apply this framing consistently in metaSummary, bestListAnalysis, strategicAdvice, metaTrends.');
+  lines.push('RULE 5 — KEY UNITS: INCLUSION RATE ONLY:');
+  lines.push('For key units, use frequency (how often a unit appears across top-finishing lists).');
+  lines.push('DO NOT reference win correlation — it is a circular metric in this dataset.');
+  lines.push('Framing: "Appears in X% of top-finishing lists" not "correlated with wins."');
+  lines.push('');
+  lines.push('RULE 6 — META TRENDS: ONLY STATE WHAT THE DATA DIRECTLY SHOWS:');
+  lines.push('ONLY make statements about list count distribution.');
+  lines.push('Example: "Virulent Vectorium accounts for 64% of top-finishing lists, making it the');
+  lines.push('dominant detachment by player choice." — That is all that can honestly be said.');
+  lines.push('Do NOT speculate about "rising/falling" based on win rates or infer optimization trends.');
+  lines.push('');
+  lines.push('RULE 7 — SYNERGY DESCRIPTIONS: TACTICAL, NOT CAUSAL:');
+  lines.push('Describe what paired units do together tactically.');
+  lines.push('Say "top players frequently pair these units" — NOT "this pairing is why they win."');
   lines.push('');
   lines.push('=== END ANALYSIS RULES ===');
   lines.push('');
@@ -157,9 +172,9 @@ function buildPrompt(metaReport, optimizerReport) {
 
   const topUnits = unitAnalysis.filter(u => u.appearances > 0).slice(0, 20);
   if (topUnits.length > 0) {
-    lines.push('--- TOP UNITS (by frequency in tournament lists) ---');
+    lines.push('--- TOP UNITS (by inclusion rate across top-finishing lists) ---');
     for (const u of topUnits) {
-      lines.push(`  ${u.name}: ${u.frequency}% lists, win correlation ${u.winCorrelation}%, ~${u.typicalPoints}pts, avg copies: ${u.avgCopies}`);
+      lines.push(`  ${u.name}: ${u.frequency}% of top-finishing lists (n=${totalLists}), ~${u.typicalPoints}pts, avg copies: ${u.avgCopies}`);
     }
     lines.push('');
   }
@@ -220,24 +235,23 @@ function buildPrompt(metaReport, optimizerReport) {
     generatedAt: '<ISO timestamp>',
     model: '<model name>',
     faction,
-    metaSummary: '<2-3 paragraph narrative using "Among top-finishing lists in this dataset, X achieved Y% WR (n=Z)" framing throughout>',
+    metaSummary: '<2-3 paragraphs. Lead with player choice: "X% of top-finishing lists used this detachment" and "produced Y undefeated runs". Do NOT lead with win rates.>',
     detachmentTierList: [
       {
         tier: 'S|A|B|C|Insufficient data',
         detachment: '<name>',
-        reasoning: '<why this tier — must reference n, WR in context of sample size, and undefeated count>',
-        winRate: '<pct>% (n=<listCount>)',
+        reasoning: '<tier based on list count and undefeated runs ONLY — NO win rate. Format: "S — 16 top-finishing lists, 4 undefeated runs — dominant presence across events.">',
         listCount: 0,
         undefeated: 0,
         insufficientData: false,
-        sampleNote: '<required when listCount < 3: explain why this cannot be rated, null otherwise>',
+        sampleNote: '<required when listCount < 3: explain why this cannot be evaluated, null otherwise>',
       },
     ],
     bestListAnalysis: {
       detachment: '<name>',
-      overview: '<1-2 paragraphs on why this is the best archetype>',
-      keyUnits: [{ name: '<unit>', role: '<why key>', frequency: '<meta %>' }],
-      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<1 sentence>' }],
+      overview: '<1-2 paragraphs on why top players gravitate to this archetype — do NOT frame around win rate>',
+      keyUnits: [{ name: '<unit>', role: '<tactical role — do NOT reference win correlation>', frequency: '<X% of top-finishing lists include this unit>' }],
+      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<what they do together tactically; note top players frequently pair them — do NOT say "this is why they win">' }],
       enhancements: '<key enhancements and why, 1-2 sentences>',
     },
     strategicAdvice: {
@@ -245,7 +259,7 @@ function buildPrompt(metaReport, optimizerReport) {
       tips: ['<tip 1>', '<tip 2>', '<tip 3>', '<tip 4>', '<tip 5>'],
       matchupAdvice: '<1-2 sentences on favourable/unfavourable matchups>',
     },
-    metaTrends: '<1-2 sentences on what is rising/falling>',
+    metaTrends: '<1-2 sentences on list count distribution ONLY — e.g. "Virulent Vectorium accounts for X% of top-finishing lists." No speculation about win rate trends or optimization.>',
   }, null, 2));
 
   return lines.join('\n');
@@ -279,7 +293,7 @@ function renderText(result) {
     lines.push('');
     for (const d of result.detachmentTierList) {
       const tierLabel = d.insufficientData ? 'INSUFF' : (d.tier || '?');
-      lines.push(`  [${tierLabel}] ${d.detachment}  —  WR: ${d.winRate || 'N/A'}  |  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
+      lines.push(`  [${tierLabel}] ${d.detachment}  —  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
       if (d.reasoning) lines.push(`      ${d.reasoning}`);
       if (d.sampleNote) lines.push(`      ⚠ ${d.sampleNote}`);
       lines.push('');

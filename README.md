@@ -10,10 +10,23 @@ Crawl listhammer.info  →  Meta report  →  Army optimizer  →  AI analysis  
 ```
 
 1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text
-2. **Meta Report** — Analyses detachment popularity, win rates, undefeated lists, player rankings, and record distributions
+2. **Meta Report** — Analyses detachment popularity, undefeated list counts, player appearances, and record distributions across top-finishing events
 3. **Army Optimizer** — Finds the most meta-representative winning list and recommends a concrete ~2000pt build, with unit synergy analysis
 4. **AI Analysis** — Sends the tournament data to Claude via the Anthropic API and generates a natural-language meta summary, detachment tier list, best list breakdown, strategic advice, and meta trends. The model is configured in `config.json` (default: `claude-opus-4-5`)
 5. **Site Builder** — Inlines all report JSON into a self-contained HTML dashboard for GitHub Pages
+
+## Dataset Context
+
+> **Important:** This pipeline analyses **top-finishing tournament lists only** (1st and 2nd place results).
+> Win rates in this dataset are elevated vs. the general player field and should **not** be treated as
+> absolute competitive benchmarks. All figures compare detachments *within* this dataset only.
+>
+> **Tier ratings** are based on:
+> - **List count** — how many top-finishing players chose this detachment
+> - **Undefeated runs** — number of 0-loss finishes
+>
+> Detachments with fewer than 3 lists are labelled **"Insufficient data"** — a single strong result
+> is not a reliable signal.
 
 ## Configuration
 
@@ -153,9 +166,9 @@ docs/
 
 ## What the Dashboard Shows
 
-- **Overview** — Detachment popularity/win rate bars, summary cards, record distribution
-- **AI Analysis** — Claude-generated meta summary, detachment tier list (S/A/B/C), best list breakdown, strategic tips, and meta trends
-- **Detachments** — Full W/L/D breakdown table, undefeated lists
+- **Overview** — Detachment popularity chart (list count), summary cards, record distribution
+- **AI Analysis** — Claude-generated meta summary; detachment tier list based on popularity and undefeated runs (not win rate); best list breakdown, strategic tips, meta trends
+- **Detachments** — List count and undefeated runs per detachment, with confidence indicator (n≥3 = Sufficient)
 - **Optimizer** — Concrete recommended army list (~2000pts), unit synergy pairings, enhancement usage
 - **Players** — Top players ranked by win rate with detachment and event info
 - **Events** — Per-event detachment breakdown with W/L stats

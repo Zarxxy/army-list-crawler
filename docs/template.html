@@ -159,12 +159,6 @@
     </section>
 
     <section>
-      <h2>Detachment Win Rates</h2>
-      <p class="tab-note">Among top-finishing lists only — not representative of general field performance. Sample size varies per detachment.</p>
-      <div class="bar-chart" id="det-wr-bars"></div>
-    </section>
-
-    <section>
       <h2>Record Distribution</h2>
       <table id="record-table">
         <thead><tr><th>Record</th><th class="num">Count</th><th class="num">%</th></tr></thead>
@@ -196,7 +190,7 @@
       <h2>Detachment Breakdown</h2>
       <p class="tab-note" id="det-table-note"></p>
       <table id="detachment-table">
-        <thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">%</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Win% (top-finishers)</th><th class="num">Undefeated</th></tr></thead>
+        <thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">%</th><th class="num">Undefeated</th><th>Confidence</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
@@ -365,20 +359,13 @@
       }).join('');
     }
 
-    // Detachment win rate bars
-    var detsWithGames = realDets.filter(function (d) { return d.winRate != null; });
-    if (detsWithGames.length > 0) {
-      document.getElementById('det-wr-bars').innerHTML = detsWithGames.map(function (d) {
-        var w = Math.max(3, Math.round(d.winRate));
-        return '<div class="bar-row"><span class="bar-label">' + esc(d.detachment) + '</span><div class="bar" style="width:' + w + '%;background:' + wrColor(d.winRate) + '">' + d.winRate + '%</div></div>';
-      }).join('');
-    }
-
     // Detachment table
     if (r.detachmentBreakdown) {
       document.querySelector('#detachment-table tbody').innerHTML = r.detachmentBreakdown.map(function (d) {
-        var wr = d.winRate != null ? d.winRate + '%' : 'N/A';
-        return '<tr><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.percentage + '%</td><td class="num">' + d.wins + '</td><td class="num">' + d.losses + '</td><td class="num">' + d.draws + '</td><td class="num">' + wr + '</td><td class="num">' + d.undefeatedCount + '</td></tr>';
+        var conf = d.count >= 3
+          ? '<span style="color:var(--green)">Sufficient</span>'
+          : '<span style="color:var(--yellow)">Insufficient data</span>';
+        return '<tr><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.percentage + '%</td><td class="num">' + d.undefeatedCount + '</td><td>' + conf + '</td></tr>';
       }).join('');
     }
 
@@ -560,7 +547,6 @@
         html += '<div class="tier-card">';
         html += '<div class="tier-card-header ' + tierCls + '">[' + esc(d.tier) + '] ' + esc(d.detachment) + '</div>';
         html += '<div class="tier-card-body">';
-        if (d.winRate) html += '<div><strong>Win Rate:</strong> ' + esc(String(d.winRate)) + '</div>';
         if (d.listCount != null) html += '<div><strong>Lists (n=):</strong> ' + esc(String(d.listCount)) + '</div>';
         if (d.undefeated != null) html += '<div><strong>Undefeated:</strong> ' + esc(String(d.undefeated)) + '</div>';
         if (d.reasoning) html += '<div style="margin-top:0.5rem">' + esc(d.reasoning) + '</div>';
