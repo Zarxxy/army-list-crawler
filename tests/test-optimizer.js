@@ -153,3 +153,49 @@ test('unit frequency values are between 0 and 100', () => {
     assert.ok(u.frequency >= 0 && u.frequency <= 100, `frequency out of range for ${u.name}: ${u.frequency}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Edge cases
+// ---------------------------------------------------------------------------
+
+const FIXTURE_EMPTY = path.join(__dirname, 'fixtures', 'army-lists-empty.json');
+
+test('optimizer exits 0 with empty input and produces valid JSON', () => {
+  // Use an isolated temp dir so this test does not clobber the shared TMP meta report
+  const emptyTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-optimizer-empty-'));
+  try {
+    const emptyReportResult = spawnSync(
+      process.execPath,
+      [REPORT_SCRIPT, '--input', FIXTURE_EMPTY, '--output', emptyTmp, '--format', 'json'],
+      { encoding: 'utf-8' }
+    );
+    assert.equal(emptyReportResult.status, 0, `report stderr: ${emptyReportResult.stderr}`);
+
+    const result = spawnSync(
+      process.execPath,
+      [OPTIMIZER_SCRIPT,
+        '--lists', FIXTURE_EMPTY,
+        '--report', path.join(emptyTmp, 'meta-report-latest.json'),
+        '--output', emptyTmp,
+        '--format', 'json'],
+      { encoding: 'utf-8' }
+    );
+    assert.equal(result.status, 0, `optimizer stderr: ${result.stderr}`);
+    const opt = JSON.parse(fs.readFileSync(path.join(emptyTmp, 'optimizer-latest.json'), 'utf-8'));
+    // Empty result uses top-level totalLists (no meta wrapper)
+    assert.equal(opt.totalLists, 0);
+  } finally {
+    fs.rmSync(emptyTmp, { recursive: true, force: true });
+  }
+});
+
+test('optimizer warlord field is null or a string (never crashes on empty warlord list)', () => {
+  const result = runOptimizer();
+  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
+  const opt = readJSON('optimizer-latest.json');
+  // concreteList is only present in a non-empty result
+  if (opt.concreteList) {
+    const warlord = opt.concreteList.warlord;
+    assert.ok(warlord === null || typeof warlord === 'string', `unexpected warlord type: ${typeof warlord}`);
+  }
+});

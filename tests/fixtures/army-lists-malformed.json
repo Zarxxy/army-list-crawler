@@ -1,0 +1,27 @@
+{
+  "crawledAt": "2024-01-15T10:00:00.000Z",
+  "game": "40k",
+  "factionFilter": "Death Guard",
+  "sections": {
+    "All": [
+      {
+        "playerName": null,
+        "faction": null,
+        "event": null,
+        "date": null,
+        "record": null,
+        "detachment": null,
+        "armyListText": null
+      },
+      {
+        "playerName": "Dave",
+        "faction": "Death Guard",
+        "event": null,
+        "date": null,
+        "record": "2-4",
+        "detachment": "Plague Company",
+        "armyListText": ""
+      }
+    ]
+  }
+}

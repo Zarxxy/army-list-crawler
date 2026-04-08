@@ -1,8 +1,9 @@
 /**
  * ai-analysis.js
  *
- * Generates an AI-powered Death Guard meta analysis using the Anthropic API
- * (claude-opus-4-6). Reads the crawled army lists, meta report, and optimizer
+ * Generates an AI-powered Death Guard meta analysis using the Anthropic API.
+ * The model is configured via config.json (aiAnalysis.defaultModel) or --model flag.
+ * Reads the crawled army lists, meta report, and optimizer
  * output, then asks Claude to produce:
  *
  *   - A meta summary
@@ -31,6 +32,8 @@
 const fs   = require('fs');
 const path = require('path');
 
+const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
+
 // ---------------------------------------------------------------------------
 // CLI args
 // ---------------------------------------------------------------------------
@@ -46,8 +49,8 @@ const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'ar
 const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')      || 'claude-opus-4-6';
-const maxTokens  = parseInt(getArg('--max-tokens') || '8192', 10);
+const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
+const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 
 // ---------------------------------------------------------------------------
 // Helpers

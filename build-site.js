@@ -86,10 +86,12 @@ function main() {
       console.log('  Embedded AI analysis');
       embedded++;
     } else {
-      console.warn(`  AI analysis skipped (${aiData.reason || 'no reason given'}) — not embedded`);
+      console.warn(`  AI analysis skipped (${aiData.reason || 'no reason given'}) — embedding placeholder`);
+      aiJSON = JSON.stringify({ skipped: true, reason: aiData.reason || 'AI analysis was skipped' });
     }
   } else {
-    console.warn('  Warning: AI analysis not found — run "npm run ai-analysis" first');
+    console.warn('  Warning: AI analysis not found — embedding placeholder (run "npm run ai-analysis" to generate)');
+    aiJSON = JSON.stringify({ skipped: true, reason: 'AI analysis was not run. Set ANTHROPIC_API_KEY and run "npm run ai-analysis".' });
   }
 
   // Inject data into the template
