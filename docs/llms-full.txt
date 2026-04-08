@@ -1,8 +1,0 @@
-Listhammer Meta Analysis — Unknown Faction  |  Generated: 2026-04-08T15:59:13.026Z
-================================================================================
-
-[META REPORT: not available — run the full pipeline to generate this section]
-
-[ARMY OPTIMIZER: not available — run the full pipeline to generate this section]
-
-[AI ANALYSIS: not available — run the full pipeline to generate this section]
