@@ -1,16 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
 
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
 const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
 const format = getArg(args, '--format') || 'all'; // "json", "text", "all"
 const topN = parseInt(getArg(args, '--top') || '20', 10);
-
-function getArg(args, flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
 
 // ---------------------------------------------------------------------------
 // Main
@@ -70,32 +66,6 @@ function writeReports(report, textReport) {
 // ---------------------------------------------------------------------------
 // Data helpers
 // ---------------------------------------------------------------------------
-
-function flattenLists(raw) {
-  const lists = [];
-  const seen = new Set();
-  for (const [sectionName, entries] of Object.entries(raw.sections || {})) {
-    for (const entry of entries) {
-      // Deduplicate entries that appear in multiple sections (All + Undefeated)
-      const key = [entry.playerName || entry.player, entry.event, entry.date].join('|');
-      if (seen.has(key)) continue;
-      seen.add(key);
-      lists.push({ ...entry, section: sectionName });
-    }
-  }
-  return lists;
-}
-
-function parseRecord(record) {
-  if (!record) return null;
-  const m = record.match(/(\d+)\s*[-–]\s*(\d+)(?:\s*[-–]\s*(\d+))?/);
-  if (!m) return null;
-  return {
-    wins: parseInt(m[1], 10),
-    losses: parseInt(m[2], 10),
-    draws: m[3] ? parseInt(m[3], 10) : 0,
-  };
-}
 
 function pct(n, total) {
   if (total === 0) return '0.0';
@@ -272,13 +242,6 @@ function detectFaction(lists) {
   }
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   return sorted.length > 0 ? sorted[0][0] : 'Unknown';
-}
-
-function extractDetachment(text) {
-  if (!text) return null;
-  const m = text.match(/Detachment:\s*(.+?)(?:\n|$)/i) ||
-            text.match(/Detachment\s*[-–:]\s*(.+?)(?:\n|$)/i);
-  return m ? m[1].trim() : null;
 }
 
 function extractPoints(text) {

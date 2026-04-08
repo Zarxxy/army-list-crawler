@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -12,10 +13,13 @@ const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
 const format = getArg(args, '--format') || 'all';
 const TARGET_POINTS = parseInt(getArg(args, '--points') || '2000', 10);
 
-function getArg(args, flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
+const CONFIG = {
+  POINTS_BUFFER: 50,          // allow lists to exceed target by this many pts
+  MIN_CO_OCCUR_FREQ: 2,       // minimum pair appearances for co-occurrence output
+  MIN_WINNING_LISTS: 3,       // use winning lists only if at least this many exist
+  MAX_CO_OCCUR_RESULTS: 15,   // top N co-occurrence pairs included in output
+  TOP_ENHANCEMENTS: 4,        // top N enhancements to recommend
+};
 
 // ---------------------------------------------------------------------------
 // Main
@@ -71,34 +75,6 @@ function writeOutput(result, textOutput) {
 // Data helpers
 // ---------------------------------------------------------------------------
 
-function flattenLists(raw) {
-  const lists = [];
-  const seen = new Set();
-  for (const [sectionName, entries] of Object.entries(raw.sections || {})) {
-    for (const entry of entries) {
-      const key = [entry.playerName || entry.player, entry.event, entry.date].join('|');
-      if (seen.has(key)) continue;
-      seen.add(key);
-      lists.push({ ...entry, section: sectionName });
-    }
-  }
-  return lists;
-}
-
-function parseRecord(record) {
-  if (!record) return null;
-  const m = record.match(/(\d+)\s*[-–]\s*(\d+)(?:\s*[-–]\s*(\d+))?/);
-  if (!m) return null;
-  return { wins: parseInt(m[1], 10), losses: parseInt(m[2], 10), draws: m[3] ? parseInt(m[3], 10) : 0 };
-}
-
-function extractDetachment(text) {
-  if (!text) return null;
-  const m = text.match(/Detachment:\s*(.+?)(?:\n|$)/i) ||
-            text.match(/Detachment\s*[-–:]\s*(.+?)(?:\n|$)/i);
-  return m ? m[1].trim() : null;
-}
-
 function pct(n, total) {
   return total > 0 ? Math.round((n / total) * 1000) / 10 : 0;
 }
@@ -106,6 +82,11 @@ function pct(n, total) {
 // ---------------------------------------------------------------------------
 // Army list text parsing
 // ---------------------------------------------------------------------------
+
+// Module-level regex constants — avoids recompilation on every call.
+// These use the `g` flag so lastIndex must be reset to 0 before each use.
+const UNIT_REGEX = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+const ALT_UNIT_REGEX = /^[•·\-\s]*(.+?)\s{2,}\.{0,}?\s*(\d{2,4})\s*pts?\s*$/gim;
 
 function parseArmyListText(text) {
   if (!text) return null;
@@ -137,9 +118,9 @@ function parseArmyListText(text) {
   }
 
   // Units with points — "Unit Name [Xpts]" or "Unit Name (Xpts)"
-  const unitRegex = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+  UNIT_REGEX.lastIndex = 0;
   let unitMatch;
-  while ((unitMatch = unitRegex.exec(text)) !== null) {
+  while ((unitMatch = UNIT_REGEX.exec(text)) !== null) {
     const name = unitMatch[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
     const pts = parseInt(unitMatch[2], 10);
     if (name && pts > 0 && name.length < 80) {
@@ -148,8 +129,8 @@ function parseArmyListText(text) {
   }
 
   // Alternate: "Name    Xpts"
-  const altUnitRegex = /^[•·\-\s]*(.+?)\s{2,}\.{0,}?\s*(\d{2,4})\s*pts?\s*$/gim;
-  while ((unitMatch = altUnitRegex.exec(text)) !== null) {
+  ALT_UNIT_REGEX.lastIndex = 0;
+  while ((unitMatch = ALT_UNIT_REGEX.exec(text)) !== null) {
     const name = unitMatch[1].trim().replace(/\.+$/, '').trim();
     const pts = parseInt(unitMatch[2], 10);
     if (name && pts > 0 && name.length < 80 && !parsed.units.find((u) => u.name === name && u.points === pts)) {
@@ -218,7 +199,7 @@ function optimize(lists, metaReport) {
   const parsedUndefeated = parsedLists.filter((l) => l.record && l.record.losses === 0 && l.record.wins > 0);
 
   // Use winning lists for analysis, fall back to all
-  const analysisSet = parsedWinning.length >= 3 ? parsedWinning : parsedLists;
+  const analysisSet = parsedWinning.length >= CONFIG.MIN_WINNING_LISTS ? parsedWinning : parsedLists;
 
   // Unit analysis
   const unitAnalysis = analyseUnits(analysisSet);
@@ -256,7 +237,7 @@ function optimize(lists, metaReport) {
     detachmentAnalysis: detachmentsByPopularity,
     unitAnalysis,
     enhancementAnalysis,
-    coOccurrence: coOccurrence.slice(0, 15),
+    coOccurrence: coOccurrence.slice(0, CONFIG.MAX_CO_OCCUR_RESULTS),
     reasoning,
   };
 }
@@ -355,7 +336,7 @@ function analyseEnhancements(parsedLists) {
 
 function analyseCoOccurrence(parsedLists) {
   const pairCounts = {};
-  const minFrequency = 2;
+  const minFrequency = CONFIG.MIN_CO_OCCUR_FREQ;
 
   for (const list of parsedLists) {
     const unitNames = [...new Set(list.parsed.units.map((u) => u.name))].sort();
@@ -406,7 +387,7 @@ function buildConcreteArmy(parsedLists, parsedUndefeated, bestDetachment, unitAn
     const copies = Math.max(1, Math.round(u.avgCopies));
 
     for (let c = 0; c < copies; c++) {
-      if (totalPoints + u.typicalPoints > TARGET_POINTS + 50) break;
+      if (totalPoints + u.typicalPoints > TARGET_POINTS + CONFIG.POINTS_BUFFER) break;
       units.push({
         name: u.name,
         points: u.typicalPoints,
@@ -419,7 +400,7 @@ function buildConcreteArmy(parsedLists, parsedUndefeated, bestDetachment, unitAn
   }
 
   // Pick the top enhancements
-  const topEnhancements = enhancementAnalysis.enhancements.slice(0, 4).map((e) => e.name);
+  const topEnhancements = enhancementAnalysis.enhancements.slice(0, CONFIG.TOP_ENHANCEMENTS).map((e) => e.name);
 
   // Find the most common warlord across parsed lists
   const warlordCounts = {};

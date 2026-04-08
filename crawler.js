@@ -1,9 +1,21 @@
-const { chromium } = require('playwright');
+// Lazily required so pure functions can be imported in tests without Playwright installed
+let chromium;
 const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = 'https://listhammer.info';
 const OUTPUT_DIR = path.join(__dirname, 'output');
+
+const CONFIG = {
+  VIEWPORT_WIDTH: 1920,
+  VIEWPORT_HEIGHT: 1080,
+  NAV_TIMEOUT_MS: 60000,      // max ms to wait for page navigation
+  JS_RENDER_WAIT_MS: 3000,    // ms to wait for SPA frameworks to render
+  CF_CHALLENGE_WAIT_MS: 10000, // ms to wait for Cloudflare challenge to resolve
+  SELECTOR_TIMEOUT_MS: 10000, // ms to wait for content selector to appear
+  SCROLL_SETTLE_MS: 500,      // ms pause between scroll steps
+  DEFAULT_DELAY_MS: 1500,     // default ms between requests (polite crawling)
+};
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -11,7 +23,7 @@ const gameFilter = getArg(args, '--game'); // "40k", "aos", or null for both
 const factionFilter = getArg(args, '--faction'); // e.g. "Tyranids", "Stormcast", case-insensitive substring match
 const maxPages = parseInt(getArg(args, '--max-pages') || '0', 10); // 0 = unlimited
 const headless = !args.includes('--no-headless');
-const delay = parseInt(getArg(args, '--delay') || '1500', 10);
+const delay = parseInt(getArg(args, '--delay') || String(CONFIG.DEFAULT_DELAY_MS), 10);
 
 function getArg(args, flag) {
   const idx = args.indexOf(flag);
@@ -35,6 +47,7 @@ async function main() {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
+  ({ chromium } = require('playwright'));
   const executablePath = process.env.CHROMIUM_PATH || undefined;
   const browser = await chromium.launch({
     headless,
@@ -45,14 +58,14 @@ async function main() {
       '--disable-blink-features=AutomationControlled',
       '--disable-features=IsolateOrigins,site-per-process',
       '--disable-infobars',
-      '--window-size=1920,1080',
+      `--window-size=${CONFIG.VIEWPORT_WIDTH},${CONFIG.VIEWPORT_HEIGHT}`,
     ],
   });
 
   const context = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    viewport: { width: 1920, height: 1080 },
+    viewport: { width: CONFIG.VIEWPORT_WIDTH, height: CONFIG.VIEWPORT_HEIGHT },
     locale: 'en-US',
     timezoneId: 'America/New_York',
     extraHTTPHeaders: {
@@ -101,8 +114,8 @@ async function main() {
     const totalDirect = Object.values(allResults).reduce((sum, arr) => sum + arr.length, 0);
     if (totalDirect === 0) {
       console.log('\nDirect URLs returned no results. Trying nav-based discovery...');
-      await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 60000 });
-      await sleep(2000);
+      await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: CONFIG.NAV_TIMEOUT_MS });
+      await sleep(CONFIG.JS_RENDER_WAIT_MS);
 
       const navLinks = await page.evaluate(() => {
         const links = [];
@@ -355,17 +368,17 @@ async function crawlListSection(page, section, delayMs, maxPages) {
   const allLists = [];
 
   try {
-    await page.goto(section.url, { waitUntil: 'networkidle', timeout: 60000 });
+    await page.goto(section.url, { waitUntil: 'networkidle', timeout: CONFIG.NAV_TIMEOUT_MS });
     await sleep(delayMs);
 
     // Human-like behavior: scroll down to trigger lazy-loaded content
     await page.evaluate(() => window.scrollTo(0, 300));
-    await sleep(500);
+    await sleep(CONFIG.SCROLL_SETTLE_MS);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await sleep(500);
+    await sleep(CONFIG.SCROLL_SETTLE_MS);
 
     // Wait for any JavaScript-rendered content (SPA frameworks)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(CONFIG.JS_RENDER_WAIT_MS);
 
     // Log page info for debugging
     const pageTitle = await page.title();
@@ -390,8 +403,8 @@ async function crawlListSection(page, section, delayMs, maxPages) {
              !!document.querySelector('#challenge-form, #cf-challenge-running, .cf-browser-verification');
     });
     if (hasCfChallenge) {
-      console.warn('  WARNING: Cloudflare/bot challenge detected! Waiting 10s for it to resolve...');
-      await sleep(10000);
+      console.warn(`  WARNING: Cloudflare/bot challenge detected! Waiting ${CONFIG.CF_CHALLENGE_WAIT_MS}ms for it to resolve...`);
+      await sleep(CONFIG.CF_CHALLENGE_WAIT_MS);
       const stillChallenge = await page.evaluate(() => {
         return document.body?.innerText?.includes('Checking your browser') ||
                document.body?.innerText?.includes('Just a moment') ||
@@ -423,9 +436,9 @@ async function crawlListSection(page, section, delayMs, maxPages) {
     await page
       .waitForSelector(
         'table, .list-item, .army-list, .card, article, [class*="list"], [class*="army"]',
-        { timeout: 10000 }
+        { timeout: CONFIG.SELECTOR_TIMEOUT_MS }
       )
-      .catch(() => {});
+      .catch((err) => console.warn(`  No content selector found on page ${pageNum}: ${err.message}`));
 
     // Extract army list entries from the current page
     const entries = await extractListEntries(page);
@@ -1387,7 +1400,7 @@ async function goToNextPage(page) {
         );
         if (!isDisabled) {
           await el.click();
-          await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+          await page.waitForLoadState('networkidle', { timeout: 15000 }).catch((err) => console.warn(`  Next page load timed out: ${err.message}`));
           return true;
         }
       }
@@ -1427,7 +1440,21 @@ async function goToNextPage(page) {
   return newHeight > prevHeight;
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+// Export pure functions for unit testing (not called when running as CLI)
+if (require.main !== module) {
+  module.exports = {
+    getArg,
+    filterByFaction,
+    identifyListSections,
+    buildDirectSections,
+    normalizeEntry,
+    splitConcatenatedText,
+    parseFieldsFromTexts,
+    reorderParsedParts,
+  };
+} else {
+  main().catch((err) => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+}

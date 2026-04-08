@@ -28,6 +28,14 @@ const outputPath = path.join(docsDir, 'index.html');
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Prevent </script> sequences inside JSON from breaking the surrounding HTML
+ * script block. This is the only escaping needed for JSON embedded in <script>.
+ */
+function escapeForScriptTag(jsonStr) {
+  return jsonStr.replace(/<\/script>/gi, '<\\/script>');
+}
+
 function main() {
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
@@ -87,9 +95,9 @@ function main() {
   // Inject data into the template
   // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
   // We need to replace both the comment AND the trailing null to avoid syntax errors
-  html = html.replace('/*__META_REPORT_DATA__*/null', metaJSON);
-  html = html.replace('/*__OPTIMIZER_DATA__*/null', optJSON);
-  html = html.replace('/*__AI_ANALYSIS_DATA__*/null', aiJSON);
+  html = html.replace('/*__META_REPORT_DATA__*/null', escapeForScriptTag(metaJSON));
+  html = html.replace('/*__OPTIMIZER_DATA__*/null', escapeForScriptTag(optJSON));
+  html = html.replace('/*__AI_ANALYSIS_DATA__*/null', escapeForScriptTag(aiJSON));
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 
