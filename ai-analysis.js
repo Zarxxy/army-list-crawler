@@ -118,7 +118,7 @@ function buildPrompt(metaReport, optimizerReport) {
   if (detachments.length > 0) {
     lines.push('--- DETACHMENT BREAKDOWN ---');
     for (const d of detachments) {
-      const wr = d.winRate != null ? `${d.winRate}% win rate` : 'win rate N/A';
+      const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}% win rate` : 'win rate N/A';
       lines.push(`  ${d.detachment}: ${d.count} lists (${d.percentage}%), ${wr}, ${d.undefeatedCount} undefeated`);
     }
     lines.push('');

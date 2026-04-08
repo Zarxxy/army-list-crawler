@@ -130,7 +130,7 @@ test('win rates are between 0 and 100', () => {
   runReport();
   const report = readJSON('meta-report-latest.json');
   for (const d of report.detachmentBreakdown) {
-    if (d.winRate != null) {
+    if (d.winRate !== null && d.winRate !== undefined) {
       assert.ok(d.winRate >= 0 && d.winRate <= 100, `winRate out of range: ${d.winRate}`);
     }
   }

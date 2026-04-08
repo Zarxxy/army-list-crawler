@@ -301,7 +301,7 @@ function renderText(report) {
   lines.push(padRow(['Detachment', 'Count', '%', 'Win%', 'Undefeated']));
   lines.push(padRow(['----------', '-----', '-', '----', '----------']));
   for (const d of report.detachmentBreakdown) {
-    const wr = d.winRate != null ? `${d.winRate}%` : 'N/A';
+    const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}%` : 'N/A';
     lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, wr, d.undefeatedCount]));
   }
   lines.push('');

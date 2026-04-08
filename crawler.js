@@ -669,12 +669,12 @@ async function extractListEntries(page) {
         // Use header-based mapping if we detected column names
         if (hasHeaderMap) {
           entries.push({
-            playerName: colMap.playerName != null ? (cellTexts[colMap.playerName] || null) : null,
-            faction: colMap.faction != null ? (cellTexts[colMap.faction] || null) : null,
-            detachment: colMap.detachment != null ? (cellTexts[colMap.detachment] || null) : null,
-            event: colMap.event != null ? (cellTexts[colMap.event] || null) : null,
-            record: colMap.record != null ? (cellTexts[colMap.record] || null) : null,
-            date: colMap.date != null ? (cellTexts[colMap.date] || null) : null,
+            playerName: colMap.playerName !== undefined ? (cellTexts[colMap.playerName] || null) : null,
+            faction: colMap.faction !== undefined ? (cellTexts[colMap.faction] || null) : null,
+            detachment: colMap.detachment !== undefined ? (cellTexts[colMap.detachment] || null) : null,
+            event: colMap.event !== undefined ? (cellTexts[colMap.event] || null) : null,
+            record: colMap.record !== undefined ? (cellTexts[colMap.record] || null) : null,
+            date: colMap.date !== undefined ? (cellTexts[colMap.date] || null) : null,
             rawCells: cellTexts,
             detailUrl,
             rawText,
