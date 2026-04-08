@@ -1,0 +1,30 @@
+{
+  "crawler": {
+    "baseUrl": "https://listhammer.info",
+    "knownFactionPatterns": [
+      "death guard", "space marine", "tyranid", "ork", "eldar", "aeldari",
+      "necron", "tau", "t'au", "chaos", "imperial", "adeptus", "astra",
+      "drukhari", "harlequin", "genestealer", "knight", "custodes",
+      "sister", "adepta sororitas", "world eater", "thousand son",
+      "dark angel", "blood angel", "space wolv", "black templar",
+      "grey knight", "deathwatch", "votann", "agent", "daemon",
+      "nurgle", "khorne", "slaanesh", "tzeentch",
+      "stormcast", "lumineth", "seraphon", "sylvaneth", "idoneth",
+      "ossiarch", "soulblight", "skaven", "maggotkin", "ironjawz",
+      "flesh.eater", "cities of sigmar", "slaves to darkness",
+      "blades of khorne", "hedonites", "disciples of tzeentch",
+      "ogor mawtribes", "sons of behemat", "fyreslayer", "kharadron",
+      "nighthaunt", "gloomspite", "bonesplitterz", "big waaagh"
+    ],
+    "knownDetachments": [
+      "Virulent Vectorium", "Mortarion's Hammer", "Champions of Contagion",
+      "Flyblown Host", "Tallyband Summoners", "Unclean Horde", "Plague Company",
+      "Black Legion", "Creations of Bile", "Pactbound Zealots",
+      "Soulforged Warpack", "Fellhammer Siege-Host"
+    ]
+  },
+  "aiAnalysis": {
+    "defaultModel": "claude-opus-4-5",
+    "maxTokens": 8192
+  }
+}
