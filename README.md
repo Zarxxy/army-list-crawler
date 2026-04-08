@@ -12,8 +12,18 @@ Crawl listhammer.info  →  Meta report  →  Army optimizer  →  AI analysis  
 1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text
 2. **Meta Report** — Analyses detachment popularity, win rates, undefeated lists, player rankings, and record distributions
 3. **Army Optimizer** — Finds the most meta-representative winning list and recommends a concrete ~2000pt build, with unit synergy analysis
-4. **AI Analysis** — Sends the tournament data to Claude (`claude-opus-4-6`) via the Anthropic API and generates a natural-language meta summary, detachment tier list, best list breakdown, strategic advice, and meta trends
+4. **AI Analysis** — Sends the tournament data to Claude via the Anthropic API and generates a natural-language meta summary, detachment tier list, best list breakdown, strategic advice, and meta trends. The model is configured in `config.json` (default: `claude-opus-4-5`)
 5. **Site Builder** — Inlines all report JSON into a self-contained HTML dashboard for GitHub Pages
+
+## Configuration
+
+Key settings live in `config.json` at the repo root:
+
+- `crawler.baseUrl` — target site URL
+- `crawler.knownFactionPatterns` — regex strings used to identify faction names
+- `crawler.knownDetachments` — list of known detachment names for field disambiguation
+- `aiAnalysis.defaultModel` — Claude model used for AI analysis (overridable via `--model`)
+- `aiAnalysis.maxTokens` — max tokens for the AI response
 
 ## Prerequisites
 
@@ -24,8 +34,8 @@ Crawl listhammer.info  →  Meta report  →  Army optimizer  →  AI analysis  
 ## Setup
 
 ```bash
-git clone https://github.com/Zarxxy/Claude.git
-cd Claude
+git clone https://github.com/Zarxxy/army-list-crawler.git
+cd army-list-crawler
 npm install
 npx playwright install chromium
 ```
@@ -40,7 +50,7 @@ ANTHROPIC_API_KEY=sk-ant-... node ai-analysis.js
 
 For GitHub Actions, add `ANTHROPIC_API_KEY` as a repository secret (Settings → Secrets → Actions).
 
-If the key is not set the step is skipped gracefully and the rest of the pipeline continues normally.
+If the key is not set the step is skipped gracefully and the rest of the pipeline continues normally. The dashboard will show an "AI analysis not available" message in the AI tab.
 
 ## Usage
 
@@ -65,6 +75,8 @@ node crawler.js --game 40k --faction "Death Guard" --no-headless
 | `--delay N` | Milliseconds between requests | `1500` |
 | `--no-headless` | Show browser window | headless |
 
+> **Note:** The crawler exits with code 1 if it finds 0 army lists, which will fail the CI pipeline. Check debug artifacts in `output/` if this happens.
+
 ### Meta Report
 
 ```bash
@@ -79,6 +91,8 @@ npm run report:text     # Text only
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
 | `--top N` | Number of top players | `20` |
+
+> **Note:** `report.js` exits with code 1 if the input file does not exist. Run `npm run crawl:dg` first.
 
 ### Army Optimizer
 
@@ -100,7 +114,7 @@ npm run optimize:json   # JSON only
 ```bash
 npm run ai-analysis
 # or with options:
-node ai-analysis.js --model claude-opus-4-6 --max-tokens 8192
+node ai-analysis.js --model claude-opus-4-5 --max-tokens 8192
 ```
 
 | Option | Description | Default |
@@ -109,7 +123,7 @@ node ai-analysis.js --model claude-opus-4-6 --max-tokens 8192
 | `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
 | `--optimizer PATH` | Optimizer JSON | `reports/optimizer-latest.json` |
 | `--output DIR` | Output directory | `reports/` |
-| `--model NAME` | Claude model to use | `claude-opus-4-6` |
+| `--model NAME` | Claude model to use | `claude-opus-4-5` (from `config.json`) |
 | `--max-tokens N` | Max output tokens | `8192` |
 
 ### Build Site
@@ -148,19 +162,19 @@ docs/
 
 ## GitHub Actions
 
-The workflow (`.github/workflows/main.yml`) runs on push to the main branch and can be triggered manually from the Actions tab (no automatic schedule).
+The workflow (`.github/workflows/main.yml`) runs automatically on push to `main`, on a weekly schedule (Sundays at 06:00 UTC), and can be triggered manually from the Actions tab.
 
 **Jobs:**
 
-1. **Test** — runs on every push to every branch; executes all 46 tests via `node:test`
-2. **Crawl & Deploy** — runs on push to the deploy branch or manual trigger:
-   - Crawl listhammer.info for Death Guard lists
+1. **Test** — runs on every push to every branch; lints with ESLint and executes all tests via `node:test`
+2. **Crawl & Deploy** — runs on push to `main`, weekly schedule, or manual trigger:
+   - Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
    - Generate meta report
    - Run army optimizer
-   - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret)
+   - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
    - Build and deploy to GitHub Pages
 
-Debug artifacts (raw crawl output) are uploaded on every run.
+Debug artifacts (raw crawl output) are uploaded on every run and retained for 7 days.
 
 ## Running Tests
 
@@ -168,15 +182,32 @@ Debug artifacts (raw crawl output) are uploaded on every run.
 npm test
 ```
 
-46 tests across 4 suites (`test-report`, `test-optimizer`, `test-ai-analysis`, `test-build-site`) using the built-in `node:test` runner — no extra dependencies required.
+Tests across 5 suites (`test-crawler`, `test-report`, `test-optimizer`, `test-ai-analysis`, `test-build-site`) using the built-in `node:test` runner — no extra dependencies required.
+
+## Linting
+
+```bash
+npm run lint
+```
+
+Uses ESLint with Node.js/ES2022 rules. Configuration is in `.eslintrc.json`.
 
 ## Troubleshooting
 
-Check `output/` for debug files if the crawler fails:
-- `error-screenshot.png` — page state at failure
-- `error-page.html` — raw HTML dump
+**Crawler finds 0 lists:**
+- Check `output/error-screenshot.png` and `output/error-page.html` for the page state at failure
+- The crawler exits with code 1 when 0 lists are found, which will fail the CI pipeline — this is intentional so the deploy doesn't silently overwrite the dashboard with empty data
+- Try running with `--no-headless` locally to observe the browser behaviour
 
-If the AI Analysis tab shows "could not be parsed correctly", check the GitHub Actions log for the `Generate AI meta analysis` step — it will show the `stop_reason` and the first/last characters of Claude's raw response.
+**Report fails with "Input file not found":**
+- Run `npm run crawl:dg` first to generate `output/army-lists-latest.json`
+
+**AI Analysis tab is empty or shows "not available":**
+- Ensure `ANTHROPIC_API_KEY` is set (locally or as a GitHub Actions secret)
+- Check the Actions log for the `Generate AI meta analysis` step — it logs the `stop_reason` and start/end of Claude's raw response if parsing fails
+
+**AI response parsing error ("could not be parsed correctly"):**
+- Check the GitHub Actions log for the `Generate AI meta analysis` step — it will show the `stop_reason` and the first/last characters of Claude's raw response
 
 ## Disclaimer
 

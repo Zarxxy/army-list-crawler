@@ -103,7 +103,7 @@ test('build-site handles missing AI analysis gracefully (still exits 0)', () => 
   }
 });
 
-test('build-site skips AI analysis when it is marked skipped:true', () => {
+test('build-site embeds skipped placeholder when AI analysis is marked skipped:true', () => {
   const aiPath = path.join(REPORTS_DIR, 'ai-analysis-latest.json');
   const original = fs.readFileSync(aiPath, 'utf-8');
   // Write a skipped placeholder
@@ -111,9 +111,10 @@ test('build-site skips AI analysis when it is marked skipped:true', () => {
   try {
     runBuild();
     const html = readHTML();
-    // Placeholder comment is gone; value should be plain null, not a JSON object
+    // Placeholder comment must have been replaced
     assert.ok(!html.includes('/*__AI_ANALYSIS_DATA__*/'), 'placeholder comment should have been replaced');
-    assert.ok(!html.includes('"skipped":true'), 'skipped AI object should not be embedded in HTML');
+    // A skipped placeholder JSON should be embedded so the dashboard can show a message
+    assert.ok(html.includes('"skipped":true'), 'skipped placeholder should be embedded in HTML');
   } finally {
     fs.writeFileSync(aiPath, original, 'utf-8');
   }

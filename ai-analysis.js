@@ -1,8 +1,9 @@
 /**
  * ai-analysis.js
  *
- * Generates an AI-powered Death Guard meta analysis using the Anthropic API
- * (claude-opus-4-6). Reads the crawled army lists, meta report, and optimizer
+ * Generates an AI-powered Death Guard meta analysis using the Anthropic API.
+ * The model is configured via config.json (aiAnalysis.defaultModel) or --model flag.
+ * Reads the crawled army lists, meta report, and optimizer
  * output, then asks Claude to produce:
  *
  *   - A meta summary
@@ -31,6 +32,8 @@
 const fs   = require('fs');
 const path = require('path');
 
+const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
+
 // ---------------------------------------------------------------------------
 // CLI args
 // ---------------------------------------------------------------------------
@@ -46,8 +49,8 @@ const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'ar
 const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')      || 'claude-opus-4-6';
-const maxTokens  = parseInt(getArg('--max-tokens') || '8192', 10);
+const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
+const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -105,6 +108,36 @@ function buildPrompt(metaReport, optimizerReport) {
   lines.push(`You are an expert Warhammer 40,000 competitive meta analyst specialising in ${faction}.`);
   lines.push(`You have been given real tournament data. Analyse it and produce an extensive, expert-level meta report.`);
   lines.push('');
+  lines.push('=== ANALYSIS RULES — FOLLOW STRICTLY ===');
+  lines.push('');
+  lines.push('DATASET CONTEXT: This dataset contains ONLY top-finishing tournament lists (1st and 2nd');
+  lines.push('place results). Win rates are artificially inflated and are NOT representative of general');
+  lines.push('field performance. Use them comparatively within this dataset only.');
+  lines.push('');
+  lines.push('RULE 1 — MINIMUM SAMPLE THRESHOLD:');
+  lines.push('Do NOT assign S/A/B/C to any detachment with listCount < 3.');
+  lines.push('Set tier to "Insufficient data" and insufficientData to true. Note the actual count.');
+  lines.push('');
+  lines.push('RULE 2 — WEIGHT SAMPLE SIZE:');
+  lines.push('100% WR (n=1) must NEVER rank above 80%+ WR (n=5+). Confidence scales with n.');
+  lines.push('Prefer high-n data over high-percentage low-n data.');
+  lines.push('');
+  lines.push('RULE 3 — ALWAYS SHOW n= IN WIN RATES:');
+  lines.push('Format ALL win rates as "<pct>% (n=<listCount>)" — e.g. "84% (n=16)" not "84%".');
+  lines.push('The sample size MUST always be visible next to every win rate figure.');
+  lines.push('');
+  lines.push('RULE 4 — EXPLICIT TIER REASONING:');
+  lines.push('For each tier entry, state WHY: reference n, win rate in context of n, and undefeated count.');
+  lines.push('Good: "Rated S — highest list count (n=16), 84% WR, 4 undefeated finishes — high confidence."');
+  lines.push('Good: "Insufficient data — n=1; single run cannot be evaluated reliably."');
+  lines.push('');
+  lines.push('RULE 5 — CORRECT WIN RATE FRAMING:');
+  lines.push('NEVER write "X wins 84% of games" or treat win rates as absolute.');
+  lines.push('ALWAYS write: "Among top-finishing lists in this dataset, X achieved 84% WR (n=16)."');
+  lines.push('Apply this framing consistently in metaSummary, bestListAnalysis, strategicAdvice, metaTrends.');
+  lines.push('');
+  lines.push('=== END ANALYSIS RULES ===');
+  lines.push('');
   lines.push('=== TOURNAMENT DATA ===');
   lines.push(`Faction: ${faction}`);
   lines.push(`Total tournament lists analysed: ${totalLists}`);
@@ -114,8 +147,9 @@ function buildPrompt(metaReport, optimizerReport) {
 
   if (detachments.length > 0) {
     lines.push('--- DETACHMENT BREAKDOWN ---');
+    lines.push('  [NOTE: All lists are top-finishing results — win rates are elevated vs. general field]');
     for (const d of detachments) {
-      const wr = d.winRate != null ? `${d.winRate}% win rate` : 'win rate N/A';
+      const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}% WR (n=${d.count})` : 'win rate N/A';
       lines.push(`  ${d.detachment}: ${d.count} lists (${d.percentage}%), ${wr}, ${d.undefeatedCount} undefeated`);
     }
     lines.push('');
@@ -186,9 +220,18 @@ function buildPrompt(metaReport, optimizerReport) {
     generatedAt: '<ISO timestamp>',
     model: '<model name>',
     faction,
-    metaSummary: '<2-3 paragraph narrative overview referencing key statistics>',
+    metaSummary: '<2-3 paragraph narrative using "Among top-finishing lists in this dataset, X achieved Y% WR (n=Z)" framing throughout>',
     detachmentTierList: [
-      { tier: 'S|A|B|C', detachment: '<name>', reasoning: '<1-2 sentences>', winRate: '<pct>', listCount: '<n>', undefeated: '<n>' },
+      {
+        tier: 'S|A|B|C|Insufficient data',
+        detachment: '<name>',
+        reasoning: '<why this tier — must reference n, WR in context of sample size, and undefeated count>',
+        winRate: '<pct>% (n=<listCount>)',
+        listCount: 0,
+        undefeated: 0,
+        insufficientData: false,
+        sampleNote: '<required when listCount < 3: explain why this cannot be rated, null otherwise>',
+      },
     ],
     bestListAnalysis: {
       detachment: '<name>',
@@ -232,9 +275,13 @@ function renderText(result) {
 
   if (result.detachmentTierList?.length) {
     lines.push(hr2); lines.push('  DETACHMENT TIER LIST'); lines.push(hr2);
+    lines.push('  NOTE: Dataset contains top-finishing lists only — WR figures are elevated vs. general field.');
+    lines.push('');
     for (const d of result.detachmentTierList) {
-      lines.push(`  [${d.tier}] ${d.detachment}  —  WR: ${d.winRate}  |  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
-      lines.push(`      ${d.reasoning}`);
+      const tierLabel = d.insufficientData ? 'INSUFF' : (d.tier || '?');
+      lines.push(`  [${tierLabel}] ${d.detachment}  —  WR: ${d.winRate || 'N/A'}  |  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
+      if (d.reasoning) lines.push(`      ${d.reasoning}`);
+      if (d.sampleNote) lines.push(`      ⚠ ${d.sampleNote}`);
       lines.push('');
     }
   }

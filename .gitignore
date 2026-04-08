@@ -3,4 +3,6 @@ output/
 reports/
 docs/data/
 docs/index.html
+docs/llms.txt
+docs/llms-full.txt
 *.log

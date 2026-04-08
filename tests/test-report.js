@@ -116,21 +116,50 @@ test('eventBreakdown is populated', () => {
   assert.equal(gt.listCount, 3);
 });
 
-test('report handles missing input file gracefully (exit 0, empty report)', () => {
+test('report exits with code 1 and prints error when input file is missing', () => {
   const result = spawnSync(
     process.execPath,
     [REPORT_SCRIPT, '--input', '/nonexistent/file.json', '--output', TMP, '--format', 'json'],
     { encoding: 'utf-8' }
   );
-  assert.equal(result.status, 0, 'should exit 0 even with missing input');
+  assert.equal(result.status, 1, 'should exit 1 with missing input file');
+  assert.ok(result.stderr.includes('ERROR'), 'should print ERROR to stderr');
 });
 
 test('win rates are between 0 and 100', () => {
   runReport();
   const report = readJSON('meta-report-latest.json');
   for (const d of report.detachmentBreakdown) {
-    if (d.winRate != null) {
+    if (d.winRate !== null && d.winRate !== undefined) {
       assert.ok(d.winRate >= 0 && d.winRate <= 100, `winRate out of range: ${d.winRate}`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// Edge cases
+// ---------------------------------------------------------------------------
+
+const FIXTURE_EMPTY  = path.join(__dirname, 'fixtures', 'army-lists-empty.json');
+
+test('report exits 0 and produces empty report when input has no lists', () => {
+  const result = spawnSync(
+    process.execPath,
+    [REPORT_SCRIPT, '--input', FIXTURE_EMPTY, '--output', TMP, '--format', 'json'],
+    { encoding: 'utf-8' }
+  );
+  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
+  const report = readJSON('meta-report-latest.json');
+  assert.equal(report.meta.totalLists, 0);
+  assert.deepEqual(report.detachmentBreakdown, []);
+});
+
+test('report with malformed-fields fixture still exits 0', () => {
+  const FIXTURE_MALFORMED = path.join(__dirname, 'fixtures', 'army-lists-malformed.json');
+  const result = spawnSync(
+    process.execPath,
+    [REPORT_SCRIPT, '--input', FIXTURE_MALFORMED, '--output', TMP, '--format', 'json'],
+    { encoding: 'utf-8' }
+  );
+  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
 });

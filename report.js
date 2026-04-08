@@ -20,9 +20,9 @@ function main() {
   };
 
   if (!fs.existsSync(inputFile)) {
-    console.warn(`Input file not found: ${inputFile}. Crawler may not have found any data.`);
-    writeReports(emptyReport);
-    return;
+    console.error(`ERROR: Input file not found: ${inputFile}`);
+    console.error('Run "npm run crawl:dg" first to generate the army lists data.');
+    process.exit(1);
   }
 
   const raw = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
@@ -301,7 +301,7 @@ function renderText(report) {
   lines.push(padRow(['Detachment', 'Count', '%', 'Win%', 'Undefeated']));
   lines.push(padRow(['----------', '-----', '-', '----', '----------']));
   for (const d of report.detachmentBreakdown) {
-    const wr = d.winRate != null ? `${d.winRate}%` : 'N/A';
+    const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}%` : 'N/A';
     lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, wr, d.undefeatedCount]));
   }
   lines.push('');

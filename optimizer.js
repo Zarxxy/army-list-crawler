@@ -159,7 +159,7 @@ function optimize(lists, metaReport) {
       losses: d.losses || 0,
       draws: d.draws || 0,
       totalGames: d.totalGames || 0,
-      winRate: d.winRate != null ? d.winRate : 0,
+      winRate: d.winRate !== null && d.winRate !== undefined ? d.winRate : 0,
       undefeated: d.undefeatedCount || 0,
     }))
     .sort((a, b) => b.winRate - a.winRate || b.undefeated - a.undefeated || b.count - a.count);

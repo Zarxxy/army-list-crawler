@@ -3,7 +3,10 @@ let chromium;
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'https://listhammer.info';
+const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
+const BASE_URL = appConfig.crawler.baseUrl;
+const KNOWN_FACTION_PATTERNS = appConfig.crawler.knownFactionPatterns.map((p) => new RegExp(p, 'i'));
+const KNOWN_DETACHMENTS = appConfig.crawler.knownDetachments;
 const OUTPUT_DIR = path.join(__dirname, 'output');
 
 const CONFIG = {
@@ -191,12 +194,6 @@ async function main() {
       }
     }
 
-    if (totalLists === 0) {
-      console.warn('\n*** WARNING: No army lists found! ***');
-      const bodyText = await page.evaluate(() => document.body?.innerText?.substring(0, 1000) || '').catch(() => '');
-      console.log('Page body text:\n' + (bodyText || '(empty)'));
-    }
-
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
     const outputFile = path.join(OUTPUT_DIR, `army-lists-${timestamp}.json`);
@@ -214,6 +211,15 @@ async function main() {
     const latestFile = path.join(OUTPUT_DIR, 'army-lists-latest.json');
     fs.writeFileSync(latestFile, JSON.stringify(output, null, 2), 'utf-8');
     console.log(`Also saved to ${latestFile}`);
+
+    if (totalLists === 0) {
+      const bodyText = await page.evaluate(() => document.body?.innerText?.substring(0, 1000) || '').catch(() => '');
+      console.error('\n*** ERROR: Crawler found 0 army lists. ***');
+      console.error('Page body text:\n' + (bodyText || '(empty)'));
+      console.error('Check output/ for debug artifacts (screenshot, HTML dump).');
+      // Set exit code 1 — process exits after browser.close() runs in finally
+      process.exitCode = 1;
+    }
   } catch (err) {
     console.error('Crawler error:', err.message);
 
@@ -491,7 +497,27 @@ async function crawlListSection(page, section, delayMs, maxPages) {
 
 /**
  * Extract army list entries from the current page.
- * Tries multiple strategies since we can't test the exact DOM structure.
+ *
+ * Tries four DOM extraction strategies in order, stopping at the first that
+ * produces results. Listhammer.info is a Nuxt.js SPA so the preferred path is
+ * Strategy 0; the others exist as fallbacks if the SSR payload shape changes.
+ *
+ * Strategy 0 — Nuxt SSR payload (<script id="__NUXT_DATA__">)
+ *   Preferred. Nuxt 3 embeds a JSON array of all server-fetched data.
+ *   Scan for objects that have player + faction keys and map them directly.
+ *
+ * Strategy 1 — HTML table with header-based column mapping
+ *   Reads <th> text to build a column→field map, then extracts each <tr>.
+ *   Falls back to positional mapping (col 0 = player, 1 = faction, …) if
+ *   headers are missing.
+ *
+ * Strategy 2 — Card / article layout
+ *   Targets elements matching `.card`, `.list-item`, `.army-list`, `article`,
+ *   etc. Uses semantic class selectors first, then title/faction headings.
+ *
+ * Strategy 3 — Link scan (last resort)
+ *   Scans all <a href> elements whose href contains "list", "army", or
+ *   "player". Very broad; may produce noise that normalizeEntry() will filter.
  */
 async function extractListEntries(page) {
   const rawEntries = await page.evaluate((baseUrl) => {
@@ -643,12 +669,12 @@ async function extractListEntries(page) {
         // Use header-based mapping if we detected column names
         if (hasHeaderMap) {
           entries.push({
-            playerName: colMap.playerName != null ? (cellTexts[colMap.playerName] || null) : null,
-            faction: colMap.faction != null ? (cellTexts[colMap.faction] || null) : null,
-            detachment: colMap.detachment != null ? (cellTexts[colMap.detachment] || null) : null,
-            event: colMap.event != null ? (cellTexts[colMap.event] || null) : null,
-            record: colMap.record != null ? (cellTexts[colMap.record] || null) : null,
-            date: colMap.date != null ? (cellTexts[colMap.date] || null) : null,
+            playerName: colMap.playerName !== undefined ? (cellTexts[colMap.playerName] || null) : null,
+            faction: colMap.faction !== undefined ? (cellTexts[colMap.faction] || null) : null,
+            detachment: colMap.detachment !== undefined ? (cellTexts[colMap.detachment] || null) : null,
+            event: colMap.event !== undefined ? (cellTexts[colMap.event] || null) : null,
+            record: colMap.record !== undefined ? (cellTexts[colMap.record] || null) : null,
+            date: colMap.date !== undefined ? (cellTexts[colMap.date] || null) : null,
             rawCells: cellTexts,
             detailUrl,
             rawText,
@@ -833,30 +859,9 @@ function normalizeEntry(entry) {
   }
 
   // Detect if the "faction" field actually contains a player name
-  // (player names don't match known faction patterns)
-  const knownFactionPatterns = [
-    /death guard/i, /space marine/i, /tyranid/i, /ork/i, /eldar/i, /aeldari/i,
-    /necron/i, /tau/i, /t'au/i, /chaos/i, /imperial/i, /adeptus/i, /astra/i,
-    /drukhari/i, /harlequin/i, /genestealer/i, /knight/i, /custodes/i,
-    /sister/i, /adepta sororitas/i, /world eater/i, /thousand son/i,
-    /dark angel/i, /blood angel/i, /space wolv/i, /black templar/i,
-    /grey knight/i, /deathwatch/i, /votann/i, /agent/i, /daemon/i,
-    /nurgle/i, /khorne/i, /slaanesh/i, /tzeentch/i,
-    /stormcast/i, /lumineth/i, /seraphon/i, /sylvaneth/i, /idoneth/i,
-    /ossiarch/i, /soulblight/i, /skaven/i, /maggotkin/i, /ironjawz/i,
-    /flesh.eater/i, /cities of sigmar/i, /slaves to darkness/i,
-    /blades of khorne/i, /hedonites/i, /disciples of tzeentch/i,
-    /ogor mawtribes/i, /sons of behemat/i, /fyreslayer/i, /kharadron/i,
-    /nighthaunt/i, /gloomspite/i, /bonesplitterz/i, /big waaagh/i,
-  ];
-
-  // Known Death Guard detachments
-  const knownDetachments = [
-    'Virulent Vectorium', "Mortarion's Hammer", 'Champions of Contagion',
-    'Flyblown Host', 'Tallyband Summoners', 'Unclean Horde', 'Plague Company',
-    'Black Legion', 'Creations of Bile', 'Pactbound Zealots',
-    'Soulforged Warpack', 'Fellhammer Siege-Host',
-  ];
+  // (player names don't match known faction patterns — loaded from config.json)
+  const knownFactionPatterns = KNOWN_FACTION_PATTERNS;
+  const knownDetachments = KNOWN_DETACHMENTS;
 
   // Check if the faction field looks wrong (contains a player name instead of a faction)
   const factionLooksWrong = entry.faction &&
