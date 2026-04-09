@@ -194,11 +194,45 @@ async function main() {
       }
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const crawledAt = new Date().toISOString();
+    const timestamp = crawledAt.replace(/[:.]/g, '-');
+
+    // Archive the previous latest so downstream steps can compute diffs.
+    // Must happen BEFORE we overwrite army-lists-latest.json.
+    const latestFile = path.join(OUTPUT_DIR, 'army-lists-latest.json');
+    const previousFile = path.join(OUTPUT_DIR, 'army-lists-previous.json');
+    if (fs.existsSync(latestFile)) {
+      fs.copyFileSync(latestFile, previousFile);
+      console.log(`Archived previous crawl to ${previousFile}`);
+    }
+
+    // Build a firstSeen lookup from the previous crawl so we can carry over
+    // timestamps for lists that already existed.
+    const firstSeenMap = {};
+    if (fs.existsSync(previousFile)) {
+      try {
+        const prev = JSON.parse(fs.readFileSync(previousFile, 'utf-8'));
+        for (const entries of Object.values(prev.sections || {})) {
+          for (const e of entries) {
+            const key = [e.playerName || e.player, e.event, e.date].join('|');
+            if (e.firstSeen) firstSeenMap[key] = e.firstSeen;
+          }
+        }
+      } catch { /* ignore parse errors in previous file */ }
+    }
+
+    // Stamp each entry with firstSeen / lastSeen timestamps.
+    for (const entries of Object.values(allResults)) {
+      for (const e of entries) {
+        const key = [e.playerName || e.player, e.event, e.date].join('|');
+        e.firstSeen = firstSeenMap[key] || crawledAt;
+        e.lastSeen  = crawledAt;
+      }
+    }
 
     const outputFile = path.join(OUTPUT_DIR, `army-lists-${timestamp}.json`);
     const output = {
-      crawledAt: new Date().toISOString(),
+      crawledAt,
       source: BASE_URL,
       totalLists,
       sections: allResults,
@@ -208,7 +242,6 @@ async function main() {
     console.log(`\n=== Done! Saved ${totalLists} army lists to ${outputFile} ===`);
 
     // Also write a latest symlink-style file
-    const latestFile = path.join(OUTPUT_DIR, 'army-lists-latest.json');
     fs.writeFileSync(latestFile, JSON.stringify(output, null, 2), 'utf-8');
     console.log(`Also saved to ${latestFile}`);
 

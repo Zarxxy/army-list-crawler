@@ -2,11 +2,33 @@ const fs = require('fs');
 const path = require('path');
 const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
 
+// Minimal army list text parser — needed for crawl diff tech extraction.
+// Mirrors the unit-extraction logic in optimizer.js without pulling the whole module.
+const UNIT_RE = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+function extractUnitsFromText(text) {
+  if (!text) return [];
+  const names = new Set();
+  UNIT_RE.lastIndex = 0;
+  let m;
+  while ((m = UNIT_RE.exec(text)) !== null) {
+    const name = m[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
+    if (name && name.length < 80) names.add(name);
+  }
+  // Enhancements
+  const enhRe = /Enhancement[s]?:\s*(.+?)(?:\n|$)/gi;
+  let e;
+  while ((e = enhRe.exec(text)) !== null) {
+    const enh = e[1].trim();
+    if (enh && enh.toLowerCase() !== 'none') names.add(enh);
+  }
+  return [...names];
+}
+
 const args = process.argv.slice(2);
-const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
-const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
-const format = getArg(args, '--format') || 'all'; // "json", "text", "all"
-const topN = parseInt(getArg(args, '--top') || '20', 10);
+const inputFile    = getArg(args, '--input')    || path.join(__dirname, 'output', 'army-lists-latest.json');
+const previousFile = getArg(args, '--previous') || path.join(__dirname, 'output', 'army-lists-previous.json');
+const outputDir    = getArg(args, '--output')   || path.join(__dirname, 'reports');
+const format       = getArg(args, '--format')   || 'all'; // "json", "text", "all"
 
 // ---------------------------------------------------------------------------
 // Main
@@ -16,7 +38,7 @@ function main() {
   const emptyReport = {
     meta: { generatedAt: new Date().toISOString(), crawledAt: 'unknown', totalLists: 0, faction: null },
     detachmentBreakdown: [], eventBreakdown: [], recordDistribution: [],
-    topPlayers: [], undefeatedLists: [], pointsAnalysis: {},
+    pointsAnalysis: {}, crawlDiff: null, listsByDetachment: {},
   };
 
   if (!fs.existsSync(inputFile)) {
@@ -37,7 +59,17 @@ function main() {
 
   console.log(`Loaded ${lists.length} army lists from ${inputFile}\n`);
 
-  const report = buildReport(lists, raw.crawledAt);
+  // Load previous crawl for diff computation (optional)
+  let previousLists = [];
+  if (fs.existsSync(previousFile)) {
+    try {
+      const prevRaw = JSON.parse(fs.readFileSync(previousFile, 'utf-8'));
+      previousLists = flattenLists(prevRaw);
+      console.log(`Loaded ${previousLists.length} previous lists for diff from ${previousFile}`);
+    } catch { /* ignore */ }
+  }
+
+  const report = buildReport(lists, raw.crawledAt, previousLists);
   const textReport = renderText(report);
   console.log(textReport);
 
@@ -76,7 +108,7 @@ function pct(n, total) {
 // Build report — single-faction focused
 // ---------------------------------------------------------------------------
 
-function buildReport(lists, crawledAt) {
+function buildReport(lists, crawledAt, previousLists) {
   // Detect the faction (should be the same for all lists)
   const factionName = detectFaction(lists);
 
@@ -90,34 +122,44 @@ function buildReport(lists, crawledAt) {
     detachmentBreakdown: [],
     eventBreakdown: [],
     recordDistribution: [],
-    topPlayers: [],
-    undefeatedLists: [],
     pointsAnalysis: {},
+    crawlDiff: null,
+    listsByDetachment: {},
   };
 
   // ---- Accumulators ----
   const detCounts = {};
-  const detWins = {};
-  const detLosses = {};
-  const detDraws = {};
-  const detGames = {};
   const detUndefeated = {};
 
   const eventCounts = {};
   const eventDetachments = {};
-  const eventRecords = {};
+  const eventSizes = {};   // player count per event (for "event size" sort)
 
-  const playerStats = {};
   const recordCounts = {};
+
+  // listsByDetachment accumulator
+  const listsByDet = {};
 
   for (const list of lists) {
     const detachment = list.detachment || extractDetachment(list.armyListText) || extractDetachment(list.rawText) || 'Unknown';
     const event = (list.event && list.event.length < 200) ? list.event : 'Unknown Event';
-    const player = list.playerName || list.player || 'Unknown';
     const record = parseRecord(list.record);
 
     // Detachment
     detCounts[detachment] = (detCounts[detachment] || 0) + 1;
+
+    // Group lists by detachment (with full text for expandable cards)
+    if (!listsByDet[detachment]) listsByDet[detachment] = [];
+    listsByDet[detachment].push({
+      playerName: list.playerName || list.player || 'Unknown',
+      detachment,
+      event,
+      date: list.date || null,
+      record: list.record || null,
+      armyListText: list.armyListText || list.rawText || null,
+      firstSeen: list.firstSeen || null,
+      lastSeen: list.lastSeen || null,
+    });
 
     // Event
     eventCounts[event] = (eventCounts[event] || 0) + 1;
@@ -128,65 +170,34 @@ function buildReport(lists, crawledAt) {
       const recStr = `${record.wins}-${record.losses}${record.draws ? `-${record.draws}` : ''}`;
       recordCounts[recStr] = (recordCounts[recStr] || 0) + 1;
 
-      detWins[detachment] = (detWins[detachment] || 0) + record.wins;
-      detLosses[detachment] = (detLosses[detachment] || 0) + record.losses;
-      detDraws[detachment] = (detDraws[detachment] || 0) + record.draws;
-      detGames[detachment] = (detGames[detachment] || 0) + record.wins + record.losses + record.draws;
-
-      // Event record tracking
-      if (!eventRecords[event]) eventRecords[event] = { wins: 0, losses: 0, draws: 0 };
-      eventRecords[event].wins += record.wins;
-      eventRecords[event].losses += record.losses;
-      eventRecords[event].draws += record.draws;
-
       if (record.losses === 0 && record.wins > 0) {
         detUndefeated[detachment] = (detUndefeated[detachment] || 0) + 1;
-        report.undefeatedLists.push({ player, event, record: recStr, detachment });
       }
-
-      // Player stats
-      if (!playerStats[player]) {
-        playerStats[player] = { player, wins: 0, losses: 0, draws: 0, games: 0, detachments: new Set(), events: new Set(), lists: 0 };
-      }
-      playerStats[player].wins += record.wins;
-      playerStats[player].losses += record.losses;
-      playerStats[player].draws += record.draws;
-      playerStats[player].games += record.wins + record.losses + record.draws;
-      playerStats[player].detachments.add(detachment);
-      playerStats[player].events.add(event);
-      playerStats[player].lists += 1;
     }
   }
 
-  // ---- Detachment Breakdown (primary analysis) ----
+  // ---- Detachment Breakdown (primary analysis — no win rate) ----
   report.detachmentBreakdown = Object.entries(detCounts)
     .sort((a, b) => b[1] - a[1])
     .map(([detachment, count]) => ({
       detachment,
       count,
       percentage: pct(count, lists.length),
-      wins: detWins[detachment] || 0,
-      losses: detLosses[detachment] || 0,
-      draws: detDraws[detachment] || 0,
-      totalGames: detGames[detachment] || 0,
-      winRate: detGames[detachment] ? parseFloat(pct(detWins[detachment] || 0, detGames[detachment])) : null,
       undefeatedCount: detUndefeated[detachment] || 0,
     }));
 
-  // ---- Event Breakdown ----
+  // ---- Lists by Detachment ----
+  report.listsByDetachment = listsByDet;
+
+  // ---- Event Breakdown (kept as metadata for list cards) ----
   report.eventBreakdown = Object.entries(eventCounts)
     .sort((a, b) => b[1] - a[1])
-    .map(([event, count]) => {
-      const rec = eventRecords[event];
-      return {
-        event,
-        listCount: count,
-        detachments: sortObj(eventDetachments[event]),
-        topDetachment: topKey(eventDetachments[event]),
-        wins: rec ? rec.wins : 0,
-        losses: rec ? rec.losses : 0,
-      };
-    });
+    .map(([event, count]) => ({
+      event,
+      listCount: count,
+      detachments: sortObj(eventDetachments[event]),
+      topDetachment: topKey(eventDetachments[event]),
+    }));
 
   // ---- Record Distribution ----
   report.recordDistribution = Object.entries(recordCounts)
@@ -197,23 +208,6 @@ function buildReport(lists, crawledAt) {
       return rb.wins - ra.wins || ra.losses - rb.losses;
     })
     .map(([record, count]) => ({ record, count, percentage: pct(count, lists.length) }));
-
-  // ---- Top Players ----
-  report.topPlayers = Object.values(playerStats)
-    .filter((p) => p.player !== 'Unknown' && p.games > 0)
-    .map((p) => ({
-      player: p.player,
-      wins: p.wins,
-      losses: p.losses,
-      draws: p.draws,
-      games: p.games,
-      winRate: parseFloat(pct(p.wins, p.games)),
-      lists: p.lists,
-      detachments: [...p.detachments],
-      events: [...p.events],
-    }))
-    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)
-    .slice(0, topN);
 
   // ---- Points Analysis ----
   const pointValues = lists
@@ -231,7 +225,62 @@ function buildReport(lists, crawledAt) {
     };
   }
 
+  // ---- Crawl Diff ----
+  if (previousLists && previousLists.length > 0) {
+    report.crawlDiff = buildCrawlDiff(lists, previousLists);
+  }
+
   return report;
+}
+
+// ---------------------------------------------------------------------------
+// Crawl diff — what's new vs the previous crawl
+// ---------------------------------------------------------------------------
+
+function buildCrawlDiff(currentLists, previousLists) {
+  const prevKeys = new Set(
+    previousLists.map((l) => [l.playerName || l.player, l.event, l.date].join('|'))
+  );
+  const currKeys = new Set(
+    currentLists.map((l) => [l.playerName || l.player, l.event, l.date].join('|'))
+  );
+
+  const newLists = currentLists
+    .filter((l) => !prevKeys.has([l.playerName || l.player, l.event, l.date].join('|')))
+    .map((l) => ({
+      playerName: l.playerName || l.player || 'Unknown',
+      detachment: l.detachment || extractDetachment(l.armyListText) || 'Unknown',
+      event: l.event || 'Unknown Event',
+      date: l.date || null,
+    }));
+
+  const droppedLists = previousLists
+    .filter((l) => !currKeys.has([l.playerName || l.player, l.event, l.date].join('|')))
+    .map((l) => ({
+      playerName: l.playerName || l.player || 'Unknown',
+      detachment: l.detachment || extractDetachment(l.armyListText) || 'Unknown',
+      event: l.event || 'Unknown Event',
+    }));
+
+  // New tech: unit/enhancement names appearing in current that weren't in any previous list
+  const prevTech = new Set();
+  for (const l of previousLists) {
+    for (const name of extractUnitsFromText(l.armyListText || l.rawText)) {
+      prevTech.add(name.toLowerCase());
+    }
+  }
+  const newTechChoices = [];
+  const seenNew = new Set();
+  for (const l of currentLists) {
+    for (const name of extractUnitsFromText(l.armyListText || l.rawText)) {
+      if (!prevTech.has(name.toLowerCase()) && !seenNew.has(name.toLowerCase())) {
+        seenNew.add(name.toLowerCase());
+        newTechChoices.push(name);
+      }
+    }
+  }
+
+  return { newLists, droppedLists, newTechChoices };
 }
 
 function detectFaction(lists) {
@@ -294,30 +343,16 @@ function renderText(report) {
   lines.push(`  Total lists analysed: ${report.meta.totalLists}`);
   lines.push('');
 
-  // Detachment Breakdown
+  // Detachment Breakdown (no win rate)
   lines.push(hr2);
   lines.push('  DETACHMENT BREAKDOWN');
   lines.push(hr2);
-  lines.push(padRow(['Detachment', 'Count', '%', 'Win%', 'Undefeated']));
-  lines.push(padRow(['----------', '-----', '-', '----', '----------']));
+  lines.push(padRow(['Detachment', 'Count', '%', 'Undefeated']));
+  lines.push(padRow(['----------', '-----', '-', '----------']));
   for (const d of report.detachmentBreakdown) {
-    const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}%` : 'N/A';
-    lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, wr, d.undefeatedCount]));
+    lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, d.undefeatedCount]));
   }
   lines.push('');
-
-  // Undefeated Lists
-  if (report.undefeatedLists.length > 0) {
-    lines.push(hr2);
-    lines.push(`  UNDEFEATED LISTS (${report.undefeatedLists.length})`);
-    lines.push(hr2);
-    lines.push(padRow(['Player', 'Record', 'Detachment', 'Event']));
-    lines.push(padRow(['------', '------', '----------', '-----']));
-    for (const u of report.undefeatedLists) {
-      lines.push(padRow([u.player, u.record, u.detachment, u.event]));
-    }
-    lines.push('');
-  }
 
   // Record Distribution
   if (report.recordDistribution.length > 0) {
@@ -331,30 +366,30 @@ function renderText(report) {
     lines.push('');
   }
 
-  // Top Players
-  if (report.topPlayers.length > 0) {
+  // Crawl diff
+  if (report.crawlDiff) {
+    const d = report.crawlDiff;
     lines.push(hr2);
-    lines.push(`  TOP PLAYERS (by win rate, top ${report.topPlayers.length})`);
+    lines.push('  CRAWL DIFF');
     lines.push(hr2);
-    lines.push(padRow(['Player', 'W-L-D', 'Win%', 'Detachment']));
-    lines.push(padRow(['------', '-----', '----', '----------']));
-    for (const p of report.topPlayers) {
-      const rec = `${p.wins}-${p.losses}-${p.draws}`;
-      lines.push(padRow([p.player, rec, `${p.winRate}%`, p.detachments.join(', ')]));
+    lines.push(`  New lists: ${d.newLists.length}  |  Dropped: ${d.droppedLists.length}  |  New tech choices: ${d.newTechChoices.length}`);
+    if (d.newLists.length > 0) {
+      lines.push('  New:');
+      for (const l of d.newLists.slice(0, 10)) lines.push(`    + ${l.playerName} (${l.detachment}) — ${l.event}`);
+    }
+    if (d.newTechChoices.length > 0) {
+      lines.push(`  New tech: ${d.newTechChoices.slice(0, 10).join(', ')}`);
     }
     lines.push('');
   }
 
-  // Event Breakdown
+  // Event Breakdown summary
   if (report.eventBreakdown.length > 0) {
     lines.push(hr2);
-    lines.push('  EVENT BREAKDOWN');
+    lines.push('  EVENTS');
     lines.push(hr2);
     for (const e of report.eventBreakdown) {
       lines.push(`  ${e.event} (${e.listCount} lists, top detachment: ${e.topDetachment})`);
-      for (const d of e.detachments.slice(0, 5)) {
-        lines.push(`    - ${d.name}: ${d.count}`);
-      }
     }
     lines.push('');
   }

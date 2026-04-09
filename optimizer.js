@@ -7,18 +7,19 @@ const { getArg, parseRecord, extractDetachment, flattenLists } = require('./util
 // ---------------------------------------------------------------------------
 
 const args = process.argv.slice(2);
-const listsFile = getArg(args, '--lists') || path.join(__dirname, 'output', 'army-lists-latest.json');
-const reportFile = getArg(args, '--report') || path.join(__dirname, 'reports', 'meta-report-latest.json');
-const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
-const format = getArg(args, '--format') || 'all';
-const TARGET_POINTS = parseInt(getArg(args, '--points') || '2000', 10);
+const listsFile    = getArg(args, '--lists')    || path.join(__dirname, 'output', 'army-lists-latest.json');
+const previousFile = getArg(args, '--previous') || path.join(__dirname, 'output', 'army-lists-previous.json');
+const reportFile   = getArg(args, '--report')   || path.join(__dirname, 'reports', 'meta-report-latest.json');
+const outputDir    = getArg(args, '--output')   || path.join(__dirname, 'reports');
+const format       = getArg(args, '--format')   || 'all';
 
 const CONFIG = {
-  POINTS_BUFFER: 50,          // allow lists to exceed target by this many pts
   MIN_CO_OCCUR_FREQ: 2,       // minimum pair appearances for co-occurrence output
-  MIN_WINNING_LISTS: 3,       // use winning lists only if at least this many exist
   MAX_CO_OCCUR_RESULTS: 15,   // top N co-occurrence pairs included in output
-  TOP_ENHANCEMENTS: 4,        // top N enhancements to recommend
+  TOP_ENHANCEMENTS: 8,        // top N enhancements to include
+  // Variance: units in this % range are "contested" (not universal, not rare)
+  VARIANCE_MIN_PCT: 20,
+  VARIANCE_MAX_PCT: 79,
 };
 
 // ---------------------------------------------------------------------------
@@ -26,11 +27,11 @@ const CONFIG = {
 // ---------------------------------------------------------------------------
 
 function main() {
-  const emptyResult = { generatedAt: new Date().toISOString(), totalLists: 0, rankings: [], insights: [] };
+  const emptyResult = { generatedAt: new Date().toISOString(), totalLists: 0, unitAnalysis: { units: [] }, enhancementAnalysis: { enhancements: [] }, coOccurrence: [], detachmentFrequencyAnalysis: [], varianceAnalysis: [], noveltyFlags: [] };
 
   if (!fs.existsSync(listsFile) || !fs.existsSync(reportFile)) {
     console.warn('Input files not found. Generating empty optimizer output.');
-    writeOutput(emptyResult, 'No army lists to optimize.\n');
+    writeOutput(emptyResult, 'No army lists to analyse.\n');
     return;
   }
 
@@ -40,13 +41,23 @@ function main() {
 
   if (lists.length === 0) {
     console.warn('No lists found. Generating empty optimizer output.');
-    writeOutput(emptyResult, 'No army lists to optimize.\n');
+    writeOutput(emptyResult, 'No army lists to analyse.\n');
     return;
   }
 
   console.log(`Loaded ${lists.length} army lists and meta report.\n`);
 
-  const result = optimize(lists, metaReport);
+  // Load previous crawl for novelty detection
+  let previousLists = [];
+  if (fs.existsSync(previousFile)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(previousFile, 'utf-8'));
+      previousLists = flattenLists(prev);
+      console.log(`Loaded ${previousLists.length} previous lists for novelty detection.`);
+    } catch { /* ignore */ }
+  }
+
+  const result = analyse(lists, metaReport, previousLists);
   const textOutput = renderText(result);
   console.log(textOutput);
   writeOutput(result, textOutput);
@@ -142,108 +153,55 @@ function parseArmyListText(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Core optimizer
+// Core analysis
 // ---------------------------------------------------------------------------
 
-function optimize(lists, metaReport) {
-  const detachmentBreakdown = metaReport.detachmentBreakdown || [];
+function analyse(lists, metaReport, previousLists) {
   const faction = (metaReport.meta && metaReport.meta.faction) || 'Unknown';
-
-  // Detachment stats from meta report
-  const detachmentStats = detachmentBreakdown
-    .filter((d) => d.detachment !== 'Unknown')
-    .map((d) => ({
-      detachment: d.detachment,
-      count: d.count,
-      wins: d.wins || 0,
-      losses: d.losses || 0,
-      draws: d.draws || 0,
-      totalGames: d.totalGames || 0,
-      winRate: d.winRate !== null && d.winRate !== undefined ? d.winRate : 0,
-      undefeated: d.undefeatedCount || 0,
-    }))
-    .sort((a, b) => b.winRate - a.winRate || b.undefeated - a.undefeated || b.count - a.count);
-
-  if (detachmentStats.length === 0) {
-    return { error: 'No detachment data available to optimize.' };
-  }
-
-  // Overall faction stats
-  const totalWins = detachmentBreakdown.reduce((s, d) => s + (d.wins || 0), 0);
-  const totalGames = detachmentBreakdown.reduce((s, d) => s + (d.totalGames || 0), 0);
-  const totalUndefeated = (metaReport.undefeatedLists || []).length;
-  const overallWinRate = pct(totalWins, totalGames);
-
-  // Best detachment = most popular (highest count), not highest win rate
-  const bestDetachment = detachmentStats.slice().sort((a, b) => b.count - a.count)[0];
-
-  // Sort detachments by popularity for display
-  const detachmentsByPopularity = detachmentStats.slice().sort((a, b) => b.count - a.count);
-
-  // Categorise lists by performance
-  const winningLists = lists.filter((l) => {
-    const rec = parseRecord(l.record);
-    return rec && rec.wins >= 3 && rec.wins > rec.losses;
-  });
-  const undefeatedLists = lists.filter((l) => {
-    const rec = parseRecord(l.record);
-    return rec && rec.losses === 0 && rec.wins > 0;
-  });
 
   // Parse all army list texts
   const parsedLists = lists
     .map((l) => ({ ...l, parsed: parseArmyListText(l.armyListText), record: parseRecord(l.record) }))
     .filter((l) => l.parsed && l.parsed.units.length > 0);
 
-  const parsedWinning = parsedLists.filter((l) => l.record && l.record.wins >= 3 && l.record.wins > l.record.losses);
-  const parsedUndefeated = parsedLists.filter((l) => l.record && l.record.losses === 0 && l.record.wins > 0);
+  console.log(`Parsed ${parsedLists.length} / ${lists.length} lists successfully.`);
 
-  // Use winning lists for analysis, fall back to all
-  const analysisSet = parsedWinning.length >= CONFIG.MIN_WINNING_LISTS ? parsedWinning : parsedLists;
+  // Unit analysis (across all lists)
+  const unitAnalysis = analyseUnits(parsedLists);
 
-  // Unit analysis
-  const unitAnalysis = analyseUnits(analysisSet);
+  // Enhancement analysis (across all lists)
+  const enhancementAnalysis = analyseEnhancements(parsedLists);
 
-  // Enhancement analysis
-  const enhancementAnalysis = analyseEnhancements(analysisSet);
+  // Co-occurrence
+  const coOccurrence = analyseCoOccurrence(parsedLists);
 
-  // Build the concrete army list from aggregate data
-  const concreteList = buildConcreteArmy(analysisSet, parsedUndefeated, bestDetachment, unitAnalysis, enhancementAnalysis);
+  // Per-detachment frequency analysis
+  const detachmentFrequencyAnalysis = buildDetachmentFrequency(parsedLists);
 
-  // Co-occurrence analysis — which units tend to appear together in winning lists
-  const coOccurrence = analyseCoOccurrence(analysisSet);
+  // Per-detachment variance analysis
+  const varianceAnalysis = buildVarianceAnalysis(parsedLists);
 
-  // Reasoning
-  const reasoning = generateReasoning(faction, bestDetachment, detachmentStats, unitAnalysis, enhancementAnalysis, undefeatedLists, lists, metaReport);
+  // Novelty flags — units/enhancements new since the last crawl
+  const noveltyFlags = buildNoveltyFlags(parsedLists, previousLists);
 
   return {
     meta: {
       generatedAt: new Date().toISOString(),
-      dataSource: metaReport.meta,
+      faction,
       totalListsAnalysed: lists.length,
       parsedListsAnalysed: parsedLists.length,
-      winningListsAnalysed: parsedWinning.length,
-      targetPoints: TARGET_POINTS,
     },
-    recommendation: {
-      faction,
-      detachment: bestDetachment.detachment,
-      detachmentWinRate: bestDetachment.winRate,
-      winRate: overallWinRate,
-      undefeatedCount: totalUndefeated,
-      score: Math.round(overallWinRate * 3 + totalUndefeated * 10),
-    },
-    concreteList,
-    detachmentAnalysis: detachmentsByPopularity,
     unitAnalysis,
     enhancementAnalysis,
     coOccurrence: coOccurrence.slice(0, CONFIG.MAX_CO_OCCUR_RESULTS),
-    reasoning,
+    detachmentFrequencyAnalysis,
+    varianceAnalysis,
+    noveltyFlags,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Unit analysis — frequency, win-rate correlation, average points
+// Unit analysis — frequency, average points
 // ---------------------------------------------------------------------------
 
 function analyseUnits(parsedLists) {
@@ -251,27 +209,22 @@ function analyseUnits(parsedLists) {
   const totalLists = parsedLists.length;
 
   for (const list of parsedLists) {
-    const isWinning = list.record && list.record.wins >= 3 && list.record.wins > list.record.losses;
-    const isUndefeated = list.record && list.record.losses === 0 && list.record.wins > 0;
     const seen = new Set();
 
     for (const unit of list.parsed.units) {
       const key = unit.name;
       if (seen.has(key)) {
-        // Same unit taken multiple times — track quantity
         if (unitData[key]) unitData[key].totalCopies++;
         continue;
       }
       seen.add(key);
 
       if (!unitData[key]) {
-        unitData[key] = { name: key, appearances: 0, winningAppearances: 0, undefeatedAppearances: 0, pointValues: [], totalCopies: 0 };
+        unitData[key] = { name: key, appearances: 0, pointValues: [], totalCopies: 0 };
       }
       unitData[key].appearances++;
       unitData[key].totalCopies++;
       unitData[key].pointValues.push(unit.points);
-      if (isWinning) unitData[key].winningAppearances++;
-      if (isUndefeated) unitData[key].undefeatedAppearances++;
     }
   }
 
@@ -286,8 +239,6 @@ function analyseUnits(parsedLists) {
         avgPoints: avgPts,
         typicalPoints: modePts,
         avgCopies: u.totalCopies > 0 ? Math.round((u.totalCopies / u.appearances) * 10) / 10 : 1,
-        winCorrelation: pct(u.winningAppearances, u.appearances),
-        undefeatedAppearances: u.undefeatedAppearances,
       };
     })
     .sort((a, b) => b.frequency - a.frequency || b.appearances - a.appearances);
@@ -331,7 +282,7 @@ function analyseEnhancements(parsedLists) {
 }
 
 // ---------------------------------------------------------------------------
-// Co-occurrence analysis — which units appear together in winning lists?
+// Co-occurrence analysis
 // ---------------------------------------------------------------------------
 
 function analyseCoOccurrence(parsedLists) {
@@ -359,131 +310,132 @@ function analyseCoOccurrence(parsedLists) {
 }
 
 // ---------------------------------------------------------------------------
-// Build a concrete recommended army list (~2000pts)
+// Per-detachment frequency analysis
 // ---------------------------------------------------------------------------
 
-function buildConcreteArmy(parsedLists, parsedUndefeated, bestDetachment, unitAnalysis, enhancementAnalysis) {
-  // Strategy: Build the "best" list from aggregate data across ALL lists.
-  // The most popular units (by frequency) are the ones that keep showing up
-  // in tournament lists — that's the meta telling us what works.
-  //
-  // 1. Pick the most popular detachment (already done — bestDetachment is by count)
-  // 2. Add units sorted by frequency, respecting typical copy counts
-  // 3. Fill up to ~2000pts
-  // 4. Pick the most popular enhancements
-
-  const units = [];
-  let totalPoints = 0;
-
-  // Sort units by frequency (most common first) — this is the core signal
-  const sortedUnits = unitAnalysis.units
-    .filter((u) => u.typicalPoints > 0)
-    .sort((a, b) => b.frequency - a.frequency || b.appearances - a.appearances);
-
-  for (const u of sortedUnits) {
-    if (totalPoints >= TARGET_POINTS) break;
-
-    // How many copies of this unit do lists typically run?
-    const copies = Math.max(1, Math.round(u.avgCopies));
-
-    for (let c = 0; c < copies; c++) {
-      if (totalPoints + u.typicalPoints > TARGET_POINTS + CONFIG.POINTS_BUFFER) break;
-      units.push({
-        name: u.name,
-        points: u.typicalPoints,
-        metaFrequency: u.frequency,
-        avgCopies: u.avgCopies,
-        tier: u.frequency >= 40 ? 'core' : u.frequency >= 20 ? 'common' : 'flex',
-      });
-      totalPoints += u.typicalPoints;
-    }
-  }
-
-  // Pick the top enhancements
-  const topEnhancements = enhancementAnalysis.enhancements.slice(0, CONFIG.TOP_ENHANCEMENTS).map((e) => e.name);
-
-  // Find the most common warlord across parsed lists
-  const warlordCounts = {};
+function buildDetachmentFrequency(parsedLists) {
+  // Group lists by detachment
+  const byDet = {};
   for (const list of parsedLists) {
-    if (list.parsed.warlord) {
-      warlordCounts[list.parsed.warlord] = (warlordCounts[list.parsed.warlord] || 0) + 1;
-    }
+    const det = list.parsed.detachment || list.detachment || extractDetachment(list.armyListText) || 'Unknown';
+    if (!byDet[det]) byDet[det] = [];
+    byDet[det].push(list);
   }
-  const topWarlord = Object.entries(warlordCounts).sort((a, b) => b[1] - a[1])[0];
 
-  return {
-    source: 'aggregate',
-    basedOnLists: parsedLists.length,
-    detachment: bestDetachment.detachment,
-    detachmentFrequency: pct(bestDetachment.count, parsedLists.length + (parsedLists.length === 0 ? 1 : 0)),
-    enhancements: topEnhancements,
-    warlord: topWarlord ? topWarlord[0] : null,
-    units,
-    totalPoints,
-  };
+  return Object.entries(byDet)
+    .filter(([det]) => det !== 'Unknown')
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([detachment, detLists]) => {
+      const totalInDet = detLists.length;
+
+      // Unit frequency within this detachment
+      const unitCounts = {};
+      const enhCounts = {};
+      for (const list of detLists) {
+        const seen = new Set();
+        for (const unit of list.parsed.units) {
+          if (!seen.has(unit.name)) {
+            unitCounts[unit.name] = (unitCounts[unit.name] || 0) + 1;
+            seen.add(unit.name);
+          }
+        }
+        for (const enh of list.parsed.enhancements) {
+          enhCounts[enh] = (enhCounts[enh] || 0) + 1;
+        }
+      }
+
+      const topUnits = Object.entries(unitCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .map(([name, count]) => ({ name, count, frequency: pct(count, totalInDet) }));
+
+      const topEnhancements = Object.entries(enhCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, CONFIG.TOP_ENHANCEMENTS)
+        .map(([name, count]) => ({ name, count, frequency: pct(count, totalInDet) }));
+
+      return { detachment, listCount: totalInDet, topUnits, topEnhancements };
+    });
 }
 
 // ---------------------------------------------------------------------------
-// Reasoning generator
+// Per-detachment variance analysis — contested tech choices
 // ---------------------------------------------------------------------------
 
-function generateReasoning(faction, bestDet, allDets, unitAnalysis, enhancementAnalysis, undefeatedLists, allLists, metaReport) {
-  const sections = [];
-
-  // Faction overview
-  const events = (metaReport.eventBreakdown || []).length;
-  const totalGames = allDets.reduce((s, d) => s + d.totalGames, 0);
-  const overallWR = pct(allDets.reduce((s, d) => s + d.wins, 0), totalGames);
-  sections.push({
-    title: 'Faction Overview',
-    text: `Analysing ${faction} across ${allLists.length} tournament lists and ${totalGames} recorded games. ` +
-      `Overall ${overallWR}% win rate with ${undefeatedLists.length} undefeated finishes.` +
-      (events > 0 ? ` Data spans ${events} events.` : ''),
-  });
-
-  // Detachment choice
-  if (bestDet) {
-    let text = `The recommended detachment is "${bestDet.detachment}" with a ${bestDet.winRate}% win rate across ${bestDet.totalGames} games (${bestDet.count} lists).`;
-    if (bestDet.undefeated > 0) text += ` ${bestDet.undefeated} undefeated finishes used this detachment.`;
-    const others = allDets.filter((d) => d.detachment !== bestDet.detachment).slice(0, 3);
-    if (others.length > 0) {
-      text += ` Other options: ${others.map((d) => `${d.detachment} (${d.winRate}% WR, ${d.count} lists)`).join(', ')}.`;
-    }
-    sections.push({ title: 'Detachment Choice', text });
+function buildVarianceAnalysis(parsedLists) {
+  const byDet = {};
+  for (const list of parsedLists) {
+    const det = list.parsed.detachment || list.detachment || extractDetachment(list.armyListText) || 'Unknown';
+    if (!byDet[det]) byDet[det] = [];
+    byDet[det].push(list);
   }
 
-  // Unit choices
-  if (unitAnalysis.parsedLists > 0) {
-    const core = unitAnalysis.units.filter((u) => u.frequency >= 40);
-    const common = unitAnalysis.units.filter((u) => u.frequency >= 20 && u.frequency < 40);
-    let text = `Analysed ${unitAnalysis.parsedLists} army lists with parseable unit data.`;
-    if (core.length > 0) {
-      text += `\n\nCore units (40%+ of lists):\n` + core.map((u) => `  - ${u.name}: ${u.frequency}% appearance, ~${u.typicalPoints}pts`).join('\n');
-    }
-    if (common.length > 0) {
-      text += `\n\nCommon picks (20-39%):\n` + common.map((u) => `  - ${u.name}: ${u.frequency}% appearance, ~${u.typicalPoints}pts`).join('\n');
-    }
-    sections.push({ title: 'Unit Choices', text });
+  return Object.entries(byDet)
+    .filter(([det, detLists]) => det !== 'Unknown' && detLists.length >= 3)
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([detachment, detLists]) => {
+      const totalInDet = detLists.length;
+
+      const unitCounts = {};
+      for (const list of detLists) {
+        const seen = new Set();
+        for (const unit of list.parsed.units) {
+          if (!seen.has(unit.name)) {
+            unitCounts[unit.name] = (unitCounts[unit.name] || 0) + 1;
+            seen.add(unit.name);
+          }
+        }
+      }
+
+      // Contested = present in VARIANCE_MIN_PCT–VARIANCE_MAX_PCT of lists in this detachment
+      const contested = Object.entries(unitCounts)
+        .map(([name, count]) => ({ name, count, frequency: pct(count, totalInDet) }))
+        .filter((u) => u.frequency >= CONFIG.VARIANCE_MIN_PCT && u.frequency <= CONFIG.VARIANCE_MAX_PCT)
+        .sort((a, b) => b.count - a.count);
+
+      return { detachment, listCount: totalInDet, contestedUnits: contested };
+    })
+    .filter((d) => d.contestedUnits.length > 0);
+}
+
+// ---------------------------------------------------------------------------
+// Novelty flags — units/enhancements new since the previous crawl
+// ---------------------------------------------------------------------------
+
+function buildNoveltyFlags(parsedLists, previousLists) {
+  // Build set of all unit/enhancement names from previous crawl
+  const prevNames = new Set();
+  for (const list of previousLists) {
+    const parsed = parseArmyListText(list.armyListText);
+    if (!parsed) continue;
+    for (const u of parsed.units) prevNames.add(u.name.toLowerCase());
+    for (const e of parsed.enhancements) prevNames.add(e.toLowerCase());
   }
 
-  // Enhancements
-  if (enhancementAnalysis.enhancements.length > 0) {
-    const top = enhancementAnalysis.enhancements.slice(0, 5);
-    sections.push({
-      title: 'Enhancement Picks',
-      text: `Top enhancements among winning lists:\n` + top.map((e) => `  - ${e.name}: ${e.frequency}% usage (${e.appearances}x)`).join('\n'),
-    });
+  // Collect names from current crawl that weren't in previous
+  const novelNames = new Set();
+  const seen = new Set();
+  const result = [];
+
+  for (const list of parsedLists) {
+    const det = list.parsed.detachment || list.detachment || 'Unknown';
+    for (const u of list.parsed.units) {
+      const lower = u.name.toLowerCase();
+      if (!prevNames.has(lower) && !seen.has(lower)) {
+        seen.add(lower);
+        result.push({ name: u.name, type: 'unit', detachment: det });
+      }
+    }
+    for (const e of list.parsed.enhancements) {
+      const lower = e.toLowerCase();
+      if (!prevNames.has(lower) && !seen.has(lower)) {
+        seen.add(lower);
+        result.push({ name: e, type: 'enhancement', detachment: det });
+      }
+    }
   }
 
-  // Strategy
-  const core = unitAnalysis.units.filter((u) => u.frequency >= 40);
-  let strat = `Playing ${faction} means leveraging a faction with proven competitive results.`;
-  if (bestDet) strat += ` The ${bestDet.detachment} detachment is the data-backed choice.`;
-  if (core.length > 0) strat += ` Build around: ${core.map((u) => u.name).join(', ')}.`;
-  if (undefeatedLists.length > 0) strat += ` ${undefeatedLists.length} undefeated finishes confirm the ceiling is high.`;
-  sections.push({ title: 'Strategy', text: strat });
-
-  return sections;
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -498,60 +450,55 @@ function renderText(result) {
   const hr2 = '-'.repeat(74);
 
   lines.push(hr);
-  lines.push('  ARMY OPTIMIZER — RECOMMENDED BUILD');
+  lines.push('  ARMY LIST ANALYSIS');
   lines.push(hr);
   lines.push(`  Generated: ${result.meta.generatedAt}`);
-  lines.push(`  Lists analysed: ${result.meta.totalListsAnalysed} (${result.meta.parsedListsAnalysed} parsed, ${result.meta.winningListsAnalysed} winning)`);
-  lines.push(`  Target: ${result.meta.targetPoints}pts`);
+  lines.push(`  Faction: ${result.meta.faction}`);
+  lines.push(`  Lists analysed: ${result.meta.totalListsAnalysed} (${result.meta.parsedListsAnalysed} parsed)`);
   lines.push('');
 
-  // Recommendation summary
-  const rec = result.recommendation;
-  lines.push(hr2);
-  lines.push(`  ${rec.faction} — ${rec.detachment}`);
-  lines.push(hr2);
-  lines.push(`  Win Rate: ${rec.winRate}%  |  Undefeated: ${rec.undefeatedCount}  |  Score: ${rec.score}`);
-  lines.push('');
-
-  // Concrete army list
-  const cl = result.concreteList;
-  if (cl) {
+  // Per-detachment frequency
+  if (result.detachmentFrequencyAnalysis.length > 0) {
     lines.push(hr2);
-    lines.push('  RECOMMENDED ARMY LIST (built from aggregate meta data)');
+    lines.push('  DETACHMENT FREQUENCY ANALYSIS');
     lines.push(hr2);
-    lines.push(`  Based on: ${cl.basedOnLists} tournament lists`);
-    lines.push(`  Detachment: ${cl.detachment} (${cl.detachmentFrequency}% of lists)`);
-    if (cl.warlord) lines.push(`  Warlord: ${cl.warlord}`);
-    if (cl.enhancements && cl.enhancements.length > 0) lines.push(`  Enhancements: ${cl.enhancements.join(', ')}`);
-    lines.push(`  Total: ${cl.totalPoints}pts`);
-    lines.push('');
-
-    // Group units by tier
-    const tiers = { core: [], common: [], flex: [] };
-    for (const u of cl.units) {
-      (tiers[u.tier] || tiers.flex).push(u);
-    }
-
-    for (const [tier, units] of Object.entries(tiers)) {
-      if (units.length === 0) continue;
-      const label = tier === 'core' ? 'Core Units' : tier === 'common' ? 'Common Picks' : 'Flex Slots';
-      lines.push(`  ${label}:`);
-      for (const u of units) {
-        lines.push(`    ${u.name.padEnd(40)} ${String(u.points).padStart(4)}pts  (${u.metaFrequency}% meta)`);
+    for (const d of result.detachmentFrequencyAnalysis) {
+      lines.push(`\n  [${d.detachment}] — ${d.listCount} lists`);
+      lines.push('  Top Units:');
+      for (const u of d.topUnits.slice(0, 8)) {
+        lines.push(`    ${u.name.padEnd(40)} ${u.frequency}% (${u.count}/${d.listCount})`);
       }
-      lines.push('');
+      if (d.topEnhancements.length > 0) {
+        lines.push('  Top Enhancements:');
+        for (const e of d.topEnhancements) {
+          lines.push(`    ${e.name.padEnd(40)} ${e.frequency}% (${e.count}/${d.listCount})`);
+        }
+      }
     }
+    lines.push('');
   }
 
-  // Detachment comparison
-  if (result.detachmentAnalysis.length > 0) {
+  // Variance
+  if (result.varianceAnalysis.length > 0) {
     lines.push(hr2);
-    lines.push('  DETACHMENT COMPARISON');
+    lines.push('  CONTESTED TECH CHOICES (appear in 20-79% of detachment lists)');
     lines.push(hr2);
-    lines.push(padRow(['Detachment', 'Lists', 'WR%', 'Undefeated']));
-    lines.push(padRow(['----------', '-----', '---', '----------']));
-    for (const d of result.detachmentAnalysis) {
-      lines.push(padRow([d.detachment, d.count, `${d.winRate}%`, d.undefeated]));
+    for (const d of result.varianceAnalysis) {
+      lines.push(`\n  [${d.detachment}] — ${d.listCount} lists`);
+      for (const u of d.contestedUnits.slice(0, 6)) {
+        lines.push(`    ${u.name.padEnd(40)} ${u.frequency}%`);
+      }
+    }
+    lines.push('');
+  }
+
+  // Novelty flags
+  if (result.noveltyFlags.length > 0) {
+    lines.push(hr2);
+    lines.push(`  NOVELTY FLAGS — ${result.noveltyFlags.length} new unit/enhancement name(s) since last crawl`);
+    lines.push(hr2);
+    for (const n of result.noveltyFlags.slice(0, 20)) {
+      lines.push(`  [${n.type}] ${n.name} (${n.detachment})`);
     }
     lines.push('');
   }
@@ -567,27 +514,8 @@ function renderText(result) {
     lines.push('');
   }
 
-  // Reasoning
-  lines.push(hr2);
-  lines.push('  ANALYSIS');
-  lines.push(hr2);
-  for (const section of result.reasoning) {
-    lines.push('');
-    lines.push(`  ## ${section.title}`);
-    lines.push('');
-    for (const line of section.text.split('\n')) {
-      lines.push(line.startsWith('  ') ? line : `  ${line}`);
-    }
-  }
-
-  lines.push('');
   lines.push(hr);
   return lines.join('\n');
-}
-
-function padRow(cols) {
-  const widths = [28, 8, 8, 12];
-  return '  ' + cols.map((c, i) => String(c).padEnd(widths[i] || 12)).join('');
 }
 
 // ---------------------------------------------------------------------------
