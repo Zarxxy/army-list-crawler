@@ -4,9 +4,9 @@ const { getArg, parseRecord, extractDetachment, flattenLists } = require('./util
 
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
+const previousFile = getArg(args, '--previous') || path.join(__dirname, 'output', 'army-lists-previous.json');
 const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
 const format = getArg(args, '--format') || 'all'; // "json", "text", "all"
-const topN = parseInt(getArg(args, '--top') || '20', 10);
 
 // ---------------------------------------------------------------------------
 // Main
@@ -16,7 +16,7 @@ function main() {
   const emptyReport = {
     meta: { generatedAt: new Date().toISOString(), crawledAt: 'unknown', totalLists: 0, faction: null },
     detachmentBreakdown: [], eventBreakdown: [], recordDistribution: [],
-    topPlayers: [], undefeatedLists: [], pointsAnalysis: {},
+    pointsAnalysis: {}, crawlDiff: null, listsByDetachment: {},
   };
 
   if (!fs.existsSync(inputFile)) {
@@ -37,7 +37,18 @@ function main() {
 
   console.log(`Loaded ${lists.length} army lists from ${inputFile}\n`);
 
-  const report = buildReport(lists, raw.crawledAt);
+  let previousLists = null;
+  if (fs.existsSync(previousFile)) {
+    try {
+      const prevRaw = JSON.parse(fs.readFileSync(previousFile, 'utf-8'));
+      previousLists = flattenLists(prevRaw);
+      console.log(`Loaded ${previousLists.length} previous army lists from ${previousFile}`);
+    } catch (err) {
+      console.warn(`Could not load previous file: ${err.message}`);
+    }
+  }
+
+  const report = buildReport(lists, raw.crawledAt, previousLists);
   const textReport = renderText(report);
   console.log(textReport);
 
@@ -76,8 +87,7 @@ function pct(n, total) {
 // Build report — single-faction focused
 // ---------------------------------------------------------------------------
 
-function buildReport(lists, crawledAt) {
-  // Detect the faction (should be the same for all lists)
+function buildReport(lists, crawledAt, previousLists) {
   const factionName = detectFaction(lists);
 
   const report = {
@@ -90,9 +100,9 @@ function buildReport(lists, crawledAt) {
     detachmentBreakdown: [],
     eventBreakdown: [],
     recordDistribution: [],
-    topPlayers: [],
-    undefeatedLists: [],
     pointsAnalysis: {},
+    crawlDiff: null,
+    listsByDetachment: {},
   };
 
   // ---- Accumulators ----
@@ -107,13 +117,11 @@ function buildReport(lists, crawledAt) {
   const eventDetachments = {};
   const eventRecords = {};
 
-  const playerStats = {};
   const recordCounts = {};
 
   for (const list of lists) {
     const detachment = list.detachment || extractDetachment(list.armyListText) || extractDetachment(list.rawText) || 'Unknown';
     const event = (list.event && list.event.length < 200) ? list.event : 'Unknown Event';
-    const player = list.playerName || list.player || 'Unknown';
     const record = parseRecord(list.record);
 
     // Detachment
@@ -141,20 +149,7 @@ function buildReport(lists, crawledAt) {
 
       if (record.losses === 0 && record.wins > 0) {
         detUndefeated[detachment] = (detUndefeated[detachment] || 0) + 1;
-        report.undefeatedLists.push({ player, event, record: recStr, detachment });
       }
-
-      // Player stats
-      if (!playerStats[player]) {
-        playerStats[player] = { player, wins: 0, losses: 0, draws: 0, games: 0, detachments: new Set(), events: new Set(), lists: 0 };
-      }
-      playerStats[player].wins += record.wins;
-      playerStats[player].losses += record.losses;
-      playerStats[player].draws += record.draws;
-      playerStats[player].games += record.wins + record.losses + record.draws;
-      playerStats[player].detachments.add(detachment);
-      playerStats[player].events.add(event);
-      playerStats[player].lists += 1;
     }
   }
 
@@ -169,7 +164,6 @@ function buildReport(lists, crawledAt) {
       losses: detLosses[detachment] || 0,
       draws: detDraws[detachment] || 0,
       totalGames: detGames[detachment] || 0,
-      winRate: detGames[detachment] ? parseFloat(pct(detWins[detachment] || 0, detGames[detachment])) : null,
       undefeatedCount: detUndefeated[detachment] || 0,
     }));
 
@@ -198,23 +192,6 @@ function buildReport(lists, crawledAt) {
     })
     .map(([record, count]) => ({ record, count, percentage: pct(count, lists.length) }));
 
-  // ---- Top Players ----
-  report.topPlayers = Object.values(playerStats)
-    .filter((p) => p.player !== 'Unknown' && p.games > 0)
-    .map((p) => ({
-      player: p.player,
-      wins: p.wins,
-      losses: p.losses,
-      draws: p.draws,
-      games: p.games,
-      winRate: parseFloat(pct(p.wins, p.games)),
-      lists: p.lists,
-      detachments: [...p.detachments],
-      events: [...p.events],
-    }))
-    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)
-    .slice(0, topN);
-
   // ---- Points Analysis ----
   const pointValues = lists
     .map((l) => extractPoints(l.armyListText || l.points))
@@ -231,8 +208,98 @@ function buildReport(lists, crawledAt) {
     };
   }
 
+  // ---- Crawl Diff ----
+  report.crawlDiff = buildCrawlDiff(lists, previousLists);
+
+  // ---- Lists by Detachment ----
+  report.listsByDetachment = buildListsByDetachment(lists);
+
   return report;
 }
+
+// ---------------------------------------------------------------------------
+// Crawl diff — what changed since last crawl
+// ---------------------------------------------------------------------------
+
+function buildCrawlDiff(currentLists, previousLists) {
+  if (!previousLists || previousLists.length === 0) return null;
+
+  function listKey(l) {
+    return `${l.playerName || l.player || ''}|${l.event || ''}|${l.date || ''}`;
+  }
+
+  const prevKeys = new Set(previousLists.map(listKey));
+  const currKeys = new Set(currentLists.map(listKey));
+
+  const newLists = currentLists
+    .filter((l) => !prevKeys.has(listKey(l)))
+    .map((l) => ({ player: l.playerName || l.player, event: l.event, date: l.date, detachment: l.detachment }));
+
+  const droppedLists = previousLists
+    .filter((l) => !currKeys.has(listKey(l)))
+    .map((l) => ({ player: l.playerName || l.player, event: l.event, date: l.date, detachment: l.detachment }));
+
+  // newTechChoices: unit/enhancement names in current not seen in any previous list
+  const prevTech = new Set();
+  for (const l of previousLists) {
+    for (const n of extractTechNames(l.armyListText)) prevTech.add(n);
+  }
+
+  const newTechChoices = [];
+  const seenNew = new Set();
+  for (const l of currentLists) {
+    for (const n of extractTechNames(l.armyListText)) {
+      if (!prevTech.has(n) && !seenNew.has(n)) {
+        seenNew.add(n);
+        newTechChoices.push(n);
+      }
+    }
+  }
+
+  return { newLists, droppedLists, newTechChoices };
+}
+
+// Lightweight unit/enhancement name extractor for diff purposes
+function extractTechNames(armyListText) {
+  if (!armyListText) return [];
+  const names = [];
+
+  // Enhancements
+  const enhRegex = /Enhancement[s]?:\s*(.+?)(?:\n|$)/gi;
+  let m;
+  while ((m = enhRegex.exec(armyListText)) !== null) {
+    const enh = m[1].trim();
+    if (enh && enh.toLowerCase() !== 'none') names.push(enh);
+  }
+
+  // Units with points
+  const unitRegex = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+  unitRegex.lastIndex = 0;
+  while ((m = unitRegex.exec(armyListText)) !== null) {
+    const name = m[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
+    if (name && name.length < 80) names.push(name);
+  }
+
+  return names;
+}
+
+// ---------------------------------------------------------------------------
+// Lists by detachment
+// ---------------------------------------------------------------------------
+
+function buildListsByDetachment(lists) {
+  const result = {};
+  for (const list of lists) {
+    const det = list.detachment || extractDetachment(list.armyListText) || extractDetachment(list.rawText) || 'Unknown';
+    if (!result[det]) result[det] = [];
+    result[det].push(list);
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function detectFaction(lists) {
   const counts = {};
@@ -298,26 +365,12 @@ function renderText(report) {
   lines.push(hr2);
   lines.push('  DETACHMENT BREAKDOWN');
   lines.push(hr2);
-  lines.push(padRow(['Detachment', 'Count', '%', 'Win%', 'Undefeated']));
-  lines.push(padRow(['----------', '-----', '-', '----', '----------']));
+  lines.push(padRow(['Detachment', 'Count', '%', 'Undefeated']));
+  lines.push(padRow(['----------', '-----', '-', '----------']));
   for (const d of report.detachmentBreakdown) {
-    const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}%` : 'N/A';
-    lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, wr, d.undefeatedCount]));
+    lines.push(padRow([d.detachment, d.count, `${d.percentage}%`, d.undefeatedCount]));
   }
   lines.push('');
-
-  // Undefeated Lists
-  if (report.undefeatedLists.length > 0) {
-    lines.push(hr2);
-    lines.push(`  UNDEFEATED LISTS (${report.undefeatedLists.length})`);
-    lines.push(hr2);
-    lines.push(padRow(['Player', 'Record', 'Detachment', 'Event']));
-    lines.push(padRow(['------', '------', '----------', '-----']));
-    for (const u of report.undefeatedLists) {
-      lines.push(padRow([u.player, u.record, u.detachment, u.event]));
-    }
-    lines.push('');
-  }
 
   // Record Distribution
   if (report.recordDistribution.length > 0) {
@@ -327,20 +380,6 @@ function renderText(report) {
     for (const r of report.recordDistribution) {
       const bar = '#'.repeat(Math.max(1, Math.round(parseFloat(r.percentage))));
       lines.push(`  ${r.record.padEnd(10)} ${String(r.count).padStart(4)}  (${r.percentage.padStart(5)}%)  ${bar}`);
-    }
-    lines.push('');
-  }
-
-  // Top Players
-  if (report.topPlayers.length > 0) {
-    lines.push(hr2);
-    lines.push(`  TOP PLAYERS (by win rate, top ${report.topPlayers.length})`);
-    lines.push(hr2);
-    lines.push(padRow(['Player', 'W-L-D', 'Win%', 'Detachment']));
-    lines.push(padRow(['------', '-----', '----', '----------']));
-    for (const p of report.topPlayers) {
-      const rec = `${p.wins}-${p.losses}-${p.draws}`;
-      lines.push(padRow([p.player, rec, `${p.winRate}%`, p.detachments.join(', ')]));
     }
     lines.push('');
   }
@@ -359,6 +398,17 @@ function renderText(report) {
     lines.push('');
   }
 
+  // Crawl Diff
+  if (report.crawlDiff) {
+    lines.push(hr2);
+    lines.push('  CRAWL DIFF');
+    lines.push(hr2);
+    lines.push(`  New lists: ${report.crawlDiff.newLists.length}`);
+    lines.push(`  Dropped lists: ${report.crawlDiff.droppedLists.length}`);
+    lines.push(`  New tech choices: ${report.crawlDiff.newTechChoices.slice(0, 10).join(', ') || 'none'}`);
+    lines.push('');
+  }
+
   lines.push(hr);
   lines.push('  End of report');
   lines.push(hr);
@@ -372,4 +422,8 @@ function padRow(cols) {
 }
 
 // ---------------------------------------------------------------------------
-main();
+if (require.main === module) {
+  main();
+} else {
+  module.exports = { buildReport, buildCrawlDiff, buildListsByDetachment, extractTechNames };
+}

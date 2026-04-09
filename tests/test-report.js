@@ -80,22 +80,26 @@ test('Inexorable Advance appears in detachmentBreakdown', () => {
   assert.equal(ia.count, 1);
 });
 
-test('undefeatedLists contains Carol White', () => {
+test('listsByDetachment is populated with Plague Company (4 lists)', () => {
   runReport();
   const report = readJSON('meta-report-latest.json');
-  const carol = report.undefeatedLists.find(u => u.player === 'Carol White');
-  assert.ok(carol, 'Carol White not in undefeated lists');
-  assert.equal(carol.record, '3-0');
-  assert.equal(carol.detachment, 'Inexorable Advance');
+  assert.ok(report.listsByDetachment, 'listsByDetachment missing');
+  const pc = report.listsByDetachment['Plague Company'];
+  assert.ok(pc, 'Plague Company not in listsByDetachment');
+  assert.equal(pc.length, 4, `expected 4 Plague Company lists, got ${pc.length}`);
 });
 
-test('topPlayers are sorted by winRate descending', () => {
+test('listsByDetachment entries have armyListText', () => {
   runReport();
   const report = readJSON('meta-report-latest.json');
-  const rates = report.topPlayers.map(p => p.winRate);
-  for (let i = 1; i < rates.length; i++) {
-    assert.ok(rates[i - 1] >= rates[i], 'topPlayers not sorted by winRate');
-  }
+  const pc = report.listsByDetachment['Plague Company'];
+  assert.ok(pc && pc[0].armyListText, 'first Plague Company entry missing armyListText');
+});
+
+test('crawlDiff is null when no previous file is provided', () => {
+  runReport();
+  const report = readJSON('meta-report-latest.json');
+  assert.equal(report.crawlDiff, null, 'crawlDiff should be null with no previous file');
 });
 
 test('recordDistribution is populated', () => {
@@ -126,15 +130,6 @@ test('report exits with code 1 and prints error when input file is missing', () 
   assert.ok(result.stderr.includes('ERROR'), 'should print ERROR to stderr');
 });
 
-test('win rates are between 0 and 100', () => {
-  runReport();
-  const report = readJSON('meta-report-latest.json');
-  for (const d of report.detachmentBreakdown) {
-    if (d.winRate !== null && d.winRate !== undefined) {
-      assert.ok(d.winRate >= 0 && d.winRate <= 100, `winRate out of range: ${d.winRate}`);
-    }
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Edge cases
