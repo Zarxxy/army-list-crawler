@@ -15,15 +15,61 @@ const os = require('node:os');
 const BUILD_SCRIPT = path.join(__dirname, '..', 'build-site.js');
 const TEMPLATE     = path.join(__dirname, '..', 'docs', 'template.html');
 
-const TMP       = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-site-'));
-const DOCS_DIR  = path.join(TMP, 'docs');
+const TMP         = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-site-'));
+const DOCS_DIR    = path.join(TMP, 'docs');
 const REPORTS_DIR = path.join(TMP, 'reports');
+const LISTS_FILE  = path.join(TMP, 'army-lists-latest.json');
 
 after(() => fs.rmSync(TMP, { recursive: true, force: true }));
 
-const SAMPLE_META = { meta: { faction: 'Death Guard', totalLists: 5, generatedAt: new Date().toISOString(), crawledAt: '...' }, detachmentBreakdown: [], eventBreakdown: [], recordDistribution: [], topPlayers: [], undefeatedLists: [] };
-const SAMPLE_OPT  = { meta: { totalListsAnalysed: 5 }, recommendation: { faction: 'Death Guard', detachment: 'Plague Company', winRate: 63, undefeatedCount: 0, score: 200, detachmentWinRate: 63 }, concreteList: { units: [], totalPoints: 0, detachment: 'Plague Company', detachmentFrequency: 80, enhancements: [] }, detachmentAnalysis: [], unitAnalysis: { units: [] }, enhancementAnalysis: { enhancements: [] }, coOccurrence: [], reasoning: [] };
-const SAMPLE_AI   = { generatedAt: new Date().toISOString(), model: 'gemini-2.0-flash', faction: 'Death Guard', skipped: false, metaSummary: 'Test summary.', detachmentTierList: [], bestListAnalysis: null, strategicAdvice: null, metaTrends: null };
+// Updated sample data matching current schemas
+const SAMPLE_META = {
+  meta: { faction: 'Death Guard', totalLists: 5, generatedAt: new Date().toISOString(), crawledAt: '...' },
+  detachmentBreakdown: [],
+  eventBreakdown: [],
+  recordDistribution: [],
+  pointsAnalysis: {},
+  crawlDiff: null,
+  listsByDetachment: {},
+};
+
+const SAMPLE_OPT = {
+  meta: { totalListsAnalysed: 5 },
+  unitAnalysis: { units: [] },
+  enhancementAnalysis: { enhancements: [] },
+  coOccurrence: [],
+  detachmentFrequencyAnalysis: [{ detachment: 'Plague Company', listCount: 4, topUnits: [], topEnhancements: [] }],
+  varianceAnalysis: [],
+  noveltyFlags: [],
+};
+
+const SAMPLE_AI = {
+  generatedAt: new Date().toISOString(),
+  model: 'claude-opus-4-6',
+  faction: 'Death Guard',
+  skipped: false,
+  inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0,
+  detachmentSummaries: [{ detachment: 'Plague Company', summary: 'Test summary.' }],
+  listCharacterizations: [],
+  crossDetachmentPatterns: 'Test patterns.',
+  crawlDiff: null,
+};
+
+const SAMPLE_LISTS = {
+  crawledAt: new Date().toISOString(),
+  totalLists: 1,
+  sections: {
+    All: [{
+      playerName: 'Alice Smith',
+      faction: 'Death Guard',
+      event: 'Test Event',
+      date: '2024-01-10',
+      record: '5-1',
+      detachment: 'Plague Company',
+      armyListText: 'Detachment: Plague Company\n\nMortarion [480pts]\n\nTotal: 480pts',
+    }],
+  },
+};
 
 before(() => {
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
@@ -34,12 +80,16 @@ before(() => {
   fs.writeFileSync(path.join(REPORTS_DIR, 'meta-report-latest.json'), JSON.stringify(SAMPLE_META), 'utf-8');
   fs.writeFileSync(path.join(REPORTS_DIR, 'optimizer-latest.json'),   JSON.stringify(SAMPLE_OPT),  'utf-8');
   fs.writeFileSync(path.join(REPORTS_DIR, 'ai-analysis-latest.json'), JSON.stringify(SAMPLE_AI),   'utf-8');
+  fs.writeFileSync(LISTS_FILE, JSON.stringify(SAMPLE_LISTS), 'utf-8');
 });
 
 function runBuild() {
   return spawnSync(
     process.execPath,
-    [BUILD_SCRIPT, '--reports-dir', REPORTS_DIR, '--docs-dir', DOCS_DIR],
+    [BUILD_SCRIPT,
+      '--reports-dir', REPORTS_DIR,
+      '--docs-dir',    DOCS_DIR,
+      '--lists-file',  LISTS_FILE],
     { encoding: 'utf-8' }
   );
 }
@@ -79,11 +129,24 @@ test('index.html contains injected AI analysis JSON', () => {
   assert.ok(html.includes('Test summary.'), 'AI summary not found in HTML');
 });
 
+test('index.html does not contain unreplaced LISTS_DATA placeholder', () => {
+  runBuild();
+  const html = readHTML();
+  assert.ok(!html.includes('/*__LISTS_DATA__*/null'), 'LISTS_DATA placeholder not replaced');
+});
+
+test('index.html contains injected army lists JSON', () => {
+  runBuild();
+  const html = readHTML();
+  assert.ok(html.includes('Alice Smith'), 'army lists player not found in HTML');
+});
+
 test('build-site copies JSON to docs/data/', () => {
   runBuild();
   assert.ok(fs.existsSync(path.join(DOCS_DIR, 'data', 'meta-report.json')));
   assert.ok(fs.existsSync(path.join(DOCS_DIR, 'data', 'optimizer.json')));
   assert.ok(fs.existsSync(path.join(DOCS_DIR, 'data', 'ai-analysis.json')));
+  assert.ok(fs.existsSync(path.join(DOCS_DIR, 'data', 'army-lists.json')));
 });
 
 test('build-site handles missing AI analysis gracefully (still exits 0)', () => {
@@ -94,7 +157,7 @@ test('build-site handles missing AI analysis gracefully (still exits 0)', () => 
   try {
     const result = spawnSync(
       process.execPath,
-      [BUILD_SCRIPT, '--reports-dir', REPORTS_DIR, '--docs-dir', DOCS_DIR],
+      [BUILD_SCRIPT, '--reports-dir', REPORTS_DIR, '--docs-dir', DOCS_DIR, '--lists-file', LISTS_FILE],
       { encoding: 'utf-8' }
     );
     assert.equal(result.status, 0);

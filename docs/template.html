@@ -273,9 +273,10 @@
   if (hash && document.getElementById('tab-' + hash)) switchTab(hash);
 
   // --- Data inlined at build time by build-site.js ---
-  var INLINE_META = /*__META_REPORT_DATA__*/null;
-  var INLINE_OPT  = /*__OPTIMIZER_DATA__*/null;
-  var INLINE_AI   = /*__AI_ANALYSIS_DATA__*/null;
+  var INLINE_META  = /*__META_REPORT_DATA__*/null;
+  var INLINE_OPT   = /*__OPTIMIZER_DATA__*/null;
+  var INLINE_AI    = /*__AI_ANALYSIS_DATA__*/null;
+  var INLINE_LISTS = /*__LISTS_DATA__*/null;
 
   function boot(metaReport, optimizerReport, aiAnalysis) {
     if (metaReport) renderMeta(metaReport);
