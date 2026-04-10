@@ -198,8 +198,9 @@ test('optimizer exits 0 with empty input and produces valid JSON', () => {
     );
     assert.equal(result.status, 0, `optimizer stderr: ${result.stderr}`);
     const opt = JSON.parse(fs.readFileSync(path.join(emptyTmp, 'optimizer-latest.json'), 'utf-8'));
-    // Empty result uses top-level totalLists (no meta wrapper)
-    assert.equal(opt.totalLists, 0);
+    assert.equal(opt.meta.totalListsAnalysed, 0, 'empty result should have meta.totalListsAnalysed = 0');
+    assert.ok(Array.isArray(opt.unitAnalysis.units), 'empty result should have unitAnalysis.units array');
+    assert.ok(Array.isArray(opt.detachmentFrequencyAnalysis), 'empty result should have detachmentFrequencyAnalysis array');
   } finally {
     fs.rmSync(emptyTmp, { recursive: true, force: true });
   }

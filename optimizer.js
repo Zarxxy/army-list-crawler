@@ -23,12 +23,28 @@ const CONFIG = {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
-  const emptyResult = { generatedAt: new Date().toISOString(), totalLists: 0, rankings: [], insights: [] };
+function emptyOutput(dataSource) {
+  return {
+    meta: {
+      generatedAt: new Date().toISOString(),
+      dataSource: dataSource || null,
+      totalListsAnalysed: 0,
+      parsedListsAnalysed: 0,
+      winningListsAnalysed: 0,
+    },
+    unitAnalysis: { units: [] },
+    enhancementAnalysis: { enhancements: [] },
+    coOccurrence: [],
+    detachmentFrequencyAnalysis: [],
+    varianceAnalysis: [],
+    noveltyFlags: [],
+  };
+}
 
+function main() {
   if (!fs.existsSync(listsFile) || !fs.existsSync(reportFile)) {
     console.warn('Input files not found. Generating empty optimizer output.');
-    writeOutput(emptyResult, 'No army lists to optimize.\n');
+    writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
     return;
   }
 
@@ -38,7 +54,7 @@ function main() {
 
   if (lists.length === 0) {
     console.warn('No lists found. Generating empty optimizer output.');
-    writeOutput(emptyResult, 'No army lists to optimize.\n');
+    writeOutput(emptyOutput(metaReport.meta), 'No army lists to optimize.\n');
     return;
   }
 
