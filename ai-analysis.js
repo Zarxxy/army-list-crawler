@@ -49,6 +49,13 @@ const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
 const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
 const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 
+const outputLimits = appConfig.aiAnalysis.outputLimits || {
+  wordsPerList: 80,
+  wordsPerDetachmentSummary: 150,
+  wordsCrossDetachment: 200,
+  wordsCrawlDiff: 100,
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -92,6 +99,10 @@ function emptyResult(faction, reason) {
 // ---------------------------------------------------------------------------
 
 function buildSystemPrompt(faction) {
+  const wList = outputLimits.wordsPerList;
+  const wDet  = outputLimits.wordsPerDetachmentSummary;
+  const wCross = outputLimits.wordsCrossDetachment;
+  const wDiff = outputLimits.wordsCrawlDiff;
   return [
     `You are an expert Warhammer 40,000 competitive meta analyst specialising in ${faction}.`,
     '',
@@ -102,18 +113,18 @@ function buildSystemPrompt(faction) {
     '',
     'RULE 1 — NO WIN RATES: All claims must be grounded in list count, unit inclusion rate, or co-occurrence.',
     '',
-    'RULE 2 — detachmentSummaries: One entry per detachment listed. ≤150 words each.',
+    `RULE 2 — detachmentSummaries: One entry per detachment listed. ≤${wDet} words each.`,
     'Cover: current archetypes present, which units are core (>60% inclusion), what is new or contested.',
     '',
     'RULE 3 — listCharacterizations: One entry per list. listId = "playerName|event|date".',
-    'gamePlan: ≤80 words describing how this list intends to play.',
+    `gamePlan: ≤${wList} words describing how this list intends to play.`,
     'techDiffs: what this list does differently from others in the same detachment.',
     'If only 1 list exists for a detachment, techDiffs = "Only list for this detachment."',
     '',
-    'RULE 4 — crossDetachmentPatterns: ≤200 words. Discuss model count trends, indirect fire',
+    `RULE 4 — crossDetachmentPatterns: ≤${wCross} words. Discuss model count trends, indirect fire`,
     'prevalence, character density, and board-presence themes across all detachments in the data.',
     '',
-    'RULE 5 — crawlDiff: ≤100 words. Summarise what is new since the previous crawl.',
+    `RULE 5 — crawlDiff: ≤${wDiff} words. Summarise what is new since the previous crawl.`,
     'If crawlDiff data is null, set this field to null in your response.',
     '',
     'IMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no trailing text.',
@@ -185,21 +196,25 @@ function buildUserPrompt(listsData, metaReport, optimizerReport) {
         .filter((d) => d.detachment !== 'Unknown')
         .map((d) => d.detachment);
 
+  const wList  = outputLimits.wordsPerList;
+  const wDet   = outputLimits.wordsPerDetachmentSummary;
+  const wCross = outputLimits.wordsCrossDetachment;
+  const wDiff  = outputLimits.wordsCrawlDiff;
   lines.push('=== REQUIRED OUTPUT SCHEMA ===');
   lines.push(JSON.stringify({
     detachmentSummaries: detachmentNames.map((d) => ({
       detachment: d,
-      summary: '<≤150 words: archetypes present, core units (>60%), new or contested picks>',
+      summary: `<≤${wDet} words: archetypes present, core units (>60%), new or contested picks>`,
     })),
     listCharacterizations: listIds.map((id) => ({
       listId: id,
       archetype: '<short label e.g. "Daemon Prince spam">',
-      gamePlan: '<≤80 words: how this list plays>',
+      gamePlan: `<≤${wList} words: how this list plays>`,
       keySynergies: '<brief: 1-2 key unit interactions>',
       techDiffs: '<what differs from other lists in same detachment>',
     })),
-    crossDetachmentPatterns: '<≤200 words: model count, indirect fire, character density trends>',
-    crawlDiff: crawlDiff ? '<≤100 words: what changed since last crawl>' : null,
+    crossDetachmentPatterns: `<≤${wCross} words: model count, indirect fire, character density trends>`,
+    crawlDiff: crawlDiff ? `<≤${wDiff} words: what changed since last crawl>` : null,
   }, null, 2));
 
   return lines.join('\n');
