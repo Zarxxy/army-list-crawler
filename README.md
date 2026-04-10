@@ -1,6 +1,6 @@
-# Listhammer — Death Guard Meta Analyser & Army Optimizer
+# Listhammer — Death Guard Meta Analyser
 
-Automated pipeline that crawls [listhammer.info](https://listhammer.info) for Death Guard tournament army lists, analyses the meta, generates an AI-powered meta report using Claude, and deploys a GitHub Pages dashboard.
+Automated pipeline that crawls [listhammer.info](https://listhammer.info) for Death Guard tournament army lists, runs statistical meta analysis, generates AI-powered per-list and per-detachment characterizations using Claude, and deploys a GitHub Pages dashboard.
 
 ## How It Works
 
@@ -9,34 +9,42 @@ Crawl listhammer.info  →  Meta report  →  Army optimizer  →  AI analysis  
      (crawler.js)         (report.js)      (optimizer.js)   (ai-analysis.js)   (build-site.js)
 ```
 
-1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text
-2. **Meta Report** — Analyses detachment popularity, undefeated list counts, player appearances, and record distributions across top-finishing events
-3. **Army Optimizer** — Finds the most meta-representative winning list and recommends a concrete ~2000pt build, with unit synergy analysis
-4. **AI Analysis** — Sends the tournament data to Claude via the Anthropic API and generates a natural-language meta summary, detachment tier list, best list breakdown, strategic advice, and meta trends. The model is configured in `config.json` (default: `claude-opus-4-5`)
-5. **Site Builder** — Inlines all report JSON into a self-contained HTML dashboard for GitHub Pages
+1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text. Stamps every entry with `firstSeen`/`lastSeen` timestamps and saves a previous-crawl copy for diff tracking.
+2. **Meta Report** — Analyses detachment popularity, record distributions, and event breakdowns. Computes a `crawlDiff` (new lists, dropped lists, new tech choices) when a previous crawl file is present. Groups lists by detachment for downstream use.
+3. **Army Optimizer** — Produces per-detachment unit/enhancement frequency tables, variance analysis (contested choices, 20–79% inclusion), novelty flags (tech not seen in the previous crawl), unit co-occurrence pairs, and overall unit/enhancement frequency across all lists.
+4. **AI Analysis** — Sends the tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. The model and word limits are configured in `config.json`.
+5. **Site Builder** — Inlines all four report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
 
 ## Dataset Context
 
 > **Important:** This pipeline analyses **top-finishing tournament lists only** (1st and 2nd place results).
-> Win rates in this dataset are elevated vs. the general player field and should **not** be treated as
-> absolute competitive benchmarks. All figures compare detachments *within* this dataset only.
->
-> **Tier ratings** are based on:
-> - **List count** — how many top-finishing players chose this detachment
-> - **Undefeated runs** — number of 0-loss finishes
->
-> Detachments with fewer than 3 lists are labelled **"Insufficient data"** — a single strong result
-> is not a reliable signal.
+> This dataset does **not** represent the general player field and must **not** be used to infer win rates,
+> comparative skill, or matchup probabilities. All frequency figures compare lists *within* this dataset only.
+
+## Dashboard
+
+The GitHub Pages site has three tabs:
+
+- **Lists** — All lists, sortable by date or event size. Expandable cards show the full army list text, an AI archetype label and game-plan summary, novelty badges for tech not seen in the previous crawl, and a checkbox for side-by-side comparison of two lists.
+- **By Detachment** — Lists grouped by detachment. Each group shows the AI detachment summary, a unit/enhancement frequency table, a variance section (contested picks), a novelty section (new tech), and collapsible list cards.
+- **Patterns** — AI cross-detachment analysis prose and a crawl-diff summary (what is new or dropped since the last crawl).
+
+A diff banner at the top shows new/dropped list counts and new tech choices whenever a crawl diff is available.
 
 ## Configuration
 
 Key settings live in `config.json` at the repo root:
 
 - `crawler.baseUrl` — target site URL
-- `crawler.knownFactionPatterns` — regex strings used to identify faction names
-- `crawler.knownDetachments` — list of known detachment names for field disambiguation
-- `aiAnalysis.defaultModel` — Claude model used for AI analysis (overridable via `--model`)
+- `crawler.knownFactionPatterns` — strings used to identify faction names
+- `crawler.knownDetachments` — known detachment names for field disambiguation
+- `aiAnalysis.defaultModel` — Claude model for AI analysis (overridable via `--model`)
 - `aiAnalysis.maxTokens` — max tokens for the AI response
+- `aiAnalysis.outputLimits` — per-section word limits injected into the AI prompt:
+  - `wordsPerList` — game plan word cap per list (default: 80)
+  - `wordsPerDetachmentSummary` — word cap per detachment summary (default: 150)
+  - `wordsCrossDetachment` — word cap for cross-detachment patterns (default: 200)
+  - `wordsCrawlDiff` — word cap for crawl diff prose (default: 100)
 
 ## Prerequisites
 
@@ -63,7 +71,7 @@ ANTHROPIC_API_KEY=sk-ant-... node ai-analysis.js
 
 For GitHub Actions, add `ANTHROPIC_API_KEY` as a repository secret (Settings → Secrets → Actions).
 
-If the key is not set the step is skipped gracefully and the rest of the pipeline continues normally. The dashboard will show an "AI analysis not available" message in the AI tab.
+If the key is not set the step is skipped gracefully and the rest of the pipeline continues. The dashboard will show an "AI analysis not available" message where AI content would appear.
 
 ## Usage
 
@@ -101,9 +109,9 @@ npm run report:text     # Text only
 | Option | Description | Default |
 |---|---|---|
 | `--input PATH` | Crawler JSON file | `output/army-lists-latest.json` |
+| `--previous PATH` | Previous crawl file (for crawl diff) | `output/army-lists-previous.json` |
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
-| `--top N` | Number of top players | `20` |
 
 > **Note:** `report.js` exits with code 1 if the input file does not exist. Run `npm run crawl:dg` first.
 
@@ -117,17 +125,16 @@ npm run optimize:json   # JSON only
 | Option | Description | Default |
 |---|---|---|
 | `--lists PATH` | Crawler JSON file | `output/army-lists-latest.json` |
-| `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
+| `--previous PATH` | Previous crawl file (for novelty flags) | `output/army-lists-previous.json` |
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
-| `--points N` | Target army points | `2000` |
 
 ### AI Analysis
 
 ```bash
 npm run ai-analysis
 # or with options:
-node ai-analysis.js --model claude-opus-4-5 --max-tokens 8192
+node ai-analysis.js --model claude-opus-4-6 --max-tokens 8192
 ```
 
 | Option | Description | Default |
@@ -136,8 +143,8 @@ node ai-analysis.js --model claude-opus-4-5 --max-tokens 8192
 | `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
 | `--optimizer PATH` | Optimizer JSON | `reports/optimizer-latest.json` |
 | `--output DIR` | Output directory | `reports/` |
-| `--model NAME` | Claude model to use | `claude-opus-4-5` (from `config.json`) |
-| `--max-tokens N` | Max output tokens | `8192` |
+| `--model NAME` | Claude model to use | from `config.json` |
+| `--max-tokens N` | Max output tokens | from `config.json` |
 
 ### Build Site
 
@@ -150,28 +157,27 @@ npm run build-all       # Report + optimizer + site in one step
 
 ```
 output/
-  army-lists-latest.json          # Most recent crawl data
+  army-lists-latest.json          # Most recent crawl data (with firstSeen/lastSeen)
+  army-lists-previous.json        # Previous crawl (copied before each new crawl)
   army-lists-<timestamp>.json     # Archived crawls
 
 reports/
-  meta-report-latest.json         # Detachment stats, player rankings, etc.
-  optimizer-latest.json           # Recommended army list + analysis
-  ai-analysis-latest.json         # Claude AI meta analysis
+  meta-report-latest.json         # Detachment stats, record distribution, crawl diff
+  optimizer-latest.json           # Unit/enhancement frequency, variance, novelty flags
+  ai-analysis-latest.json         # Per-list characterizations, detachment summaries, patterns
   *.txt                           # Text versions of each report
 
 docs/
   index.html                      # GitHub Pages dashboard (self-contained)
   template.html                   # Source template
+  data/
+    meta-report.json              # Copy of latest meta report (for direct access)
+    optimizer.json                # Copy of latest optimizer report
+    ai-analysis.json              # Copy of latest AI analysis
+    army-lists.json               # Copy of latest army lists
+  llms.txt                        # LLM-readable site overview and data links
+  llms-full.txt                   # Full concatenated plain-text reports for LLMs
 ```
-
-## What the Dashboard Shows
-
-- **Overview** — Detachment popularity chart (list count), summary cards, record distribution
-- **AI Analysis** — Claude-generated meta summary; detachment tier list based on popularity and undefeated runs (not win rate); best list breakdown, strategic tips, meta trends
-- **Detachments** — List count and undefeated runs per detachment, with confidence indicator (n≥3 = Sufficient)
-- **Optimizer** — Concrete recommended army list (~2000pts), unit synergy pairings, enhancement usage
-- **Players** — Top players ranked by win rate with detachment and event info
-- **Events** — Per-event detachment breakdown with W/L stats
 
 ## GitHub Actions
 
@@ -182,8 +188,8 @@ The workflow (`.github/workflows/main.yml`) runs automatically on push to `main`
 1. **Test** — runs on every push to every branch; lints with ESLint and executes all tests via `node:test`
 2. **Crawl & Deploy** — runs on push to `main`, weekly schedule, or manual trigger:
    - Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
-   - Generate meta report
-   - Run army optimizer
+   - Generate meta report (with crawl diff against previous crawl)
+   - Run army optimizer (with novelty flags against previous crawl)
    - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
    - Build and deploy to GitHub Pages
 
@@ -215,12 +221,13 @@ Uses ESLint with Node.js/ES2022 rules. Configuration is in `.eslintrc.json`.
 **Report fails with "Input file not found":**
 - Run `npm run crawl:dg` first to generate `output/army-lists-latest.json`
 
-**AI Analysis tab is empty or shows "not available":**
+**AI content not showing in dashboard:**
 - Ensure `ANTHROPIC_API_KEY` is set (locally or as a GitHub Actions secret)
-- Check the Actions log for the `Generate AI meta analysis` step — it logs the `stop_reason` and start/end of Claude's raw response if parsing fails
+- Check the Actions log for the `Generate AI meta analysis` step — it logs the `stop_reason` and start of the raw response if parsing fails
 
-**AI response parsing error ("could not be parsed correctly"):**
-- Check the GitHub Actions log for the `Generate AI meta analysis` step — it will show the `stop_reason` and the first/last characters of Claude's raw response
+**AI response parsing error:**
+- The script retries once automatically on parse failure
+- Check the Actions log — it shows `stop_reason` and the first 500 chars of the raw response
 
 ## Disclaimer
 
