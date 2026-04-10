@@ -3,643 +3,638 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listhammer — Meta Report &amp; Army Optimizer</title>
+<title>Listhammer — Meta Analysis</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #0d1117; --bg2: #161b22; --bg3: #1c2128; --border: #21262d;
     --text: #c9d1d9; --text2: #8b949e; --accent: #58a6ff; --accent2: #79c0ff;
-    --green: #2ecc71; --yellow: #f39c12; --red: #e74c3c; --orange: #e67e22;
+    --green: #2ecc71; --yellow: #f39c12; --red: #e74c3c;
     --radius: 8px;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 
-  /* Nav */
-  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; align-items: center; gap: 2rem; position: sticky; top: 0; z-index: 100; }
+  /* Topbar */
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; align-items: center; gap: 1.5rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
   .topbar h1 { font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
-  .topbar .faction-badge { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 0.2rem 0.7rem; border-radius: var(--radius); font-size: 0.82rem; }
-  .topbar nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .topbar nav a { color: var(--text2); text-decoration: none; padding: 0.3rem 0.8rem; border-radius: var(--radius); font-size: 0.85rem; transition: background 0.15s; }
+  .faction-badge { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 0.2rem 0.7rem; border-radius: var(--radius); font-size: 0.82rem; }
+  .topbar nav { display: flex; gap: 0.4rem; }
+  .topbar nav a { color: var(--text2); text-decoration: none; padding: 0.3rem 0.9rem; border-radius: var(--radius); font-size: 0.85rem; transition: background 0.15s; cursor: pointer; }
   .topbar nav a:hover, .topbar nav a.active { background: var(--bg3); color: var(--text); }
+  .ts-badge { color: var(--text2); font-size: 0.78rem; margin-left: auto; white-space: nowrap; }
 
-  /* Layout */
+  /* Diff banner */
+  .diff-banner { background: var(--bg2); border-left: 3px solid var(--accent); padding: 0.65rem 2rem; font-size: 0.87rem; }
+  .diff-banner strong { color: var(--accent2); }
+  .diff-prose { margin-top: 0.25rem; color: var(--text2); font-style: italic; font-size: 0.84rem; }
+
+  /* Container + tabs */
   .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
-  section { margin-bottom: 2.5rem; }
-  h2 { color: var(--accent); font-size: 1.4rem; margin-bottom: 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
-  h3 { color: var(--text2); font-size: 1rem; margin: 1.2rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .timestamp { color: var(--text2); font-size: 0.8rem; margin-bottom: 1.5rem; }
-
-  /* Summary cards */
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
-  .card .val { font-size: 2rem; font-weight: 700; color: var(--accent); }
-  .card .lbl { font-size: 0.8rem; color: var(--text2); }
-
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; background: var(--bg2); border-radius: var(--radius); overflow: hidden; font-size: 0.88rem; }
-  th, td { padding: 0.5rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
-  th { background: var(--bg3); color: var(--text2); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em; position: sticky; top: 44px; }
-  tr:hover { background: var(--bg3); }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
-
-  /* Bar chart */
-  .bar-chart { margin: 0.8rem 0; }
-  .bar-row { display: flex; align-items: center; margin: 0.25rem 0; }
-  .bar-label { width: 180px; min-width: 140px; text-align: right; padding-right: 0.8rem; font-size: 0.82rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bar { color: #fff; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; min-width: 28px; transition: width 0.4s ease; }
-  .bar.blue { background: var(--accent); }
-
-  /* Optimizer recommendation */
-  .rec-box { background: linear-gradient(135deg, #161b22 0%, #1a2332 100%); border: 1px solid var(--accent); border-radius: var(--radius); padding: 1.5rem; margin: 1rem 0; }
-  .rec-box .faction-name { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
-  .rec-box .det-name { font-size: 1rem; color: var(--accent2); margin-top: 0.2rem; }
-  .rec-stats { display: flex; gap: 2rem; margin: 1rem 0; flex-wrap: wrap; }
-  .rec-stat .rv { font-size: 1.3rem; font-weight: 700; color: var(--text); }
-  .rec-stat .rl { font-size: 0.75rem; color: var(--text2); }
-
-  /* Unit tiers */
-  .tier { margin: 0.8rem 0; }
-  .tier-header { font-weight: 600; font-size: 0.85rem; padding: 0.4rem 0.8rem; border-radius: var(--radius) var(--radius) 0 0; }
-  .tier-header.core { background: var(--green); color: #000; }
-  .tier-header.common { background: var(--yellow); color: #000; }
-  .tier-header.flex { background: var(--orange); color: #000; }
-  .tier-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); padding: 0.6rem 0.8rem; }
-  .tier-body .unit { display: flex; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-  .tier-body .unit:last-child { border-bottom: none; }
-  .unit .uname { color: var(--text); }
-  .unit .umeta { color: var(--text2); font-size: 0.8rem; }
-
-  /* Reasoning */
-  .reasoning-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 0.6rem 0; }
-  .reasoning-section h4 { color: var(--accent); margin-bottom: 0.4rem; }
-  .reasoning-section p { color: var(--text2); font-size: 0.88rem; white-space: pre-wrap; }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 0.3rem; margin-bottom: 1rem; flex-wrap: wrap; }
-  .tab-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); padding: 0.4rem 1rem; border-radius: var(--radius); cursor: pointer; font-size: 0.82rem; transition: all 0.15s; }
-  .tab-btn:hover { background: var(--bg3); color: var(--text); }
-  .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* Grid */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } .bar-label { width: 110px; min-width: 80px; } .topbar { padding: 0.6rem 1rem; gap: 1rem; } .container { padding: 1rem; } }
+  /* Lists tab */
+  .lists-layout { display: grid; grid-template-columns: 1fr 250px; gap: 1.5rem; align-items: start; }
+  @media (max-width: 860px) { .lists-layout { grid-template-columns: 1fr; } }
 
-  /* Loading / empty */
-  .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--text2); }
-  .notice code { background: var(--bg3); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+  /* List controls */
+  .list-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .ctrl-label { color: var(--text2); font-size: 0.8rem; }
+  .sort-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); padding: 0.22rem 0.7rem; border-radius: var(--radius); font-size: 0.8rem; cursor: pointer; transition: background 0.15s; }
+  .sort-btn:hover { background: var(--bg3); color: var(--text); }
+  .sort-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  #det-filter { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 0.22rem 0.5rem; border-radius: var(--radius); font-size: 0.8rem; }
 
-  /* Dataset caveat + tab notes */
-  .data-caveat { background: var(--bg2); border-left: 3px solid var(--yellow); border-radius: 0 var(--radius) var(--radius) 0; padding: 0.7rem 1.2rem; margin: 0 0 1.2rem; font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
-  .tab-note { color: var(--text2); font-size: 0.8rem; margin: -0.4rem 0 0.9rem; font-style: italic; }
+  /* List cards */
+  .list-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin: 0.4rem 0; }
+  .list-card-header { padding: 0.65rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; user-select: none; }
+  .list-card-header:hover { background: var(--bg3); border-radius: var(--radius) var(--radius) 0 0; }
+  .list-card.expanded .list-card-header { border-radius: var(--radius) var(--radius) 0 0; }
+  .list-card-body { display: none; padding: 1rem; border-top: 1px solid var(--border); }
+  .list-card.expanded .list-card-body { display: block; }
+  .det-pill { font-size: 0.75rem; background: var(--bg3); border: 1px solid var(--border); padding: 0.1rem 0.5rem; border-radius: 10px; color: var(--text2); white-space: nowrap; }
+  .player-name { font-weight: 600; font-size: 0.88rem; }
+  .novelty-badge { background: var(--green); color: #000; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 10px; white-space: nowrap; }
+  .card-event { color: var(--text2); font-size: 0.78rem; margin-left: auto; }
+  .record-badge { font-size: 0.76rem; color: var(--accent2); font-family: monospace; }
+  .compare-cb { cursor: pointer; flex-shrink: 0; }
 
-  /* AI Analysis */
-  .ai-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(90deg,#1a2332,#1c2a1c); border: 1px solid #2ecc71; border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.78rem; color: var(--green); margin-bottom: 1.2rem; }
-  .ai-summary { background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.2rem 1.4rem; margin: 1rem 0; line-height: 1.8; color: var(--text); font-size: 0.92rem; white-space: pre-wrap; }
-  .tier-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0; }
-  .tier-card { border-radius: var(--radius); overflow: hidden; }
-  .tier-card-header { padding: 0.5rem 1rem; font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; }
-  .tier-card-header.tier-S { background: linear-gradient(90deg,#f39c12,#e67e22); color: #000; }
-  .tier-card-header.tier-A { background: linear-gradient(90deg,#2ecc71,#27ae60); color: #000; }
-  .tier-card-header.tier-B { background: linear-gradient(90deg,#3498db,#2980b9); color: #fff; }
-  .tier-card-header.tier-C { background: linear-gradient(90deg,#8b949e,#636d76); color: #fff; }
-  .tier-card-header.tier-insufficient { background: linear-gradient(90deg,#2d333b,#3d444f); color: var(--text2); border: 1px solid var(--border); }
-  .tier-card-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; padding: 0.8rem 1rem; font-size: 0.87rem; color: var(--text2); line-height: 1.6; }
-  .tier-card-body strong { color: var(--text); }
-  .ai-section { margin: 1.5rem 0; }
-  .ai-prose { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; font-size: 0.9rem; color: var(--text); line-height: 1.8; white-space: pre-wrap; }
-  .key-units-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 0.6rem; margin: 0.8rem 0; }
-  .key-unit-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 0.9rem; }
-  .key-unit-card .ku-name { font-weight: 600; color: var(--accent2); margin-bottom: 0.2rem; font-size: 0.88rem; }
-  .key-unit-card .ku-role { font-size: 0.8rem; color: var(--text2); }
-  .key-unit-card .ku-freq { font-size: 0.75rem; color: var(--green); margin-top: 0.2rem; }
-  .tips-list { list-style: none; margin: 0.5rem 0; }
-  .tips-list li { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 1rem; margin: 0.4rem 0; font-size: 0.88rem; color: var(--text); display: flex; gap: 0.6rem; }
-  .tips-list li::before { content: "▸"; color: var(--accent); flex-shrink: 0; }
-  .synergy-list { margin: 0.5rem 0; }
-  .synergy-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 1rem; margin: 0.4rem 0; font-size: 0.87rem; }
-  .synergy-item .syn-units { color: var(--accent2); font-weight: 600; margin-bottom: 0.2rem; }
-  .synergy-item .syn-exp { color: var(--text2); }
-  .roster-block { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; font-family: 'Courier New', Courier, monospace; font-size: 0.83rem; color: var(--text); white-space: pre-wrap; line-height: 1.7; }
+  /* Card body */
+  .ai-char-box { background: var(--bg3); border-left: 3px solid var(--accent); padding: 0.55rem 0.8rem; margin-bottom: 0.75rem; border-radius: 0 var(--radius) var(--radius) 0; }
+  .ai-archetype { font-weight: 700; color: var(--accent2); font-size: 0.82rem; display: block; margin-bottom: 0.15rem; }
+  .ai-gameplan { font-size: 0.83rem; color: var(--text2); margin: 0; }
+  .roster-block { background: var(--bg3); border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: var(--radius); font-size: 0.76rem; font-family: 'Courier New', monospace; white-space: pre-wrap; overflow-x: auto; color: var(--text); line-height: 1.55; margin: 0.5rem 0; }
+  .card-footer { margin-top: 0.5rem; }
+  .det-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
+  .det-link:hover { text-decoration: underline; }
+
+  /* Sidebar widget */
+  .lists-sidebar { position: sticky; top: 60px; }
+  .det-widget { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .det-widget h3 { font-size: 0.75rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+  .det-bars { display: flex; flex-direction: column; gap: 0.45rem; }
+  .det-bar-row { display: flex; align-items: center; gap: 0.45rem; }
+  .det-bar-label { width: 110px; min-width: 70px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; font-size: 0.72rem; }
+  .det-bar-wrap { flex: 1; background: var(--bg3); border-radius: 3px; height: 9px; overflow: hidden; }
+  .det-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; min-width: 4px; }
+  .det-bar-count { color: var(--text2); font-size: 0.72rem; min-width: 20px; text-align: right; }
+
+  /* By Detachment tab */
+  .det-section { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+  .det-section:last-child { border-bottom: none; }
+  .det-section > h2 { color: var(--accent); font-size: 1.25rem; margin-bottom: 0.75rem; }
+  .det-count { color: var(--text2); font-size: 0.88rem; font-weight: 400; }
+  .det-summary { color: var(--text); margin-bottom: 1rem; font-size: 0.88rem; line-height: 1.75; }
+  .det-section h3 { color: var(--text2); font-size: 0.78rem; margin: 1.1rem 0 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Frequency table */
+  .freq-table { width: 100%; border-collapse: collapse; margin: 0.4rem 0 1rem; background: var(--bg2); border-radius: var(--radius); overflow: hidden; font-size: 0.83rem; }
+  .freq-table th, .freq-table td { padding: 0.38rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .freq-table th { background: var(--bg3); color: var(--text2); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.04em; }
+  .freq-table tr:last-child td { border-bottom: none; }
+  .freq-table tr:hover { background: var(--bg3); }
+  .freq-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Variance & novelty sections */
+  .variance-section { background: var(--bg2); border-left: 3px solid var(--yellow); padding: 0.65rem 1rem; margin: 0.5rem 0 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+  .variance-section h3 { margin: 0 0 0.35rem; color: var(--yellow); font-size: 0.78rem; }
+  .variance-note { color: var(--text2); font-weight: 400; }
+  .variance-section ul { list-style: none; font-size: 0.82rem; }
+  .variance-section li { padding: 0.1rem 0; }
+  .novelty-section { background: var(--bg2); border-left: 3px solid var(--green); padding: 0.65rem 1rem; margin: 0.5rem 0 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+  .novelty-section h3 { margin: 0 0 0.35rem; color: var(--green); font-size: 0.78rem; display: flex; align-items: center; gap: 0.4rem; }
+  .novelty-section ul { list-style: none; font-size: 0.82rem; }
+  .novelty-section li { padding: 0.1rem 0; }
+
+  /* Patterns tab */
+  .prose-block { font-size: 0.88rem; line-height: 1.8; color: var(--text); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .container section { margin-bottom: 2rem; }
+  .container section > h2 { color: var(--accent); font-size: 1.25rem; margin-bottom: 0.75rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+
+  /* Comparison modal */
+  .comparison-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.72); }
+  .modal-body { position: relative; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); width: 90vw; max-width: 1100px; max-height: 85vh; overflow-y: auto; padding: 1.5rem; }
+  .modal-close { position: absolute; top: 0.8rem; right: 1rem; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); padding: 0.28rem 0.8rem; border-radius: var(--radius); cursor: pointer; font-size: 0.83rem; }
+  .modal-close:hover { background: var(--border); color: var(--text); }
+  .comparison-content { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+  @media (max-width: 700px) { .comparison-content { grid-template-columns: 1fr; } }
+  .compare-col h3 { color: var(--accent2); margin-bottom: 0.25rem; font-size: 0.95rem; }
+  .compare-meta { color: var(--text2); font-size: 0.8rem; margin-bottom: 0.6rem; }
+
+  /* Misc */
+  .notice { color: var(--text2); font-size: 0.9rem; padding: 3rem; text-align: center; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <h1>Listhammer</h1>
-  <span class="faction-badge" id="faction-name">—</span>
+  <h1>&#9876; Listhammer</h1>
+  <span class="faction-badge" id="faction-badge">Loading&hellip;</span>
   <nav>
-    <a href="#overview" class="active" data-tab="overview">Overview</a>
-    <a href="#ai-analysis" data-tab="ai-analysis">AI Analysis</a>
-    <a href="#detachments" data-tab="detachments">Detachments</a>
-    <a href="#optimizer" data-tab="optimizer">Optimizer</a>
-    <a href="#players" data-tab="players">Players</a>
-    <a href="#events" data-tab="events">Events</a>
+    <a class="active" onclick="switchTab('lists',this)">Lists</a>
+    <a onclick="switchTab('by-detachment',this)">By Detachment</a>
+    <a onclick="switchTab('patterns',this)">Patterns</a>
   </nav>
+  <span class="ts-badge" id="ts-badge"></span>
 </div>
+
+<div id="diff-banner" class="diff-banner" style="display:none"></div>
 
 <div class="container">
-  <div class="timestamp" id="timestamp"></div>
-
-  <!-- Site-wide dataset caveat — populated by renderMeta() -->
-  <div id="site-caveat" class="data-caveat" style="display:none"></div>
-
-  <!-- ============================================================ -->
-  <!-- OVERVIEW TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content active" id="tab-overview">
-    <section>
-      <div class="cards" id="summary-cards"></div>
-    </section>
-
-    <section>
-      <h2>Detachment Popularity</h2>
-      <div class="bar-chart" id="det-bars"></div>
-    </section>
-
-    <section>
-      <h2>Record Distribution</h2>
-      <table id="record-table">
-        <thead><tr><th>Record</th><th class="num">Count</th><th class="num">%</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- AI ANALYSIS TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content" id="tab-ai-analysis">
-    <section>
-      <h2>AI Meta Analysis</h2>
-      <div id="ai-analysis-content">
-        <div class="notice">
-          <p>No AI analysis available yet.</p>
-          <p>Set <code>ANTHROPIC_API_KEY</code> as a repository secret in GitHub Actions, then run the workflow.</p>
-        </div>
+  <div id="tab-lists" class="tab-content active">
+    <div class="lists-layout">
+      <div class="lists-main">
+        <div class="list-controls" id="list-controls"></div>
+        <div id="list-cards"><p class="notice">Loading&hellip;</p></div>
       </div>
-    </section>
+      <aside class="lists-sidebar">
+        <div id="det-widget" class="det-widget" style="display:none"></div>
+      </aside>
+    </div>
   </div>
 
-  <!-- ============================================================ -->
-  <!-- DETACHMENTS TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content" id="tab-detachments">
-    <section>
-      <h2>Detachment Breakdown</h2>
-      <p class="tab-note" id="det-table-note"></p>
-      <table id="detachment-table">
-        <thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">%</th><th class="num">Undefeated</th><th>Confidence</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <section>
-      <h2>Undefeated Lists</h2>
-      <table id="undefeated-table">
-        <thead><tr><th>Player</th><th>Detachment</th><th>Record</th><th>Event</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
+  <div id="tab-by-detachment" class="tab-content">
+    <div id="det-sections"><p class="notice">Loading&hellip;</p></div>
   </div>
 
-  <!-- ============================================================ -->
-  <!-- OPTIMIZER TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content" id="tab-optimizer">
-    <section id="optimizer-section">
-      <h2>Army Optimizer</h2>
-      <div id="optimizer-content">
-        <div class="notice">
-          <p>No optimizer data yet.</p>
-          <p>Run <code>npm run optimize</code> then <code>npm run build-site</code></p>
-        </div>
-      </div>
-    </section>
+  <div id="tab-patterns" class="tab-content">
+    <div id="patterns-content"><p class="notice">Loading&hellip;</p></div>
   </div>
-
-  <!-- ============================================================ -->
-  <!-- PLAYERS TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content" id="tab-players">
-    <section>
-      <h2>Top Players</h2>
-      <p class="tab-note">Win rates reflect performance among tournament top-finishers only and are elevated vs. the general field.</p>
-      <table id="players-table">
-        <thead><tr><th>Player</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">Games</th><th class="num">Win%</th><th>Detachment</th><th>Event</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- EVENTS TAB -->
-  <!-- ============================================================ -->
-  <div class="tab-content" id="tab-events">
-    <section>
-      <h2>Events</h2>
-      <div id="events-content"></div>
-    </section>
-  </div>
-
 </div>
 
-<!-- ================================================================ -->
-<!-- Inline JS — no dependencies -->
-<!-- ================================================================ -->
+<div id="comparison-modal" class="comparison-modal" style="display:none">
+  <div class="modal-overlay" onclick="closeComparison()"></div>
+  <div class="modal-body">
+    <button class="modal-close" onclick="closeComparison()">&#10005; Close</button>
+    <div id="comparison-content" class="comparison-content"></div>
+  </div>
+</div>
+
 <script>
-(function () {
-  'use strict';
-
-  // --- Tab navigation ---
-  var navLinks = document.querySelectorAll('.topbar nav a');
-  var tabs = document.querySelectorAll('.tab-content');
-
-  function switchTab(name) {
-    tabs.forEach(function (t) { t.classList.toggle('active', t.id === 'tab-' + name); });
-    navLinks.forEach(function (a) { a.classList.toggle('active', a.dataset.tab === name); });
-  }
-
-  navLinks.forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      switchTab(this.dataset.tab);
-      history.replaceState(null, '', '#' + this.dataset.tab);
-    });
-  });
-
-  var hash = location.hash.replace('#', '');
-  if (hash && document.getElementById('tab-' + hash)) switchTab(hash);
-
-  // --- Data inlined at build time by build-site.js ---
+  // ---------------------------------------------------------------------------
+  // Data — inlined at build time by build-site.js
+  // ---------------------------------------------------------------------------
   var INLINE_META  = /*__META_REPORT_DATA__*/null;
   var INLINE_OPT   = /*__OPTIMIZER_DATA__*/null;
   var INLINE_AI    = /*__AI_ANALYSIS_DATA__*/null;
   var INLINE_LISTS = /*__LISTS_DATA__*/null;
 
-  function boot(metaReport, optimizerReport, aiAnalysis) {
-    if (metaReport) renderMeta(metaReport);
-    if (optimizerReport) renderOptimizer(optimizerReport);
-    if (aiAnalysis) renderAIAnalysis(aiAnalysis);
-    if (!metaReport && !optimizerReport) {
-      document.getElementById('summary-cards').innerHTML =
-        '<div class="notice" style="grid-column:1/-1"><p>No data available yet.</p><p>The GitHub Actions workflow runs daily to refresh data.</p></div>';
-    }
+  // ---------------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------------
+  var _allLists    = [];
+  var _listMap     = {};   // listId -> list object
+  var _selected    = [];   // up to 2 listIds for comparison
+  var _sortMode    = 'newest';
+  var _filterDet   = '';
+  var _meta        = null;
+  var _ai          = null;
+
+  // ---------------------------------------------------------------------------
+  // Tab switching
+  // ---------------------------------------------------------------------------
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.topbar nav a').forEach(function(a) { a.classList.remove('active'); });
+    var tab = document.getElementById('tab-' + name);
+    if (tab) tab.classList.add('active');
+    if (el) el.classList.add('active');
   }
 
-  if (INLINE_META || INLINE_OPT || INLINE_AI) {
-    boot(INLINE_META, INLINE_OPT, INLINE_AI);
-  } else {
-    function loadJSON(url) {
-      return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
-    }
-    var metaReport = null;
-    var optimizerReport = null;
-    var aiAnalysis = null;
-    Promise.allSettled([
-      loadJSON('data/meta-report.json').then(function (d) { metaReport = d; }),
-      loadJSON('data/optimizer.json').then(function (d) { optimizerReport = d; }),
-      loadJSON('data/ai-analysis.json').then(function (d) { aiAnalysis = d; }),
-    ]).then(function () { boot(metaReport, optimizerReport, aiAnalysis); });
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  // --- Helpers ---
-  function esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-  function wrColor(wr) { return wr >= 55 ? 'var(--green)' : wr >= 45 ? 'var(--yellow)' : 'var(--red)'; }
-
-  function card(val, label) {
-    return '<div class="card"><div class="val">' + val + '</div><div class="lbl">' + label + '</div></div>';
+  function makeListId(l) {
+    return (l.playerName || l.player || '') + '|' + (l.event || '') + '|' + (l.date || '');
   }
 
-  // --- Render meta report (single-faction focused) ---
-  function renderMeta(r) {
-    var faction = (r.meta && r.meta.faction) || '—';
-    document.getElementById('faction-name').textContent = faction;
-    document.title = faction + ' — Listhammer Meta Report';
-
-    document.getElementById('timestamp').textContent =
-      'Generated ' + (r.meta.generatedAt || '—') + '  |  Data from ' + (r.meta.crawledAt || '—');
-
-    // Site-wide dataset caveat banner
-    var caveatEl = document.getElementById('site-caveat');
-    if (caveatEl) {
-      caveatEl.innerHTML = '&#9888; <strong>Dataset note:</strong> All ' + esc(faction) + ' lists are <strong>1st/2nd place tournament finishes only</strong>. Win rates are elevated vs. the general field &#8212; compare figures <em>within</em> this dataset, not as absolute benchmarks. Tier ratings require n&#8805;3 lists.';
-      caveatEl.style.display = '';
+  function findAiChar(ai, listId) {
+    if (!ai || !ai.listCharacterizations) return null;
+    for (var i = 0; i < ai.listCharacterizations.length; i++) {
+      if (ai.listCharacterizations[i].listId === listId) return ai.listCharacterizations[i];
     }
-
-    // Detachment table note
-    var detNoteEl = document.getElementById('det-table-note');
-    if (detNoteEl) detNoteEl.textContent = 'Win% reflects results among 1st/2nd place finishers only. Detachments with fewer than 3 lists yield low-confidence figures \u2014 treat as anecdotal.';
-
-    // Summary cards
-    var dets = r.detachmentBreakdown ? r.detachmentBreakdown.filter(function (d) { return d.detachment !== 'Unknown'; }).length : 0;
-    var undefeated = r.undefeatedLists ? r.undefeatedLists.length : 0;
-    var events = r.eventBreakdown ? r.eventBreakdown.length : 0;
-    // Compute overall win rate
-    var totalW = 0, totalG = 0;
-    if (r.detachmentBreakdown) {
-      r.detachmentBreakdown.forEach(function (d) { totalW += d.wins || 0; totalG += d.totalGames || 0; });
-    }
-    var overallWR = totalG > 0 ? (totalW / totalG * 100).toFixed(1) + '%' : 'N/A';
-
-    document.getElementById('summary-cards').innerHTML =
-      card(r.meta.totalLists, 'Total Lists') +
-      card(dets, 'Detachments') +
-      card(undefeated, 'Undefeated') +
-      card(overallWR, 'Win Rate (top-finishers)') +
-      card(events, 'Events');
-
-    // Detachment popularity bars
-    var realDets = (r.detachmentBreakdown || []).filter(function (d) { return d.detachment !== 'Unknown'; });
-    if (realDets.length > 0) {
-      var maxC = realDets[0].count || 1;
-      document.getElementById('det-bars').innerHTML = realDets.map(function (d) {
-        var w = Math.max(3, Math.round((d.count / maxC) * 100));
-        return '<div class="bar-row"><span class="bar-label">' + esc(d.detachment) + '</span><div class="bar blue" style="width:' + w + '%">' + d.count + ' (' + d.percentage + '%)</div></div>';
-      }).join('');
-    }
-
-    // Detachment table
-    if (r.detachmentBreakdown) {
-      document.querySelector('#detachment-table tbody').innerHTML = r.detachmentBreakdown.map(function (d) {
-        var conf = d.count >= 3
-          ? '<span style="color:var(--green)">Sufficient</span>'
-          : '<span style="color:var(--yellow)">Insufficient data</span>';
-        return '<tr><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.percentage + '%</td><td class="num">' + d.undefeatedCount + '</td><td>' + conf + '</td></tr>';
-      }).join('');
-    }
-
-    // Undefeated table
-    if (r.undefeatedLists && r.undefeatedLists.length) {
-      document.querySelector('#undefeated-table tbody').innerHTML = r.undefeatedLists.map(function (u) {
-        return '<tr><td>' + esc(u.player) + '</td><td>' + esc(u.detachment) + '</td><td>' + esc(u.record) + '</td><td>' + esc(u.event) + '</td></tr>';
-      }).join('');
-    }
-
-    // Record distribution
-    if (r.recordDistribution && r.recordDistribution.length) {
-      document.querySelector('#record-table tbody').innerHTML = r.recordDistribution.map(function (rd) {
-        return '<tr><td>' + esc(rd.record) + '</td><td class="num">' + rd.count + '</td><td class="num">' + rd.percentage + '%</td></tr>';
-      }).join('');
-    }
-
-    // Top players
-    if (r.topPlayers && r.topPlayers.length) {
-      document.querySelector('#players-table tbody').innerHTML = r.topPlayers.map(function (p) {
-        return '<tr><td>' + esc(p.player) + '</td><td class="num">' + p.wins + '</td><td class="num">' + p.losses + '</td><td class="num">' + p.draws + '</td><td class="num">' + p.games + '</td><td class="num">' + p.winRate + '%</td><td>' + esc(p.detachments.join(', ')) + '</td><td>' + esc(p.events.join(', ')) + '</td></tr>';
-      }).join('');
-    }
-
-    // Events
-    if (r.eventBreakdown && r.eventBreakdown.length) {
-      document.getElementById('events-content').innerHTML = r.eventBreakdown.map(function (e) {
-        var dList = (e.detachments || []).slice(0, 5).map(function (d) {
-          return '<li>' + esc(d.name) + ': ' + d.count + '</li>';
-        }).join('');
-        var rec = e.wins || e.losses ? ' — ' + e.wins + 'W / ' + e.losses + 'L' : '';
-        return '<div class="reasoning-section"><h4>' + esc(e.event) + ' <span style="color:var(--text2);font-weight:normal">(' + e.listCount + ' lists' + rec + ')</span></h4><p>Top detachment: <strong>' + esc(e.topDetachment) + '</strong></p><ul style="margin:0.5rem 0 0 1.5rem;color:var(--text2)">' + dList + '</ul></div>';
-      }).join('');
-    }
+    return null;
   }
 
-  // --- Render optimizer ---
-  function renderOptimizer(o) {
-    if (o.error) {
-      document.getElementById('optimizer-content').innerHTML = '<div class="notice">' + esc(o.error) + '</div>';
-      return;
+  function flattenFromLists(listsData) {
+    if (!listsData || !listsData.sections) return [];
+    var seen = {};
+    var result = [];
+    var skeys = Object.keys(listsData.sections);
+    // Put "All" first if present
+    if (skeys.indexOf('All') !== -1) {
+      skeys = ['All'].concat(skeys.filter(function(k) { return k !== 'All'; }));
     }
-
-    var rec = o.recommendation;
-    var cl = o.concreteList;
-    var html = '';
-
-    // Recommendation box
-    html += '<div class="rec-box">';
-    html += '<div class="faction-name">' + esc(rec.faction) + '</div>';
-    html += '<div class="det-name">' + esc(rec.detachment) + ' — ' + rec.detachmentWinRate + '% Win Rate</div>';
-    html += '<div class="rec-stats">';
-    html += recStat(rec.winRate + '%', 'Win Rate (top-finishers)');
-    html += recStat(rec.score, 'Score');
-    html += recStat(rec.undefeatedCount, 'Undefeated');
-    html += recStat(o.meta.winningListsAnalysed, 'Winning Lists');
-    html += recStat(o.meta.targetPoints + 'pts', 'Target');
-    html += '</div>';
-    html += '</div>';
-
-    // Concrete army list — built from aggregate data across all lists
-    if (cl && cl.units && cl.units.length) {
-      html += '<h3>Recommended Army List — ' + cl.totalPoints + 'pts</h3>';
-      html += '<p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.8rem">Built from the most popular units across ' + cl.basedOnLists + ' tournament lists. The most-played units are the meta.</p>';
-
-      // List header
-      html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:0.8rem;font-size:0.88rem">';
-      if (cl.detachment) html += '<div><span style="color:var(--text2)">Detachment:</span> <strong>' + esc(cl.detachment) + '</strong> <span style="color:var(--text2)">(' + cl.detachmentFrequency + '% of lists)</span></div>';
-      if (cl.warlord) html += '<div><span style="color:var(--text2)">Warlord:</span> ' + esc(cl.warlord) + '</div>';
-      if (cl.enhancements && cl.enhancements.length) html += '<div><span style="color:var(--text2)">Enhancements:</span> ' + cl.enhancements.map(function(e) { return esc(e); }).join(', ') + '</div>';
-      html += '</div>';
-
-      // Group by tier
-      var tiers = { core: [], common: [], flex: [] };
-      cl.units.forEach(function (u) { (tiers[u.tier] || tiers.flex).push(u); });
-
-      if (tiers.core.length) html += tierBlock('Core Units — In 40%+ of lists', 'core', tiers.core);
-      if (tiers.common.length) html += tierBlock('Common Picks — In 20-39% of lists', 'common', tiers.common);
-      if (tiers.flex.length) html += tierBlock('Flex Slots — In &lt;20% of lists', 'flex', tiers.flex);
-    }
-
-    // Detachment comparison
-    if (o.detachmentAnalysis && o.detachmentAnalysis.length) {
-      html += '<h3>Detachment Comparison</h3>';
-      html += '<p class="tab-note">Win rates are among top-finishing lists only. Detachments with n&lt;3 lists are low-confidence.</p>';
-      html += '<table><thead><tr><th>Detachment</th><th class="num">Lists (n=)</th><th class="num">WR% (top-finishers)</th><th class="num">Undefeated</th></tr></thead><tbody>';
-      o.detachmentAnalysis.forEach(function (d) {
-        var highlight = d.detachment === rec.detachment ? ' style="background:var(--bg3)"' : '';
-        html += '<tr' + highlight + '><td>' + esc(d.detachment) + '</td><td class="num">' + d.count + '</td><td class="num">' + d.winRate + '%</td><td class="num">' + d.undefeated + '</td></tr>';
+    skeys.forEach(function(key) {
+      (listsData.sections[key] || []).forEach(function(item) {
+        var id = makeListId(item);
+        if (!seen[id]) { seen[id] = true; result.push(item); }
       });
-      html += '</tbody></table>';
-    }
-
-    // Co-occurrence / synergies
-    if (o.coOccurrence && o.coOccurrence.length) {
-      html += '<h3>Unit Synergies</h3>';
-      html += '<p style="color:var(--text2);font-size:0.82rem;margin-bottom:0.5rem">Units most frequently paired together in winning lists</p>';
-      html += '<table><thead><tr><th>Unit Pairing</th><th class="num">Count</th><th class="num">%</th></tr></thead><tbody>';
-      o.coOccurrence.forEach(function (c) {
-        html += '<tr><td>' + esc(c.pair) + '</td><td class="num">' + c.count + '</td><td class="num">' + c.frequency + '%</td></tr>';
-      });
-      html += '</tbody></table>';
-    }
-
-    // Enhancement analysis
-    if (o.enhancementAnalysis && o.enhancementAnalysis.enhancements && o.enhancementAnalysis.enhancements.length) {
-      html += '<h3>Top Enhancements</h3>';
-      html += '<table><thead><tr><th>Enhancement</th><th class="num">Usage%</th><th class="num">Appearances</th></tr></thead><tbody>';
-      o.enhancementAnalysis.enhancements.slice(0, 10).forEach(function (e) {
-        html += '<tr><td>' + esc(e.name) + '</td><td class="num">' + e.frequency + '%</td><td class="num">' + e.appearances + '</td></tr>';
-      });
-      html += '</tbody></table>';
-    }
-
-    // Reasoning
-    if (o.reasoning && o.reasoning.length) {
-      html += '<h3>Analysis &amp; Reasoning</h3>';
-      o.reasoning.forEach(function (s) {
-        html += '<div class="reasoning-section"><h4>' + esc(s.title) + '</h4><p>' + esc(s.text) + '</p></div>';
-      });
-    }
-
-    document.getElementById('optimizer-content').innerHTML = html;
-  }
-
-  function recStat(val, label) {
-    return '<div class="rec-stat"><div class="rv">' + val + '</div><div class="rl">' + label + '</div></div>';
-  }
-
-  function tierBlock(title, cls, units) {
-    var h = '<div class="tier"><div class="tier-header ' + cls + '">' + title + '</div><div class="tier-body">';
-    units.forEach(function (u) {
-      h += '<div class="unit"><span class="uname">' + esc(u.name) + '</span><span class="umeta">' + u.metaFrequency + '% meta &middot; ' + u.points + 'pts</span></div>';
     });
-    h += '</div></div>';
-    return h;
+    return result;
   }
 
-  // --- Render AI analysis ---
-  function renderAIAnalysis(ai) {
-    var el = document.getElementById('ai-analysis-content');
-    if (!ai || ai.skipped) {
-      var reason = ai && ai.reason ? ai.reason : 'ANTHROPIC_API_KEY not set';
-      el.innerHTML = '<div class="notice"><p>AI analysis not available.</p><p>Reason: ' + esc(reason) + '</p><p>Set <code>ANTHROPIC_API_KEY</code> as a GitHub Actions secret and re-run the workflow.</p></div>';
+  // ---------------------------------------------------------------------------
+  // Diff Banner
+  // ---------------------------------------------------------------------------
+  function renderDiffBanner(meta, ai) {
+    var banner = document.getElementById('diff-banner');
+    var diff = meta && meta.crawlDiff;
+    var aiDiffText = ai && ai.crawlDiff;
+    if (!diff && !aiDiffText) { banner.style.display = 'none'; return; }
+
+    var html = '';
+    if (diff) {
+      var n = (diff.newLists || []).length;
+      var d = (diff.droppedLists || []).length;
+      var tech = diff.newTechChoices || [];
+      html += '<strong>Since last crawl:</strong> ' + n + ' new list' + (n !== 1 ? 's' : '');
+      if (d > 0) html += ', ' + d + ' dropped';
+      if (tech.length > 0) {
+        html += ' &mdash; new tech: <em>' + esc(tech.slice(0, 6).join(', ')) + (tech.length > 6 ? '&hellip;' : '') + '</em>';
+      }
+    }
+    if (aiDiffText) {
+      html += '<p class="diff-prose">' + esc(aiDiffText) + '</p>';
+    }
+    banner.innerHTML = html;
+    banner.style.display = 'block';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Detachment sidebar widget
+  // ---------------------------------------------------------------------------
+  function renderDetWidget(lists) {
+    var el = document.getElementById('det-widget');
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    var counts = {};
+    lists.forEach(function(l) {
+      var det = l.detachment || 'Unknown';
+      // Include if date is within 30 days or date is missing
+      var dateOk = !l.date || new Date(l.date) >= cutoff;
+      if (dateOk) counts[det] = (counts[det] || 0) + 1;
+    });
+
+    var entries = Object.entries(counts).sort(function(a, b) { return b[1] - a[1]; });
+    if (entries.length === 0) { el.style.display = 'none'; return; }
+
+    var max = entries[0][1];
+    var html = '<h3>Detachments (30 days)</h3><div class="det-bars">';
+    entries.forEach(function(pair) {
+      var pct = max > 0 ? Math.round((pair[1] / max) * 100) : 0;
+      html += '<div class="det-bar-row">' +
+        '<span class="det-bar-label" title="' + esc(pair[0]) + '">' + esc(pair[0]) + '</span>' +
+        '<div class="det-bar-wrap"><div class="det-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="det-bar-count">' + pair[1] + '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  // ---------------------------------------------------------------------------
+  // List card builder
+  // ---------------------------------------------------------------------------
+  function buildListCard(l, ai) {
+    var listId = makeListId(l);
+    var aiChar = findAiChar(ai, listId);
+    var isNew = l.firstSeen && l.lastSeen && l.firstSeen === l.lastSeen;
+    var det = l.detachment || 'Unknown';
+    var safeId = esc(listId);
+
+    var header = '<div class="list-card-header" onclick="toggleCard(this.parentElement)">' +
+      '<input type="checkbox" class="compare-cb" onclick="event.stopPropagation();handleCompare(this,\'' +
+        listId.replace(/'/g, "\\'") + '\')" title="Compare this list">' +
+      '<span class="det-pill">' + esc(det) + '</span>' +
+      '<span class="player-name">' + esc(l.playerName || l.player || 'Unknown') + '</span>' +
+      (isNew ? '<span class="novelty-badge">NEW</span>' : '') +
+      '<span class="card-event">' + esc(l.event || '') + (l.date ? ' &middot; ' + esc(l.date) : '') + '</span>' +
+      (l.record ? '<span class="record-badge">' + esc(l.record) + '</span>' : '') +
+      '</div>';
+
+    var body = '';
+    if (aiChar) {
+      body += '<div class="ai-char-box">' +
+        '<span class="ai-archetype">' + esc(aiChar.archetype || '') + '</span>' +
+        (aiChar.gamePlan ? '<p class="ai-gameplan">' + esc(aiChar.gamePlan) + '</p>' : '') +
+        '</div>';
+    }
+    if (l.armyListText) {
+      body += '<pre class="roster-block">' + esc(l.armyListText) + '</pre>';
+    } else {
+      body += '<p style="color:var(--text2);font-size:0.83rem">(No list text available)</p>';
+    }
+    body += '<div class="card-footer">' +
+      '<a class="det-link" href="#" onclick="goToDetachment(\'' + esc(det).replace(/'/g, "\\'") + '\');return false;">' +
+      'See all ' + esc(det) + ' lists &rarr;</a></div>';
+
+    return '<div class="list-card" data-listid="' + safeId + '">' +
+      header +
+      '<div class="list-card-body">' + body + '</div>' +
+      '</div>';
+  }
+
+  function toggleCard(card) { card.classList.toggle('expanded'); }
+
+  // ---------------------------------------------------------------------------
+  // Lists tab render
+  // ---------------------------------------------------------------------------
+  function renderLists(lists, meta, ai) {
+    _allLists = lists;
+    lists.forEach(function(l) { _listMap[makeListId(l)] = l; });
+
+    // Build detachment options
+    var dets = [];
+    lists.forEach(function(l) {
+      var d = l.detachment || 'Unknown';
+      if (dets.indexOf(d) === -1) dets.push(d);
+    });
+    dets.sort();
+
+    var controls = document.getElementById('list-controls');
+    controls.innerHTML =
+      '<span class="ctrl-label">Sort:</span>' +
+      '<button class="sort-btn active" onclick="setSort(\'newest\',this)">Newest first</button>' +
+      '<button class="sort-btn" onclick="setSort(\'event-size\',this)">Event size</button>' +
+      '&nbsp;&nbsp;<span class="ctrl-label">Detachment:</span>' +
+      '<select id="det-filter" onchange="setFilter(this.value)">' +
+      '<option value="">All</option>' +
+      dets.map(function(d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('') +
+      '</select>';
+
+    renderDetWidget(lists);
+    redrawCards();
+  }
+
+  function setSort(mode, btn) {
+    _sortMode = mode;
+    document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    redrawCards();
+  }
+
+  function setFilter(val) {
+    _filterDet = val;
+    redrawCards();
+  }
+
+  function goToDetachment(det) {
+    _filterDet = det;
+    var sel = document.getElementById('det-filter');
+    if (sel) sel.value = det;
+    redrawCards();
+    // Switch to lists tab
+    document.querySelectorAll('.topbar nav a').forEach(function(a) {
+      if (a.textContent.trim() === 'Lists') switchTab('lists', a);
+    });
+  }
+
+  function redrawCards() {
+    var filtered = _filterDet
+      ? _allLists.filter(function(l) { return (l.detachment || 'Unknown') === _filterDet; })
+      : _allLists;
+
+    var sorted = filtered.slice();
+    if (_sortMode === 'newest') {
+      sorted.sort(function(a, b) {
+        var da = a.date || '', db = b.date || '';
+        return db < da ? -1 : db > da ? 1 : 0;
+      });
+    } else if (_sortMode === 'event-size') {
+      var sizeMap = {};
+      if (_meta && _meta.eventBreakdown) {
+        _meta.eventBreakdown.forEach(function(e) { sizeMap[e.event] = e.listCount; });
+      }
+      sorted.sort(function(a, b) { return (sizeMap[b.event] || 0) - (sizeMap[a.event] || 0); });
+    }
+
+    var html = sorted.length === 0
+      ? '<p class="notice">No lists found.</p>'
+      : sorted.map(function(l) { return buildListCard(l, _ai); }).join('');
+    document.getElementById('list-cards').innerHTML = html;
+    _selected = [];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Comparison
+  // ---------------------------------------------------------------------------
+  function handleCompare(cb, listId) {
+    if (cb.checked) {
+      if (_selected.length >= 2) { cb.checked = false; return; }
+      _selected.push(listId);
+    } else {
+      _selected = _selected.filter(function(id) { return id !== listId; });
+    }
+    if (_selected.length === 2) showComparison();
+  }
+
+  function showComparison() {
+    var a = _listMap[_selected[0]];
+    var b = _listMap[_selected[1]];
+    if (!a || !b) return;
+
+    function colHTML(l) {
+      return '<div class="compare-col">' +
+        '<h3>' + esc(l.playerName || l.player || 'Unknown') + '</h3>' +
+        '<p class="compare-meta">' + esc(l.detachment || '') + ' &middot; ' + esc(l.event || '') + (l.date ? ' &middot; ' + esc(l.date) : '') + '</p>' +
+        '<pre class="roster-block">' + esc(l.armyListText || '(no list text)') + '</pre>' +
+        '</div>';
+    }
+    document.getElementById('comparison-content').innerHTML = colHTML(a) + colHTML(b);
+    document.getElementById('comparison-modal').style.display = 'flex';
+  }
+
+  function closeComparison() {
+    document.getElementById('comparison-modal').style.display = 'none';
+    _selected = [];
+    document.querySelectorAll('.compare-cb').forEach(function(cb) { cb.checked = false; });
+  }
+
+  // ---------------------------------------------------------------------------
+  // By Detachment tab
+  // ---------------------------------------------------------------------------
+  function renderByDetachment(lists, ai, opt) {
+    var el = document.getElementById('det-sections');
+    var detFreq = (opt && opt.detachmentFrequencyAnalysis) || [];
+    var varAnal = (opt && opt.varianceAnalysis) || [];
+    var novelty = (opt && opt.noveltyFlags) || [];
+    var aiSums  = (ai  && ai.detachmentSummaries) || [];
+
+    // Group by detachment, sorted by count desc
+    var byDet = {};
+    lists.forEach(function(l) {
+      var d = l.detachment || 'Unknown';
+      if (!byDet[d]) byDet[d] = [];
+      byDet[d].push(l);
+    });
+    var dets = Object.keys(byDet).sort(function(a, b) { return byDet[b].length - byDet[a].length; });
+
+    if (dets.length === 0) {
+      el.innerHTML = '<p class="notice">No detachment data available.</p>';
       return;
     }
 
     var html = '';
+    dets.forEach(function(det) {
+      var detLists = byDet[det];
+      var aiSum   = aiSums.find(function(s) { return s.detachment === det; });
+      var freq    = detFreq.find(function(f) { return f.detachment === det; });
+      var vari    = varAnal.find(function(v) { return v.detachment === det; });
+      var novFlags = novelty.filter(function(n) { return n.detachment === det; });
 
-    // Badge + timestamp
-    html += '<div class="ai-badge">&#9881; Generated by ' + esc(ai.model || 'Claude AI') + ' &middot; ' + esc(ai.generatedAt || '') + '</div>';
+      html += '<section class="det-section">';
+      html += '<h2>' + esc(det) + ' <span class="det-count">(' + detLists.length + ' list' + (detLists.length !== 1 ? 's' : '') + ')</span></h2>';
 
-    // Parse error — show a notice instead of raw content
-    if (ai.parseError) {
-      html += '<div class="notice"><p>AI analysis was generated but could not be parsed correctly.</p><p>Check the <code>ai-analysis-latest.txt</code> file for the raw output.</p></div>';
-      el.innerHTML = html;
-      return;
-    }
-
-    // Dataset caveat for AI tab
-    html += '<div class="data-caveat">&#9888; <strong>AI Analysis note:</strong> The model was instructed to apply sample-size weighting. Detachments with n&lt;3 lists are rated &#8220;Insufficient data&#8221;. All win rates include n= notation and use &#8220;among top-finishing lists&#8221; framing throughout.</div>';
-
-    // Meta summary
-    if (ai.metaSummary) {
-      html += '<div class="ai-section">';
-      html += '<h3>Meta Summary</h3>';
-      html += '<div class="ai-summary">' + esc(ai.metaSummary) + '</div>';
-      html += '</div>';
-    }
-
-    // Detachment tier list
-    if (ai.detachmentTierList && ai.detachmentTierList.length) {
-      html += '<div class="ai-section">';
-      html += '<h3>Detachment Tier List</h3>';
-      html += '<div class="tier-list">';
-      ai.detachmentTierList.forEach(function (d) {
-        var tierKey = d.insufficientData ? 'insufficient' : (d.tier || 'B');
-        var tierCls = 'tier-' + tierKey;
-        html += '<div class="tier-card">';
-        html += '<div class="tier-card-header ' + tierCls + '">[' + esc(d.tier) + '] ' + esc(d.detachment) + '</div>';
-        html += '<div class="tier-card-body">';
-        if (d.listCount != null) html += '<div><strong>Lists (n=):</strong> ' + esc(String(d.listCount)) + '</div>';
-        if (d.undefeated != null) html += '<div><strong>Undefeated:</strong> ' + esc(String(d.undefeated)) + '</div>';
-        if (d.reasoning) html += '<div style="margin-top:0.5rem">' + esc(d.reasoning) + '</div>';
-        if (d.sampleNote) html += '<div style="margin-top:0.4rem;color:var(--yellow);font-size:0.8rem">&#9888; ' + esc(d.sampleNote) + '</div>';
-        html += '</div></div>';
-      });
-      html += '</div>';
-      html += '</div>';
-    }
-
-    // Best list analysis
-    if (ai.bestListAnalysis) {
-      var bla = ai.bestListAnalysis;
-      html += '<div class="ai-section">';
-      html += '<h3>Best List Analysis' + (bla.detachment ? ' — ' + esc(bla.detachment) : '') + '</h3>';
-
-      if (bla.overview) {
-        html += '<div class="ai-prose">' + esc(bla.overview) + '</div>';
+      if (aiSum && aiSum.summary) {
+        html += '<p class="det-summary">' + esc(aiSum.summary) + '</p>';
       }
 
-      if (bla.keyUnits && bla.keyUnits.length) {
-        html += '<h3>Key Units</h3>';
-        html += '<div class="key-units-grid">';
-        bla.keyUnits.forEach(function (u) {
-          html += '<div class="key-unit-card">';
-          html += '<div class="ku-name">' + esc(u.name) + '</div>';
-          html += '<div class="ku-role">' + esc(u.role) + '</div>';
-          if (u.frequency) html += '<div class="ku-freq">' + esc(String(u.frequency)) + ' appearance rate</div>';
-          html += '</div>';
+      // Frequency table
+      if (freq && freq.topUnits && freq.topUnits.length > 0) {
+        html += '<h3>Unit Frequency</h3>';
+        html += '<table class="freq-table"><thead><tr><th>Unit</th><th class="num">Lists</th><th class="num">%</th></tr></thead><tbody>';
+        freq.topUnits.slice(0, 15).forEach(function(u) {
+          html += '<tr><td>' + esc(u.name) + '</td><td class="num">' + u.count + '</td><td class="num">' + u.frequency + '%</td></tr>';
         });
-        html += '</div>';
+        html += '</tbody></table>';
+        if (freq.topEnhancements && freq.topEnhancements.length > 0) {
+          html += '<h3>Enhancement Frequency</h3>';
+          html += '<table class="freq-table"><thead><tr><th>Enhancement</th><th class="num">Lists</th><th class="num">%</th></tr></thead><tbody>';
+          freq.topEnhancements.forEach(function(e) {
+            html += '<tr><td>' + esc(e.name) + '</td><td class="num">' + e.count + '</td><td class="num">' + e.frequency + '%</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
       }
 
-      if (bla.keySynergies && bla.keySynergies.length) {
-        html += '<h3>Key Synergies</h3>';
-        html += '<div class="synergy-list">';
-        bla.keySynergies.forEach(function (s) {
-          html += '<div class="synergy-item">';
-          html += '<div class="syn-units">' + esc(s.units) + '</div>';
-          html += '<div class="syn-exp">' + esc(s.explanation) + '</div>';
-          html += '</div>';
+      // Variance
+      if (vari && vari.variantChoices && vari.variantChoices.length > 0) {
+        html += '<div class="variance-section"><h3>Contested Choices <span class="variance-note">(20&ndash;79% inclusion)</span></h3><ul>';
+        vari.variantChoices.forEach(function(u) {
+          html += '<li>' + esc(u.name) + ' &mdash; ' + u.count + 'x (' + u.frequency + '%)</li>';
         });
-        html += '</div>';
+        html += '</ul></div>';
       }
 
-      if (bla.enhancements) {
-        html += '<h3>Enhancements</h3>';
-        html += '<div class="ai-prose">' + esc(bla.enhancements) + '</div>';
-      }
-
-      if (bla.fullRecommendedList) {
-        html += '<h3>Full Recommended List (2000pts)</h3>';
-        html += '<div class="roster-block">' + esc(bla.fullRecommendedList) + '</div>';
-      }
-
-      html += '</div>';
-    }
-
-    // Strategic advice
-    if (ai.strategicAdvice) {
-      var sa = ai.strategicAdvice;
-      html += '<div class="ai-section">';
-      html += '<h3>Strategic Advice</h3>';
-      if (sa.overview) {
-        html += '<div class="ai-prose">' + esc(sa.overview) + '</div>';
-      }
-      if (sa.tips && sa.tips.length) {
-        html += '<ul class="tips-list">';
-        sa.tips.forEach(function (tip) {
-          html += '<li>' + esc(tip) + '</li>';
+      // Novelty
+      if (novFlags.length > 0) {
+        html += '<div class="novelty-section"><h3>New Tech <span class="novelty-badge">NEW</span></h3><ul>';
+        novFlags.forEach(function(n) {
+          html += '<li>[' + esc(n.type) + '] ' + esc(n.name) + '</li>';
         });
-        html += '</ul>';
+        html += '</ul></div>';
       }
-      if (sa.matchupAdvice) {
-        html += '<h3>Matchup Advice</h3>';
-        html += '<div class="ai-prose">' + esc(sa.matchupAdvice) + '</div>';
-      }
-      html += '</div>';
-    }
 
-    // Meta trends
-    if (ai.metaTrends) {
-      html += '<div class="ai-section">';
-      html += '<h3>Meta Trends &amp; Outlook</h3>';
-      html += '<div class="ai-prose">' + esc(ai.metaTrends) + '</div>';
+      // List cards
+      html += '<h3>Lists</h3><div>';
+      detLists.forEach(function(l) { html += buildListCard(l, ai); });
       html += '</div>';
-    }
+
+      html += '</section>';
+    });
 
     el.innerHTML = html;
   }
 
-})();
+  // ---------------------------------------------------------------------------
+  // Patterns tab
+  // ---------------------------------------------------------------------------
+  function renderPatterns(ai) {
+    var el = document.getElementById('patterns-content');
+    if (!ai) {
+      el.innerHTML = '<p class="notice">No AI analysis available. Set ANTHROPIC_API_KEY and run the pipeline.</p>';
+      return;
+    }
+    if (ai.skipped) {
+      el.innerHTML = '<p class="notice">AI analysis was skipped: ' + esc(ai.reason || 'no reason given') + '</p>';
+      return;
+    }
+
+    var html = '';
+    if (ai.crossDetachmentPatterns) {
+      html += '<section><h2>Cross-Detachment Patterns</h2><p class="prose-block">' + esc(ai.crossDetachmentPatterns) + '</p></section>';
+    }
+    if (ai.crawlDiff) {
+      html += '<section><h2>Since Last Crawl</h2><p class="prose-block">' + esc(ai.crawlDiff) + '</p></section>';
+    }
+    if (!html) {
+      html = '<p class="notice">No pattern data available yet.</p>';
+    }
+    el.innerHTML = html;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Boot
+  // ---------------------------------------------------------------------------
+  function boot(meta, opt, ai, listsData) {
+    _meta = meta;
+    _ai   = ai;
+
+    // Header
+    var faction = (meta && meta.meta && meta.meta.faction) || '—';
+    document.getElementById('faction-badge').textContent = faction;
+    document.title = 'Listhammer — ' + faction + ' Meta';
+    var ts = meta && meta.meta && (meta.meta.generatedAt || meta.meta.crawledAt);
+    if (ts) {
+      document.getElementById('ts-badge').textContent = 'Updated ' + new Date(ts).toLocaleDateString();
+    }
+
+    // Flatten lists
+    var lists = [];
+    if (listsData) {
+      lists = flattenFromLists(listsData);
+    } else if (meta && meta.listsByDetachment) {
+      Object.values(meta.listsByDetachment).forEach(function(arr) {
+        arr.forEach(function(l) { lists.push(l); });
+      });
+    }
+
+    renderDiffBanner(meta, ai);
+    renderLists(lists, meta, ai);
+    renderByDetachment(lists, ai, opt);
+    renderPatterns(ai);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Inline or fetch
+  // ---------------------------------------------------------------------------
+  if (INLINE_META || INLINE_OPT || INLINE_AI || INLINE_LISTS) {
+    boot(INLINE_META, INLINE_OPT, INLINE_AI, INLINE_LISTS);
+  } else {
+    function loadJSON(url) {
+      return fetch(url).then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    Promise.allSettled([
+      loadJSON('data/meta-report.json'),
+      loadJSON('data/optimizer.json'),
+      loadJSON('data/ai-analysis.json'),
+      loadJSON('data/army-lists.json'),
+    ]).then(function(results) {
+      var meta      = results[0].status === 'fulfilled' ? results[0].value : null;
+      var opt       = results[1].status === 'fulfilled' ? results[1].value : null;
+      var ai        = results[2].status === 'fulfilled' ? results[2].value : null;
+      var listsData = results[3].status === 'fulfilled' ? results[3].value : null;
+      if (meta || opt || ai || listsData) {
+        boot(meta, opt, ai, listsData);
+      } else {
+        document.querySelector('.container').innerHTML =
+          '<p class="notice">No data available. Run the GitHub Actions workflow to generate data.</p>';
+      }
+    });
+  }
 </script>
 </body>
 </html>
