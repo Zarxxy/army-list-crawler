@@ -102,6 +102,45 @@ test('crawlDiff is null when no previous file is provided', () => {
   assert.equal(report.crawlDiff, null, 'crawlDiff should be null with no previous file');
 });
 
+// ---------------------------------------------------------------------------
+// Crawl diff (with previous file)
+// ---------------------------------------------------------------------------
+
+const PREV_FIXTURE = path.join(__dirname, 'fixtures', 'army-lists-previous.json');
+
+test('crawlDiff is non-null when previous file is provided', () => {
+  const result = runReport(['--previous', PREV_FIXTURE]);
+  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
+  const report = readJSON('meta-report-latest.json');
+  assert.notEqual(report.crawlDiff, null, 'crawlDiff should not be null with previous file');
+});
+
+test('crawlDiff.newLists has 3 entries not present in previous', () => {
+  runReport(['--previous', PREV_FIXTURE]);
+  const report = readJSON('meta-report-latest.json');
+  // Current: Alice, Bob, Carol, Dan, Eve — Previous: Alice, Bob, Fred
+  // New: Carol, Dan, Eve (3)
+  assert.equal(report.crawlDiff.newLists.length, 3,
+    `expected 3 new lists, got ${report.crawlDiff.newLists.length}: ${JSON.stringify(report.crawlDiff.newLists)}`);
+});
+
+test('crawlDiff.droppedLists contains Fred Green from previous', () => {
+  runReport(['--previous', PREV_FIXTURE]);
+  const report = readJSON('meta-report-latest.json');
+  assert.equal(report.crawlDiff.droppedLists.length, 1,
+    `expected 1 dropped list, got ${report.crawlDiff.droppedLists.length}`);
+  assert.equal(report.crawlDiff.droppedLists[0].player, 'Fred Green');
+});
+
+test('crawlDiff.newTechChoices includes Blightlord Terminators', () => {
+  runReport(['--previous', PREV_FIXTURE]);
+  const report = readJSON('meta-report-latest.json');
+  assert.ok(
+    report.crawlDiff.newTechChoices.includes('Blightlord Terminators'),
+    `newTechChoices: ${JSON.stringify(report.crawlDiff.newTechChoices)}`
+  );
+});
+
 test('recordDistribution is populated', () => {
   runReport();
   const report = readJSON('meta-report-latest.json');

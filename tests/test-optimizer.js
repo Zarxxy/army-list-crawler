@@ -93,10 +93,39 @@ test('noveltyFlags is an array', () => {
   assert.ok(Array.isArray(opt.noveltyFlags), 'noveltyFlags should be an array');
 });
 
+test('noveltyFlags contains Blightlord Terminators when previous file is provided', () => {
+  const PREV_FIXTURE = path.join(__dirname, 'fixtures', 'army-lists-previous.json');
+  runOptimizer(['--previous', PREV_FIXTURE]);
+  const opt = readJSON('optimizer-latest.json');
+  const blt = opt.noveltyFlags.find((f) => f.name === 'Blightlord Terminators');
+  assert.ok(blt,
+    `Blightlord Terminators not in noveltyFlags: ${JSON.stringify(opt.noveltyFlags)}`);
+  assert.equal(blt.type, 'unit');
+  assert.equal(blt.detachment, 'Inexorable Advance');
+});
+
 test('varianceAnalysis is an array', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
   assert.ok(Array.isArray(opt.varianceAnalysis), 'varianceAnalysis should be an array');
+});
+
+test('varianceAnalysis has Plague Company entry with contested choices', () => {
+  runOptimizer();
+  const opt = readJSON('optimizer-latest.json');
+  const pc = opt.varianceAnalysis.find((d) => d.detachment === 'Plague Company');
+  assert.ok(pc, `Plague Company not in varianceAnalysis. Entries: ${JSON.stringify(opt.varianceAnalysis.map(d => d.detachment))}`);
+  assert.ok(pc.variantChoices.length > 0, 'Plague Company should have contested choices');
+});
+
+test('varianceAnalysis Plague Company includes Cultists at 50%', () => {
+  runOptimizer();
+  const opt = readJSON('optimizer-latest.json');
+  const pc = opt.varianceAnalysis.find((d) => d.detachment === 'Plague Company');
+  const cultists = pc?.variantChoices.find((c) => c.name === 'Cultists');
+  assert.ok(cultists,
+    `Cultists not in Plague Company variantChoices: ${JSON.stringify(pc?.variantChoices.map(c => c.name))}`);
+  assert.equal(cultists.frequency, 50, `expected 50% for Cultists, got ${cultists.frequency}`);
 });
 
 test('unitAnalysis contains Mortarion (appears in all fixture lists)', () => {
