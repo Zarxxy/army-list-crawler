@@ -35,9 +35,11 @@ function getArg(flag) {
   return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
 }
 
-const faction   = getArg('--faction')  || DEFAULT_FACTION;
-const edition   = getArg('--edition')  || DEFAULT_EDITION;
-const outputDir = getArg('--output')   || path.join(__dirname, 'rules');
+const faction   = getArg('--faction')   || DEFAULT_FACTION;
+const edition   = getArg('--edition')   || DEFAULT_EDITION;
+const outputDir = getArg('--output')    || path.join(__dirname, 'rules');
+const maxUnits  = parseInt(getArg('--max-units') || '0', 10); // 0 = no limit
+const pageDelay = parseInt(getArg('--delay') || String(CONFIG.PAGE_DELAY_MS), 10);
 const force     = args.includes('--force');
 const headless  = !args.includes('--no-headless');
 const dumpHtml  = args.includes('--dump-html');
@@ -698,7 +700,7 @@ async function main() {
     // ── Step 1: Faction overview page ─────────────────────────────────────────
     console.log('\n[1/3] Scraping faction overview page…');
     const factionData = await scrapeFactionPage(page, faction, edition);
-    await sleep(CONFIG.PAGE_DELAY_MS);
+    await sleep(pageDelay);
 
     // ── Step 2: Unit datasheets ────────────────────────────────────────────────
     console.log(`\n[2/3] Scraping ${factionData.unitLinks.length} unit datasheets…`);
@@ -706,7 +708,11 @@ async function main() {
 
     // Filter out non-unit links (e.g. detachment pages, general pages)
     // Unit slugs on wahapedia typically start with an uppercase letter
-    const unitLinks = factionData.unitLinks.filter((u) => /^[A-Z]/.test(u.slug) || /^[A-Z]/.test(u.label));
+    let unitLinks = factionData.unitLinks.filter((u) => /^[A-Z]/.test(u.slug) || /^[A-Z]/.test(u.label));
+    if (maxUnits > 0 && unitLinks.length > maxUnits) {
+      console.log(`  Capping at ${maxUnits} units (--max-units). Skipping ${unitLinks.length - maxUnits} units.`);
+      unitLinks = unitLinks.slice(0, maxUnits);
+    }
 
     for (let i = 0; i < unitLinks.length; i++) {
       const link = unitLinks[i];
@@ -718,7 +724,7 @@ async function main() {
         console.warn(`  Failed to scrape ${link.slug}: ${err.message}`);
         units.push({ name: link.label, slug: link.slug, error: err.message });
       }
-      if (i < unitLinks.length - 1) await sleep(CONFIG.PAGE_DELAY_MS);
+      if (i < unitLinks.length - 1) await sleep(pageDelay);
     }
 
     // ── Step 3: Parse detachment data from raw text ────────────────────────────
