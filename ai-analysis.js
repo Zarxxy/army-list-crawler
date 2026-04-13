@@ -46,6 +46,7 @@ const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'ar
 const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
+const rulesDir   = getArg('--rules-dir')  || path.join(__dirname, 'rules');
 const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
 const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 
@@ -95,15 +96,39 @@ function emptyResult(faction, reason) {
 }
 
 // ---------------------------------------------------------------------------
+// Rules document loader
+// ---------------------------------------------------------------------------
+
+function loadRulesDocument(dir) {
+  const rfConfig = appConfig.rulesFetcher || {};
+  const defaultFaction = rfConfig.defaultFaction || 'death-guard';
+  const defaultEdition = rfConfig.defaultEdition || '10ed';
+  const candidates = [
+    path.join(dir, `${defaultFaction}-latest.txt`),
+    path.join(dir, `${defaultFaction}-${defaultEdition}.txt`),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      const text = fs.readFileSync(p, 'utf-8');
+      console.log(`Loaded rules document: ${p} (${text.length} chars)`);
+      return text;
+    }
+  }
+  console.log('No rules document found — proceeding without rules context.');
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Prompt builders
 // ---------------------------------------------------------------------------
 
-function buildSystemPrompt(faction) {
-  const wList = outputLimits.wordsPerList;
-  const wDet  = outputLimits.wordsPerDetachmentSummary;
+function buildSystemPromptBlocks(faction, rulesText) {
+  const wList  = outputLimits.wordsPerList;
+  const wDet   = outputLimits.wordsPerDetachmentSummary;
   const wCross = outputLimits.wordsCrossDetachment;
-  const wDiff = outputLimits.wordsCrawlDiff;
-  return [
+  const wDiff  = outputLimits.wordsCrawlDiff;
+
+  const instructionsText = [
     `You are an expert Warhammer 40,000 competitive meta analyst specialising in ${faction}.`,
     '',
     '=== ANALYSIS RULES — FOLLOW STRICTLY ===',
@@ -130,6 +155,26 @@ function buildSystemPrompt(faction) {
     'IMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no trailing text.',
     'Start your response with { and end with }.',
   ].join('\n');
+
+  const blocks = [];
+
+  // Rules reference block — cached first (large, rarely changes)
+  if (rulesText) {
+    blocks.push({
+      type: 'text',
+      text: rulesText,
+      cache_control: { type: 'ephemeral' },
+    });
+  }
+
+  // Analysis instructions block — also cached (changes rarely)
+  blocks.push({
+    type: 'text',
+    text: instructionsText,
+    cache_control: { type: 'ephemeral' },
+  });
+
+  return blocks;
 }
 
 function buildUserPrompt(listsData, metaReport, optimizerReport) {
@@ -362,18 +407,20 @@ async function main() {
   const client  = new Anthropic({ apiKey, maxRetries: 4 });
   const faction = metaReport.meta?.faction || 'Death Guard';
 
-  const systemPrompt = buildSystemPrompt(faction);
-  const userPrompt   = buildUserPrompt(listsData || { sections: {} }, metaReport, optimizerReport);
+  const rulesText      = loadRulesDocument(rulesDir);
+  const systemBlocks   = buildSystemPromptBlocks(faction, rulesText);
+  const userPrompt     = buildUserPrompt(listsData || { sections: {} }, metaReport, optimizerReport);
 
   console.log(`Sending request to ${modelId} (max_tokens: ${maxTokens})…`);
   console.log(`Data: ${metaReport.meta?.totalLists || 0} lists, ${(metaReport.detachmentBreakdown || []).length} detachments`);
+  console.log(`System prompt blocks: ${systemBlocks.length} (rules: ${rulesText ? 'yes' : 'no'})`);
 
   // Helper to make one API call
   async function callAPI() {
     return client.messages.create({
       model: modelId,
       max_tokens: maxTokens,
-      system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+      system: systemBlocks,
       messages: [{ role: 'user', content: userPrompt }],
     });
   }

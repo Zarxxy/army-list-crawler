@@ -32,5 +32,12 @@
       "wordsCrossDetachment": 200,
       "wordsCrawlDiff": 100
     }
+  },
+  "rulesFetcher": {
+    "wahapediaBase": "https://wahapedia.ru",
+    "defaultFaction": "death-guard",
+    "defaultEdition": "10ed",
+    "freshnessDays": 7,
+    "maxTxtChars": 180000
   }
 }

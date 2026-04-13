@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -102,6 +102,24 @@ jobs:
 
       - name: Run army optimizer
         run: node optimizer.js --format json
+
+      - name: Fetch Death Guard rules from wahapedia.ru
+        # Freshness check inside rules-fetcher.js — skips fetch if rules are < 7 days old.
+        # continue-on-error so a wahapedia outage never blocks the pipeline.
+        run: node rules-fetcher.js --faction death-guard --edition 10ed
+        timeout-minutes: 15
+        continue-on-error: true
+
+      - name: Commit updated rules (if changed)
+        # Commits any newly-fetched rules back to the repo with [skip ci] so it
+        # does not trigger another pipeline run.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add rules/
+          git diff --cached --quiet || git commit -m "chore: refresh Death Guard rules [skip ci]"
+          git push || true
+        continue-on-error: true
 
       - name: Generate AI meta analysis
         # Requires ANTHROPIC_API_KEY to be set as a repository secret.
