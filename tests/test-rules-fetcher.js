@@ -276,14 +276,21 @@ test('hasFactionKeyword returns true when keywords field is missing', () => {
   assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
 });
 
-test('hasFactionKeyword returns false for daemon unit with wrong keywords', () => {
-  const unit = { keywords: ['Infantry', 'Chaos', 'Daemon', 'Nurgle'] };
+test('hasFactionKeyword returns false for summoned daemon ally (has SUMMONED keyword)', () => {
+  // Plaguebearers, Nurglings, Plague Drones all carry SUMMONED
+  const unit = { keywords: ['Infantry', 'Chaos', 'Daemon', 'Nurgle', 'SUMMONED', 'Plaguebearers'] };
   assert.equal(hasFactionKeyword(unit, 'death-guard'), false);
 });
 
-test('hasFactionKeyword returns false for Chaos Daemon ally unit', () => {
-  const unit = { keywords: ['Chaos Daemon', 'Nurgle', 'Plaguebearer'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), false);
+test('hasFactionKeyword returns true for daemon engine without SUMMONED (e.g. Plagueburst Crawler)', () => {
+  // Daemon engines are Death Guard units — they have DAEMON but not SUMMONED
+  const unit = { keywords: ['VEHICLE', 'CHAOS', 'NURGLE', 'DAEMON', 'PLAGUEBURST CRAWLER'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword returns true for unit missing faction keyword but not SUMMONED (e.g. Poxwalkers)', () => {
+  const unit = { keywords: ['INFANTRY', 'CHAOS', 'NURGLE', 'POXWALKERS'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
 });
 
 test('hasFactionKeyword is case-insensitive', () => {
@@ -294,7 +301,9 @@ test('hasFactionKeyword is case-insensitive', () => {
 test('hasFactionKeyword works for other faction slugs', () => {
   const unit = { keywords: ['Infantry', 'Tyranids', 'Synapse'] };
   assert.equal(hasFactionKeyword(unit, 'tyranids'), true);
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), false);
+  // Exclusion-based logic: a Tyranids unit has no SUMMONED keyword, so it passes
+  // (in practice, Tyranids units never appear on the Death Guard faction page)
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
 });
 
 // ---------------------------------------------------------------------------

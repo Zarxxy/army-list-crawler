@@ -220,20 +220,33 @@ function truncateToTokenBudget(text, maxChars = MAX_TXT_CHARS) {
 /**
  * Returns true if the unit should be kept for this faction.
  *
- * A unit is valid if:
- *   - No keywords were extracted (selector miss — keep to avoid false negatives)
- *   - OR its keywords include the faction name (e.g. "DEATH GUARD")
+ * Strategy: exclusion-based rather than inclusion-based.
  *
- * Daemon allies (Plaguebearers, Great Unclean One, etc.) have keywords like
- * "CHAOS DAEMON" but not "DEATH GUARD", so they are filtered out.
+ * The problem: wahapedia displays faction keywords (e.g. "DEATH GUARD") and
+ * unit keywords in separate HTML sections. The scraper only reliably captures
+ * one section, so "DEATH GUARD" is often absent from the keywords array even
+ * for genuine Death Guard units (e.g. Plagueburst Crawler, Poxwalkers).
+ *
+ * The reliable signal is the SUMMONED keyword — only summoned Chaos Daemon
+ * allies carry it (Plaguebearers, Plague Drones, Nurglings, Great Unclean One,
+ * etc.). Death Guard units — including Daemon Engines — never have SUMMONED.
+ *
+ * Logic:
+ *   1. No keywords extracted → keep (failsafe for selector misses)
+ *   2. Has faction keyword (e.g. "DEATH GUARD") → keep (best case)
+ *   3. Has SUMMONED keyword → exclude (daemon ally, not a Death Guard unit)
+ *   4. Otherwise → keep (assume valid; faction keyword was just not captured)
  *
  * @param {object} unit        — scraped unit object with a `keywords` array
  * @param {string} factionSlug — e.g. "death-guard"
  */
 function hasFactionKeyword(unit, factionSlug) {
   if (!unit.keywords || unit.keywords.length === 0) return true;
+  const kws = unit.keywords.map((kw) => kw.toUpperCase());
   const needle = factionSlug.replace(/-/g, ' ').toUpperCase(); // "DEATH GUARD"
-  return unit.keywords.some((kw) => kw.toUpperCase().includes(needle));
+  if (kws.some((kw) => kw.includes(needle))) return true;  // explicitly ours
+  if (kws.includes('SUMMONED')) return false;               // daemon ally
+  return true;                                              // faction kw not captured — keep
 }
 
 /**
@@ -529,9 +542,13 @@ async function scrapeUnitDatasheet(page, unitSlug, factionSlug, ed) {
     };
 
     // ── Unit name ──────────────────────────────────────────────────────────────
-    // Try h1 first, then page title
+    // wahapedia h1 contains filter UI widgets as nested elements, so innerText
+    // includes e.g. "Death Guard – Plagueburst Crawler\nNo filter\nVIRULENT..."
+    // Take only the first line, then strip any "Faction – " prefix.
     const h1 = document.querySelector('h1');
-    unit.name = h1?.innerText?.trim()
+    const h1FirstLine = h1?.innerText?.trim().split('\n')[0]?.trim() || '';
+    const h1Clean = h1FirstLine.replace(/^.*?[–—-]\s*/, '').trim(); // strip "Death Guard – "
+    unit.name = h1Clean
       || document.title?.replace(/\s*[-|].*/, '').trim()
       || slug.replace(/-/g, ' ');
 
