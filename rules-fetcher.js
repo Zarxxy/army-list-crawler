@@ -217,6 +217,74 @@ function truncateToTokenBudget(text, maxChars = MAX_TXT_CHARS) {
   return clean + '\n\n[Document truncated to fit token budget]';
 }
 
+/**
+ * Returns true if the unit should be kept for this faction.
+ *
+ * A unit is valid if:
+ *   - No keywords were extracted (selector miss — keep to avoid false negatives)
+ *   - OR its keywords include the faction name (e.g. "DEATH GUARD")
+ *
+ * Daemon allies (Plaguebearers, Great Unclean One, etc.) have keywords like
+ * "CHAOS DAEMON" but not "DEATH GUARD", so they are filtered out.
+ *
+ * @param {object} unit        — scraped unit object with a `keywords` array
+ * @param {string} factionSlug — e.g. "death-guard"
+ */
+function hasFactionKeyword(unit, factionSlug) {
+  if (!unit.keywords || unit.keywords.length === 0) return true;
+  const needle = factionSlug.replace(/-/g, ' ').toUpperCase(); // "DEATH GUARD"
+  return unit.keywords.some((kw) => kw.toUpperCase().includes(needle));
+}
+
+/**
+ * Removes duplicate weapons (by name) and abilities (by name) within a unit.
+ * Mutates and returns the unit object.
+ */
+function deduplicateUnit(unit) {
+  if (unit.weapons) {
+    unit.weapons = unit.weapons.filter(
+      (w, i, arr) => arr.findIndex((x) => x.name === w.name) === i
+    );
+  }
+  if (unit.abilities) {
+    unit.abilities = unit.abilities.filter(
+      (a, i, arr) => arr.findIndex((x) => x.name === a.name) === i
+    );
+  }
+  return unit;
+}
+
+/**
+ * Deduplicates an array of detachment objects by name, and within each
+ * detachment deduplicates stratagems and enhancements by name.
+ *
+ * @param {object[]} detachments
+ * @returns {object[]} deduplicated detachments
+ */
+function deduplicateDetachments(detachments) {
+  const seen = new Set();
+  return detachments
+    .filter((d) => {
+      const key = d.name?.toLowerCase().trim();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((d) => {
+      if (d.stratagems) {
+        d.stratagems = d.stratagems.filter(
+          (s, i, arr) => arr.findIndex((x) => x.name === s.name) === i
+        );
+      }
+      if (d.enhancements) {
+        d.enhancements = d.enhancements.filter(
+          (e, i, arr) => arr.findIndex((x) => x.name === e.name) === i
+        );
+      }
+      return d;
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Browser helpers
 // ---------------------------------------------------------------------------
@@ -719,18 +787,34 @@ async function main() {
       console.log(`  [${i + 1}/${unitLinks.length}] ${link.label} (${link.slug})`);
       try {
         const unit = await scrapeUnitDatasheet(page, link.slug, faction, edition);
-        units.push(unit);
+        deduplicateUnit(unit);
+        if (!hasFactionKeyword(unit, faction)) {
+          console.log(`  Skipping "${unit.name}" — keywords [${(unit.keywords || []).join(', ')}] do not include faction identifier`);
+        } else {
+          units.push(unit);
+        }
       } catch (err) {
         console.warn(`  Failed to scrape ${link.slug}: ${err.message}`);
-        units.push({ name: link.label, slug: link.slug, error: err.message });
+        // Omit error stubs — they produce garbage entries in the rules document
       }
       if (i < unitLinks.length - 1) await sleep(pageDelay);
     }
 
     // ── Step 3: Parse detachment data from raw text ────────────────────────────
     console.log('\n[3/3] Parsing detachment rules from faction page…');
-    const detachments = parseDetachmentsFromRaw(factionData.detachmentSections);
-    console.log(`  Parsed ${detachments.length} detachment blocks`);
+    const rawDetachments = parseDetachmentsFromRaw(factionData.detachmentSections);
+    const detachments = deduplicateDetachments(rawDetachments);
+    console.log(`  Parsed ${rawDetachments.length} detachment blocks → ${detachments.length} after deduplication`);
+
+    // ── Deduplicate units by name ──────────────────────────────────────────────
+    const seenNames = new Set();
+    const dedupedUnits = units.filter((u) => {
+      const key = u.name?.toLowerCase().trim();
+      if (!key || seenNames.has(key)) return false;
+      seenNames.add(key);
+      return true;
+    });
+    console.log(`  Units scraped: ${units.length} → ${dedupedUnits.length} after name deduplication`);
 
     // ── Assemble + save ────────────────────────────────────────────────────────
     const rulesData = {
@@ -739,7 +823,7 @@ async function main() {
       fetchedAt: new Date().toISOString(),
       factionAbilities: factionData.factionAbilities,
       detachments,
-      units,
+      units: dedupedUnits,
     };
 
     let txt = rulesToText(rulesData);
@@ -753,7 +837,7 @@ async function main() {
     console.log('\n=== Done ===');
     console.log(`JSON: ${jsonOutPath}`);
     console.log(`TXT:  ${txtOutPath} (${txt.length} chars, ~${estimateTokens(txt)} tokens)`);
-    console.log(`Detachments: ${detachments.length}, Units: ${units.length}, Faction abilities: ${rulesData.factionAbilities.length}`);
+    console.log(`Detachments: ${detachments.length}, Units: ${dedupedUnits.length}, Faction abilities: ${rulesData.factionAbilities.length}`);
 
   } finally {
     if (browser) await browser.close().catch(() => {});
@@ -774,6 +858,9 @@ if (require.main !== module) {
     estimateTokens,
     truncateToTokenBudget,
     parseDetachmentsFromRaw,
+    hasFactionKeyword,
+    deduplicateUnit,
+    deduplicateDetachments,
   };
 } else {
   main().catch((err) => {
