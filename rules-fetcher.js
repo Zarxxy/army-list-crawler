@@ -414,12 +414,11 @@ function elText(el) {
 
 /**
  * Scrapes the faction overview page.
- * Returns { factionAbilities, detachmentNames, unitLinks }
+ * Returns { factionAbilities, detachmentSections, unitLinks }
  *
- * wahapedia.ru structure (inferred + tiered fallback):
- *   - Faction abilities: divs/sections with class containing 'faction-ability' or 'ability'
- *   - Detachment names: headings or links matching known detachment names
- *   - Unit links: <a href> pointing to /wh40kXXed/factions/{faction}/{Unit-Slug}
+ * Uses section-aware DOM traversal: walks elements in document order,
+ * tracks the current page section (Datasheets, Detachments, Forge World,
+ * Crusade, etc.) and only collects content from the relevant sections.
  */
 async function scrapeFactionPage(page, factionSlug, ed) {
   const factionUrl = buildFactionUrl(factionSlug, ed);
@@ -431,28 +430,86 @@ async function scrapeFactionPage(page, factionSlug, ed) {
       factionAbilities: [],
       detachmentSections: [],
       unitLinks: [],
-      rawFactionText: '',
     };
 
-    // ── Unit links ────────────────────────────────────────────────────────────
-    // Collect all <a> elements whose href contains /factions/{slug}/ but is NOT
-    // the faction index page itself (i.e. has a unit slug after the faction segment)
-    const unitPattern = new RegExp(`/factions/${slug}/([^/]+)$`, 'i');
-    document.querySelectorAll('a[href]').forEach((a) => {
-      const href = a.getAttribute('href') || '';
-      const m = href.match(unitPattern);
-      if (m) {
-        const unitSlug = m[1];
-        const label = (a.innerText || a.textContent || '').trim() || unitSlug;
-        // Deduplicate by unitSlug
-        if (!out.unitLinks.find((u) => u.slug === unitSlug)) {
-          out.unitLinks.push({ slug: unitSlug, label });
+    const unitPattern = new RegExp(`/factions/${slug}/([^/?#]+)$`, 'i');
+
+    // ── Section markers (lowercase) ───────────────────────────────────────────
+    // When one of these headings is encountered, the section state changes.
+    const SECTION_RULES = [
+      // { match: fn(txtLower) => bool, state: string }
+      { match: (t) => t === 'datasheets' || t === 'datasheet',     state: 'datasheets' },
+      { match: (t) => t === 'detachments' || t === 'detachment',   state: 'detachments' },
+      { match: (t) => t.includes('army rule') || t.includes('faction abilit') || t === 'army rules', state: 'army-rules' },
+      { match: (t) => t.includes('crusade'),                        state: 'crusade' },
+      { match: (t) => t.includes('boarding'),                       state: 'boarding' },
+      { match: (t) => t.includes('forge world') || t.includes('forgeworld') || t.includes('legend'), state: 'forgeworld' },
+      { match: (t) => t.includes('kill team'),                      state: 'killteam' },
+      { match: (t) => t.includes('apocalypse') || t.includes('horus heresy'), state: 'excluded' },
+    ];
+
+    // Sections from which unit links are collected
+    const UNIT_LINK_SECTIONS = new Set(['datasheets', 'initial']);
+    // Sections that are explicitly excluded from unit links
+    const UNIT_EXCLUDE_SECTIONS = new Set(['crusade', 'boarding', 'forgeworld', 'killteam', 'excluded']);
+
+    // Sub-headings within the detachments section that are NOT detachment names
+    // (these are sub-sections like the stratagems list, enhancement list, etc.)
+    const DET_SKIP_HEADINGS = new Set([
+      'enhancements', 'stratagems', 'detachment rule', 'detachment rules',
+      'introduction', 'books', 'overview', 'rules', 'adaptations',
+      'rules adaptations', 'army rules', 'privacy preferences',
+      'boons of nurgle', 'boarding actions', 'unclean uprising',
+      'arch-contaminators', 'forming boarding squads', 'mustering a boarding patrol',
+      'vectors of decay', 'rules adaptations',
+    ]);
+
+    let sectionState = 'initial';
+
+    // ── Single-pass DOM walk (headings update state, links are collected) ─────
+    document.querySelectorAll('h1, h2, h3, h4, a[href]').forEach((el) => {
+      // ── Heading: update section state ──────────────────────────────────────
+      if (/^H[1-4]$/.test(el.tagName)) {
+        const txtLower = (el.innerText || '').toLowerCase().trim();
+        for (const rule of SECTION_RULES) {
+          if (rule.match(txtLower)) {
+            sectionState = rule.state;
+            return;
+          }
         }
+        // Headings that don't match any rule leave the state unchanged
+        return;
+      }
+
+      // ── Link: collect unit links ────────────────────────────────────────────
+      if (UNIT_EXCLUDE_SECTIONS.has(sectionState)) return;
+
+      const href = el.getAttribute('href') || '';
+      const m = href.match(unitPattern);
+      if (!m) return;
+
+      const unitSlug = m[1];
+      const label = (el.innerText || el.textContent || '').trim() || unitSlug;
+
+      if (!out.unitLinks.find((u) => u.slug === unitSlug)) {
+        // Tag links with the section they were found in so we can prefer 'datasheets'
+        out.unitLinks.push({ slug: unitSlug, label, _section: sectionState });
       }
     });
 
+    // If we found links specifically in the 'datasheets' section, prefer those.
+    // Otherwise fall back to all non-excluded links.
+    const datasheetsLinks = out.unitLinks.filter((u) => u._section === 'datasheets');
+    if (datasheetsLinks.length > 0) {
+      out.unitLinks = datasheetsLinks;
+    } else {
+      out.unitLinks = out.unitLinks.filter((u) => UNIT_LINK_SECTIONS.has(u._section));
+    }
+    // Strip internal _section tag
+    out.unitLinks.forEach((u) => delete u._section);
+
     // ── Faction abilities ─────────────────────────────────────────────────────
-    // Strategy 1: elements with class name containing 'faction' + 'ability'
+    // Strategy 1: class-based
     const abilityEls = document.querySelectorAll(
       '[class*="faction"][class*="ability"], [class*="FactionAbility"], [class*="faction-ability"]'
     );
@@ -462,53 +519,81 @@ async function scrapeFactionPage(page, factionSlug, ed) {
       if (name) out.factionAbilities.push({ name, description: desc || '' });
     });
 
-    // Strategy 2: headings followed by text matching keyword "faction" + "ability"
+    // Strategy 2: headings in the army-rules section
     if (out.factionAbilities.length === 0) {
-      const headings = document.querySelectorAll('h2, h3');
-      headings.forEach((h) => {
-        const txt = (h.innerText || '').toLowerCase();
-        if (txt.includes('faction abilit') || txt.includes('army abilit') || txt.includes('core abilit')) {
-          const name = h.innerText.trim();
-          const desc = h.nextElementSibling?.innerText?.trim() || '';
+      let inArmyRules = false;
+      document.querySelectorAll('h2, h3, h4').forEach((h) => {
+        const txtLower = (h.innerText || '').toLowerCase().trim();
+        if (txtLower.includes('army rule') || txtLower.includes('faction abilit')) {
+          inArmyRules = true;
+          return;
+        }
+        if (inArmyRules && (txtLower === 'detachments' || txtLower === 'datasheets')) {
+          inArmyRules = false;
+          return;
+        }
+        if (!inArmyRules) return;
+        const name = h.innerText.trim();
+        const desc = h.nextElementSibling?.innerText?.trim() || '';
+        if (name && name.length > 2 && name.length < 80) {
           out.factionAbilities.push({ name, description: desc });
         }
       });
     }
 
-    // ── Detachment sections ───────────────────────────────────────────────────
-    // Strategy 1: elements with class containing 'detachment'
-    const detEls = document.querySelectorAll('[class*="detachment"], [class*="Detachment"]');
-    detEls.forEach((el) => {
-      const name = el.querySelector('[class*="name"], [class*="title"], h2, h3, h4, strong')?.innerText?.trim()
-                || el.getAttribute('data-name')
-                || el.innerText?.split('\n')[0]?.trim();
-      if (name && name.length > 2) {
-        out.detachmentSections.push({ name, rawText: el.innerText?.trim()?.slice(0, 2000) });
+    // ── Detachment sections — bounded to the 'detachments' section ───────────
+    // Walk h2/h3 headings in document order. When we enter the 'detachments'
+    // section (detected by a heading that says "Detachments"), collect each
+    // sub-heading as a potential detachment. Stop when we hit any other major
+    // section (Crusade, Datasheets, Army Rules, etc.).
+    let inDetachments = false;
+    document.querySelectorAll('h2, h3').forEach((h) => {
+      const txt = (h.innerText || '').trim();
+      const txtLower = txt.toLowerCase();
+
+      // Detect section start
+      if (txtLower === 'detachments' || txtLower === 'detachment') {
+        inDetachments = true;
+        return;
+      }
+      // Detect section end
+      if (txtLower === 'datasheets' || txtLower === 'datasheet' ||
+          txtLower.includes('crusade') || txtLower.includes('boarding') ||
+          txtLower.includes('forge world') || txtLower.includes('kill team') ||
+          txtLower.includes('army rule') || txtLower.includes('unclean uprising') ||
+          txtLower.includes('arch-contaminators') || txtLower.includes('privacy')) {
+        inDetachments = false;
+        return;
+      }
+
+      if (!inDetachments) return;
+      if (DET_SKIP_HEADINGS.has(txtLower)) return;
+      if (txt.length < 3 || txt.length > 80) return;
+
+      // Collect following siblings as raw content
+      let sibling = h.nextElementSibling;
+      const parts = [];
+      while (sibling && !['H2', 'H3'].includes(sibling.tagName)) {
+        parts.push((sibling.innerText || '').trim());
+        sibling = sibling.nextElementSibling;
+      }
+      const rawText = parts.join('\n').slice(0, 3000);
+      if (rawText.length > 10) {
+        out.detachmentSections.push({ name: txt, rawText });
       }
     });
 
-    // Strategy 2: headings that look like detachment names
+    // Fallback: class-based selector if no section-bounded detachments found
     if (out.detachmentSections.length === 0) {
-      const headings = document.querySelectorAll('h2, h3');
-      headings.forEach((h) => {
-        const txt = h.innerText?.trim();
-        if (txt && txt.length > 3 && txt.length < 80) {
-          // Collect following siblings as the detachment block
-          let sibling = h.nextElementSibling;
-          const parts = [];
-          while (sibling && !['H2', 'H3'].includes(sibling.tagName)) {
-            parts.push(sibling.innerText?.trim() || '');
-            sibling = sibling.nextElementSibling;
-          }
-          if (parts.join('').length > 20) {
-            out.detachmentSections.push({ name: txt, rawText: parts.join('\n').slice(0, 2000) });
-          }
+      document.querySelectorAll('[class*="detachment"], [class*="Detachment"]').forEach((el) => {
+        const name = el.querySelector('[class*="name"], [class*="title"], h2, h3, h4, strong')?.innerText?.trim()
+          || el.getAttribute('data-name')
+          || el.innerText?.split('\n')[0]?.trim();
+        if (name && name.length > 2 && name.length < 80) {
+          out.detachmentSections.push({ name, rawText: (el.innerText || '').trim().slice(0, 3000) });
         }
       });
     }
-
-    // ── Raw page text fallback ─────────────────────────────────────────────────
-    out.rawFactionText = (document.body?.innerText || '').slice(0, 5000);
 
     return out;
   }, factionSlug);
