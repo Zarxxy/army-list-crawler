@@ -118,6 +118,18 @@
   .kw-psyker { background: #2d333b; color: #79e8e8; border: 1px solid #1f4f5f; }
   .kw-other { background: #2d333b; color: var(--text2); border: 1px solid var(--border); }
 
+  /* List anatomy */
+  .anatomy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; margin: 0.5rem 0 0.75rem; }
+  .anatomy-group { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.7rem; }
+  .anatomy-group-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text2); font-weight: 600; margin-bottom: 0.3rem; }
+  .anatomy-unit { font-size: 0.78rem; padding: 0.15rem 0; display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+  .anatomy-unit-name { color: var(--text); }
+  .anatomy-pts { color: var(--text2); font-size: 0.72rem; font-family: monospace; }
+  .freq-tag { font-size: 0.58rem; font-weight: 700; padding: 0.05rem 0.3rem; border-radius: 3px; white-space: nowrap; }
+  .freq-core { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+  .freq-contested { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+  .freq-tech { background: rgba(88,166,255,0.15); color: #58a6ff; border: 1px solid rgba(88,166,255,0.3); }
+
   /* Detachment rules panel */
   .det-rules-panel { margin: 0.8rem 0 1.2rem; }
   .det-rules-panel summary { cursor: pointer; color: var(--accent); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0; }
@@ -433,6 +445,86 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Client-side army list parser + anatomy builder
+  // ---------------------------------------------------------------------------
+  var _unitRegex = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+
+  function parseListUnits(text) {
+    if (!text) return [];
+    _unitRegex.lastIndex = 0;
+    var units = [];
+    var m;
+    while ((m = _unitRegex.exec(text)) !== null) {
+      var name = m[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
+      var pts = parseInt(m[2], 10);
+      if (name && pts > 0 && name.length < 80) units.push({ name: name, points: pts });
+    }
+    return units;
+  }
+
+  function classifyRole(keywords) {
+    if (!keywords || keywords.length === 0) return 'Other';
+    if (keywords.indexOf('CHARACTER') !== -1) return 'Characters';
+    if (keywords.indexOf('VEHICLE') !== -1) return 'Vehicles';
+    if (keywords.indexOf('MONSTER') !== -1) return 'Monsters';
+    if (keywords.indexOf('BEAST') !== -1) return 'Other';
+    if (keywords.indexOf('FORTIFICATION') !== -1) return 'Fortifications';
+    return 'Infantry';
+  }
+
+  function getFreqTag(unitName, det, opt) {
+    if (!opt || !opt.detachmentFrequencyAnalysis) return null;
+    var df = opt.detachmentFrequencyAnalysis;
+    var detData = null;
+    for (var i = 0; i < df.length; i++) {
+      if (df[i].detachment === det) { detData = df[i]; break; }
+    }
+    if (!detData || !detData.topUnits) return null;
+    var lname = unitName.toLowerCase();
+    for (var j = 0; j < detData.topUnits.length; j++) {
+      if (detData.topUnits[j].name.toLowerCase() === lname) {
+        var freq = detData.topUnits[j].frequency;
+        if (freq >= 60) return { label: 'CORE', cls: 'freq-core' };
+        if (freq >= 20) return { label: 'FLEX', cls: 'freq-contested' };
+        return { label: 'TECH', cls: 'freq-tech' };
+      }
+    }
+    return null;
+  }
+
+  function buildAnatomyHTML(text, det, kwMap, opt) {
+    var units = parseListUnits(text);
+    if (units.length === 0) return '';
+
+    // Group by role
+    var groups = {};
+    var roleOrder = ['Characters', 'Infantry', 'Vehicles', 'Monsters', 'Fortifications', 'Other'];
+    units.forEach(function(u) {
+      var kws = kwMap[u.name.toLowerCase()] || [];
+      var role = classifyRole(kws);
+      if (!groups[role]) groups[role] = [];
+      groups[role].push({ name: u.name, points: u.points, kws: kws });
+    });
+
+    var html = '<div class="anatomy-grid">';
+    roleOrder.forEach(function(role) {
+      if (!groups[role] || groups[role].length === 0) return;
+      html += '<div class="anatomy-group"><div class="anatomy-group-title">' + esc(role) + '</div>';
+      groups[role].forEach(function(u) {
+        var freqTag = getFreqTag(u.name, det, opt);
+        html += '<div class="anatomy-unit">' +
+          '<span class="anatomy-unit-name">' + esc(u.name) + '</span>' +
+          '<span class="anatomy-pts">' + u.points + 'pts</span>';
+        if (freqTag) html += '<span class="freq-tag ' + freqTag.cls + '">' + freqTag.label + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // ---------------------------------------------------------------------------
   // List card builder
   // ---------------------------------------------------------------------------
   function buildListCard(l, ai) {
@@ -460,7 +552,11 @@
         '</div>';
     }
     if (l.armyListText) {
-      body += '<pre class="roster-block">' + esc(l.armyListText) + '</pre>';
+      var kwMap = _rules ? buildKeywordLookup(_rules) : {};
+      var anatomy = buildAnatomyHTML(l.armyListText, det, kwMap, INLINE_OPT || null);
+      if (anatomy) body += anatomy;
+      body += '<details style="margin-top:0.5rem"><summary style="cursor:pointer;color:var(--text2);font-size:0.78rem">Full roster text</summary>' +
+        '<pre class="roster-block">' + esc(l.armyListText) + '</pre></details>';
     } else {
       body += '<p style="color:var(--text2);font-size:0.83rem">(No list text available)</p>';
     }
