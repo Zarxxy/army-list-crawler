@@ -1,4 +1,4 @@
-name: Crawl & Deploy
+name: Crawl, Analyse & Deploy
 
 on:
   # Weekly crawl: every Sunday at 06:00 UTC
@@ -27,8 +27,8 @@ permissions:
   id-token: write
 
 jobs:
-  crawl-deploy:
-    name: Crawl & Deploy
+  crawl-and-deploy:
+    name: Crawl, Analyse & Deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -59,15 +59,23 @@ jobs:
         run: node crawler.js --game 40k --faction "Death Guard" --delay 2000
         timeout-minutes: 30
 
-      - name: Upload crawler debug artifacts
-        if: always()
+      - name: Upload crawler debug artifacts (on failure)
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: crawler-debug
-          path: |
-            output/
+          path: output/
           if-no-files-found: ignore
-          retention-days: ${{ failure() && 30 || 7 }}
+          retention-days: 30
+
+      - name: Upload crawler debug artifacts (on success)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-debug
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Generate meta report
         run: node report.js --format json
