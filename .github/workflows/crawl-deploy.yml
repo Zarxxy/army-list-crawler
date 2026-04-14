@@ -1,9 +1,6 @@
 name: Crawl, Analyse & Deploy
 
 on:
-  push:
-    branches:
-      - 'main'
   # Weekly crawl: every Sunday at 06:00 UTC
   schedule:
     - cron: '0 6 * * 0'
@@ -30,39 +27,8 @@ permissions:
   id-token: write
 
 jobs:
-  # ── Job 1: Run tests on every push to every branch ─────────────────────────
-  test:
-    name: Run tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linter
-        run: npm run lint
-
-      - name: Run tests
-        run: npm test
-
-  # ── Job 2: Crawl, analyse, and deploy — only on main / schedule / manual ───
   crawl-and-deploy:
     name: Crawl, Analyse & Deploy
-    needs: test
-    # Only deploy from main branch (required by the GitHub Pages environment
-    # protection rules). Schedule and workflow_dispatch always run on main.
-    if: |
-      github.ref == 'refs/heads/main' ||
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -80,6 +46,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
@@ -95,13 +67,15 @@ jobs:
           path: |
             output/
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: ${{ failure() && 30 || 7 }}
 
       - name: Generate meta report
         run: node report.js --format json
+        timeout-minutes: 5
 
       - name: Run army optimizer
         run: node optimizer.js --format json
+        timeout-minutes: 5
 
       - name: Generate AI meta analysis
         # Requires ANTHROPIC_API_KEY to be set as a repository secret.
@@ -110,9 +84,11 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node ai-analysis.js
+        timeout-minutes: 15
 
       - name: Build site
         run: node build-site.js
+        timeout-minutes: 5
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

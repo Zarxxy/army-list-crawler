@@ -27,7 +27,7 @@
 
 const fs   = require('fs');
 const path = require('path');
-const { flattenLists } = require('./utils');
+const { flattenLists, getArg } = require('./utils');
 
 const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 
@@ -37,18 +37,13 @@ const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json')
 
 const args = process.argv.slice(2);
 
-function getArg(flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
-
-const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'army-lists-latest.json');
-const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
-const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
-const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
-const rulesDir   = getArg('--rules-dir')  || path.join(__dirname, 'rules');
-const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
-const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
+const listsFile  = getArg(args, '--lists')      || path.join(__dirname, 'output',  'army-lists-latest.json');
+const reportFile = getArg(args, '--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
+const optimFile  = getArg(args, '--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
+const outputDir  = getArg(args, '--output')     || path.join(__dirname, 'reports');
+const rulesDir   = getArg(args, '--rules-dir')  || path.join(__dirname, 'rules');
+const modelId    = getArg(args, '--model')      || appConfig.aiAnalysis.defaultModel;
+const maxTokens  = parseInt(getArg(args, '--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 
 const outputLimits = appConfig.aiAnalysis.outputLimits || {
   wordsPerList: 80,
@@ -447,7 +442,31 @@ async function main() {
 
   let result = extractJSON(rawContent);
 
-  // Retry once on parse failure
+  // Retry with a higher token limit when the response was truncated
+  if (!result && message.stop_reason === 'max_tokens') {
+    const bumpedTokens = Math.ceil(maxTokens * 1.5);
+    console.warn(`Response truncated — retrying with max_tokens=${bumpedTokens}…`);
+    try {
+      const retry = await client.messages.create({
+        model: modelId,
+        max_tokens: bumpedTokens,
+        system: systemBlocks,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+      const retryContent = retry.content.find((b) => b.type === 'text')?.text || '';
+      result = extractJSON(retryContent);
+      if (retry.usage) {
+        usage.input_tokens                = (usage.input_tokens                || 0) + (retry.usage.input_tokens                || 0);
+        usage.output_tokens               = (usage.output_tokens               || 0) + (retry.usage.output_tokens               || 0);
+        usage.cache_creation_input_tokens = (usage.cache_creation_input_tokens || 0) + (retry.usage.cache_creation_input_tokens || 0);
+        usage.cache_read_input_tokens     = (usage.cache_read_input_tokens     || 0) + (retry.usage.cache_read_input_tokens     || 0);
+      }
+    } catch (retryErr) {
+      console.error('Truncation retry failed:', retryErr.message);
+    }
+  }
+
+  // Retry once on parse failure (non-truncation cases)
   if (!result) {
     console.warn('Failed to parse response as JSON. Retrying once…');
     try {

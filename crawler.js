@@ -9,16 +9,7 @@ const KNOWN_FACTION_PATTERNS = appConfig.crawler.knownFactionPatterns.map((p) =>
 const KNOWN_DETACHMENTS = appConfig.crawler.knownDetachments;
 const OUTPUT_DIR = path.join(__dirname, 'output');
 
-const CONFIG = {
-  VIEWPORT_WIDTH: 1920,
-  VIEWPORT_HEIGHT: 1080,
-  NAV_TIMEOUT_MS: 60000,      // max ms to wait for page navigation
-  JS_RENDER_WAIT_MS: 3000,    // ms to wait for SPA frameworks to render
-  CF_CHALLENGE_WAIT_MS: 10000, // ms to wait for Cloudflare challenge to resolve
-  SELECTOR_TIMEOUT_MS: 10000, // ms to wait for content selector to appear
-  SCROLL_SETTLE_MS: 500,      // ms pause between scroll steps
-  DEFAULT_DELAY_MS: 1500,     // default ms between requests (polite crawling)
-};
+const CONFIG = appConfig.crawler.timeouts;
 
 // Parse CLI args
 const args = process.argv.slice(2);

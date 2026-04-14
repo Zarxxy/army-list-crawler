@@ -1,6 +1,16 @@
 {
   "crawler": {
     "baseUrl": "https://listhammer.info",
+    "timeouts": {
+      "VIEWPORT_WIDTH": 1920,
+      "VIEWPORT_HEIGHT": 1080,
+      "NAV_TIMEOUT_MS": 60000,
+      "JS_RENDER_WAIT_MS": 3000,
+      "CF_CHALLENGE_WAIT_MS": 10000,
+      "SELECTOR_TIMEOUT_MS": 10000,
+      "SCROLL_SETTLE_MS": 500,
+      "DEFAULT_DELAY_MS": 1500
+    },
     "knownFactionPatterns": [
       "death guard", "space marine", "tyranid", "ork", "eldar", "aeldari",
       "necron", "tau", "t'au", "chaos", "imperial", "adeptus", "astra",
@@ -24,7 +34,7 @@
     ]
   },
   "aiAnalysis": {
-    "defaultModel": "claude-opus-4-5",
+    "defaultModel": "claude-opus-4-6",
     "maxTokens": 8192,
     "outputLimits": {
       "wordsPerList": 80,
