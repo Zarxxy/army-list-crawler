@@ -553,24 +553,32 @@
   // ---------------------------------------------------------------------------
   // Patterns tab
   // ---------------------------------------------------------------------------
-  function renderPatterns(ai) {
+  function renderPatterns(ai, opt) {
     var el = document.getElementById('patterns-content');
-    if (!ai) {
-      el.innerHTML = '<p class="notice">No AI analysis available. Set ANTHROPIC_API_KEY and run the pipeline.</p>';
-      return;
-    }
-    if (ai.skipped) {
-      el.innerHTML = '<p class="notice">AI analysis was skipped: ' + esc(ai.reason || 'no reason given') + '</p>';
-      return;
-    }
-
     var html = '';
-    if (ai.crossDetachmentPatterns) {
+
+    // AI cross-detachment patterns
+    if (ai && !ai.skipped && ai.crossDetachmentPatterns) {
       html += '<section><h2>Cross-Detachment Patterns</h2><p class="prose-block">' + esc(ai.crossDetachmentPatterns) + '</p></section>';
     }
-    if (ai.crawlDiff) {
+
+    // AI crawl diff
+    if (ai && !ai.skipped && ai.crawlDiff) {
       html += '<section><h2>Since Last Crawl</h2><p class="prose-block">' + esc(ai.crawlDiff) + '</p></section>';
     }
+
+    // Co-occurrence pairs from optimizer
+    var coOcc = (opt && opt.coOccurrence) || [];
+    if (coOcc.length > 0) {
+      html += '<section><h2>Top Unit Pairings</h2>' +
+        '<p style="color:var(--text2);font-size:0.83rem;margin-bottom:0.6rem">Units that appear together most frequently across tournament lists.</p>' +
+        '<table class="freq-table"><thead><tr><th>Pairing</th><th class="num">Lists</th><th class="num">%</th></tr></thead><tbody>';
+      coOcc.forEach(function(c) {
+        html += '<tr><td>' + esc(c.pair) + '</td><td class="num">' + c.count + '</td><td class="num">' + c.frequency + '%</td></tr>';
+      });
+      html += '</tbody></table></section>';
+    }
+
     if (!html) {
       html = '<p class="notice">No pattern data available yet.</p>';
     }
@@ -609,7 +617,7 @@
     renderDiffBanner(meta, ai);
     renderLists(lists, meta, ai);
     renderByDetachment(lists, ai, opt);
-    renderPatterns(ai);
+    renderPatterns(ai, opt);
   }
 
   // ---------------------------------------------------------------------------
