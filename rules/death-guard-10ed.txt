@@ -1,0 +1,4856 @@
+=== DEATH GUARD RULES REFERENCE (10ED) ===
+Fetched: 2026-04-14
+
+--- FACTION ABILITIES ---
+[NURGLE’S GIFT (AURA)]: The Death Guard are warriors of the Plague God Nurgle. Their bloated bodies are riddled with corruption, and their mere presence causes the foe to sicken and wither in the grip of supernatural diseases while the battlefield falls to rot and ruin around them.
+[PACT OF DECAY]: The daemons of Nurgle are not native to realspace, but instead must be summoned through the rotting veil by way of generous sacrifice and acts of foul worship.
+[VIRULENT VECTORIUM]
+[DETACHMENT RULE]
+[WORLDBLIGHT]: As the foul tendrils of the Death Guard quest further across the battlefield, they infest even the most secure, holy and heavily warded sites with supernatural disease. To fight amidst such foulness is a virtual death sentence to the foe, win or lose.
+[ENHANCEMENTS]: Daemon Weapon of Nurgle
+10 pts
+
+Be it the Seeping Blade, the Talon of Befoulment or even the dreaded Axe of Putrescence, this weapon contains a malevolent daemonic entity whose mere touch rots and sickens the foe.
+
+DEATH GUARD model only. Each time the bearer makes a melee attack, an unmodified Hit roll of 5+ scores a Critical Hit.
+[STRATAGEMS]: PUTRID DETONATION
+1CP
+VIRULENT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Bloated with putrefaction and swilling with infectious poisons, the demise of this hulking entity is as revolting as it is explosively hazardous.
+WHEN: Any phase.
+
+TARGET: One DEATH GUARD VEHICLE or DEATH GUARD MONSTER model from your army with the Deadly Demise ability that was just destroyed. You can use this Stratagem on that model even though it was just destroyed.
+
+EFFECT: Do not roll one D6 to determine whether mortal wounds are inflicted by your model’s Deadly Demise ability. Instead, mortal wounds are automatically inflicted. In addition, any enemy units that suffer mortal wounds as a result of this Stratagem are Afflicted until the start of your next turn.
+DISGUSTINGLY RESILIENT
+2CP
+VIRULENT VECTORIUM – BATTLE TACTIC STRATAGEM
+Those favoured by Nurgle are inured to pain, their rotting bodies shrugging off all but the most traumatic damage with ease.
+WHEN: Your opponent’s Shooting phase or the Fight phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD unit from your army that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: Until the end of the phase, each time an attack is allocated to a model in your unit, subtract 1 from the Damage characteristic of that attack.
+PLAGUESURGE
+2CP
+VIRULENT VECTORIUM – EPIC DEED STRATAGEM
+The foul miasma around the Death Guard swells and thickens, boiling outward like putrid smog.
+WHEN: Your Command phase.
+
+TARGET: Your DEATH GUARD WARLORD that is on the battlefield.
+
+EFFECT: Until the start of your next Command phase, add 3" to the Contagion Range of models from your army.
+LEECHSPORE ERUPTION
+1CP
+VIRULENT VECTORIUM – EPIC DEED STRATAGEM
+Billowing from this warrior's wounds come clouds of parasitic spores that settle on the foe and drain their vitality, stealing it for the one who spawned them.
+WHEN: Your Command phase.
+
+TARGET: One DEATH GUARD model your army that has lost one or more wounds.
+
+EFFECT: Select one enemy unit within 3" of your model. Roll a number of D6 equal to the number of wounds your model has lost: for each 5+, that enemy unit suffers one mortal wound (to a maximum of 6 mortal wounds) and your model regains 1 lost wound (to a maximum of 6 lost wounds).
+OVERWHELMING GENEROSITY
+1CP
+VIRULENT VECTORIUM – WARGEAR STRATAGEM
+Unholy filth gushes from Nurgle's faithful into their guns until the armaments threaten to burst like bloated corpses.
+WHEN: Start of your Shooting phase.
+
+TARGET: One DEATH GUARD CHARACTER unit from your army.
+
+EFFECT: Select one enemy unit visible to your unit. Until the end of the phase, each time a DEATH GUARD unit from your army selects that enemy unit as the target of any ranged attacks, you can re-roll the dice to determine how many attacks a weapon equipped by a model in that unit makes.
+CREEPING BLIGHT
+1CP
+VIRULENT VECTORIUM – WARGEAR STRATAGEM
+Those in the grip of Nurgle's unholy plagues become weaker by the moment, barely able to lift their weapons, let alone defend themselves from the attacking Death Guard.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes a ranged attack that targets an Afflicted unit, you can re-roll the Hit roll and you can re-roll the Wound roll.
+[MORTARION’S HAMMER]
+[DETACHMENT RULE]
+[MIASMIC BOMBARDMENT]: In the wake of preparatory bombardment by artillery weapons both forbidden and foul, the surviving foe are left reeling amidst clouds of plague smog. With their flesh running like tallow and their weapons rusting in their hands, they will be hard-pressed to fight back.
+[ENHANCEMENTS]: Eye of Affliction
+20 pts
+
+Peering at the world through this bloated yellow orb, the bearer of this vile gift sees the souls of the sickened burning bright as targeting flares no matter how their victims try to hide.
+
+DEATH GUARD model only. Ranged weapons equipped by models in the bearer’s unit have the [IGNORES COVER] ability while targeting an Afflicted enemy unit.
+[STRATAGEMS]: BLIGHTED LAND
+2CP
+MORTARION’S HAMMER – STRATEGIC PLOY STRATAGEM
+Firing diseased submunitions or belching swarms of daemonic parasites from its hull, this war engine befouls the battlefield as it advances.
+WHEN: End of your Movement phase.
+
+TARGET: One DEATH GUARD VEHICLE unit from your army.
+
+EFFECT: Select one terrain feature within 24" of and visible to your unit. Until the start of your next turn, enemy units are Afflicted while they are within 3" of that terrain feature.
+RELENTLESS GRIND
+1CP
+MORTARION’S HAMMER – STRATEGIC PLOY STRATAGEM
+When the armoured vehicles of the Death Guard advance, they plough through - or straight over- anything that stands in their way.
+WHEN: Your Movement phase or your Charge phase.
+
+TARGET: One DEATH GUARD VEHICLE unit from your army that has not been selected to move or charge this phase.
+
+EFFECT: Until the end of the phase, each time your unit makes a Normal, Advance or Charge move, it can move horizontally through terrain features.
+DRAWN TO DESPAIR
+1CP
+MORTARION’S HAMMER – BATTLE TACTIC STRATAGEM
+Those who languish in misery or cower in terror make themselves easy targets for the Death Guard.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack that targets a visible enemy unit (excluding AIRCRAFT) within your opponent’s deployment zone, you can re-roll the Hit roll.
+FONT OF FILTH
+1CP
+MORTARION’S HAMMER – STRATEGIC PLOY STRATAGEM
+As though afflicted with some awful vomiting sickness, this vehicle's weapons retch an endless stream of fire at the enemy, heaving themselves empty even as it storms into the enemy lines.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD VEHICLE unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, ranged weapons equipped by models in your unit have the [ASSAULT] ability.
+EYESTINGER STORM
+1CP
+MORTARION’S HAMMER – STRATEGIC PLOY STRATAGEM
+Swarms of these revolting insects burrow hives into the hulls of Death Guard vehicles. Drawn to sickened prey, they boil forth in buzzing masses and descend on the foe, spreading panic and horror.
+WHEN: Your opponent’s Command phase.
+
+TARGET: One DEATH GUARD VEHICLE unit from your army.
+
+EFFECT: Select one objective marker visible to one or more models in your unit. Each Afflicted enemy unit within range of that objective marker must take a Battle-shock test. Enemy units affected by this Stratagem do not need to take any other Battle-shock tests in the same phase.
+STINKING MIRE
+1CP
+MORTARION’S HAMMER – STRATEGIC PLOY STRATAGEM
+Attempting to counterattack Death Guard can leave foes floundering amidst bubbling filth.
+WHEN: Start of your opponent’s Charge phase.
+
+TARGET: One DEATH GUARD VEHICLE unit from your army.
+
+EFFECT: Until the end of the phase, each time an enemy unit selects your unit as the target of a charge, subtract 2 from the Charge roll (this is not cumulative with any other negative modifiers to that Charge roll).
+[CHAMPIONS OF CONTAGION]
+[DETACHMENT RULE]
+[MANIFOLD MALADIES]: A spirit of competition infects Nurgle’s champions when they fight alongside one another. With each vying to outdo the others in virulence, the foes are subjected to a riotous string of nightmarish outbreaks amongst their ranks.
+[ENHANCEMENTS]: Final Ingredient
+20 pts
+
+Be it the eye of a Kroot or a Space Marine’s hearts, ground Ork tusk, or something unnameable wrenched from within a Tyranid’s corpse, this champion needs just one more ingredient to perfect a powerful new plague.
+
+BIOLOGUS PUTRIFIER only. Once per battle, after the bearers unit has fought, if one or more CHARACTER models were destroyed as a result of those attacks, select one Plague. Until the end of the battle, while an enemy unit is Afflicted, that unit has the effect of the selected Plague in addition to any other.
+[STRATAGEMS]: BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC STRATAGEM
+Employing their unique gifts, this champion enhances the weapons of their comrades with even greater levels of infectious malevolence.
+WHEN: Your Shooting phase or the Fight phase.
+
+TARGET: One DEATH GUARD Attached unit from your army that has not been selected to shoot or fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack, an unmodified Hit roll of 5+ scores a Critical Hit.
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC STRATAGEM
+The vile talents of such plague specialists act like a filth-smeared lens, focusing and intensifying the infectious gifts of Nurgle.
+WHEN: Your Shooting phase or the Fight phase.
+
+TARGET: One DEATH GUARD Attached unit from your army that has not been selected to shoot or fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack that targets a unit that is below its Starting Strength, you can re-roll the Hit roll and you can re-roll the Wound roll.
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC STRATAGEM
+After their champion calls down the blessings of Nurgle, these warriors can fight on no matter the catastrophic, often gruesome, damage done to them by the foe.
+WHEN: Your opponent’s Shooting phase or the Fight phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD Attached unit from your army that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: Until the end of the phase, add 2 to the Toughness characteristic of models in your unit.
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY STRATAGEM
+The combined talents of these Death Guard champions drive their followers into a foam-jawed fury, be it through injection with a curdled cocktail of stimms or immersion in a fug of infectious agents.
+WHEN: Start of the Fight phase.
+
+TARGET: One DEATH GUARD unit from your army that includes two CHARACTER models.
+
+EFFECT: Until the end of the phase, your unit has the Fights First ability.
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY STRATAGEM
+Nurgle's champions move through the Death Guard ranks like squirming parasites.
+WHEN: Your Movement phase, before the Reinforcements step.
+
+TARGET: One DEATH GUARD CHARACTER unit from your army that is not leading a unit.
+
+EFFECT: Select one other friendly DEATH GUARD unit (excluding Battle-shocked units and Attached units that already have two Leader units or one of your CHARACTER units leading it] within 2" horizontally and 5" vertically of your unit that your unit can lead (as described in the Leader section of its datasheet]. Your unit attaches to that unit as a Leader. Change that unit’s Starting Strength accordingly.
+DEATH’S HEADS
+1CP
+CHAMPIONS OF CONTAGION – WARGEAR STRATAGEM
+It takes much effort and sacrifice to fashion the disgusting explosives known as death's heads, but the results are spectacularly horrible.
+WHEN: Your Shooting phase.
+
+TARGET: One BIOLOGUS PUTRIFIER unit from your army that is not within Engagement Range of one or more enemy units and has not been selected to shoot this phase.
+
+EFFECT: Select one enemy unit (excluding VEHICLES) that is within 8" of and visible to your unit. Until the start of your next turn, that unit has the effect of all Plagues (see Nurgle’s Gift).
+[TALLYBAND SUMMONERS]
+[DETACHMENT RULE]
+[REVERBERANT RANCIDITY]: Reality rings like a struck bell as it rebels against the sheer wrongness of Nurgle’s daemons. Borne upon these jarring waves of metaphysical disease, magnified and redoubled with every dolorous peal, the Plague God’s myriad infections spread and multiply all the faster.
+[ENHANCEMENTS]: Beckoning Blight
+20 pts
+
+This unclean gift infects its host with animaluminescent fungus. Once their spirit is riddled with incorporeal mycelia, it begins to glow. This sickly radiance acts like a guiding lantern to the daemons of Nurgle, who follow its glare into realspace.
+
+DEATH GUARD model only. Each time a PLAGUE LEGIONS unit from your army is set up on the battlefield using the Deep Strike ability, if it is set up wholly within 12" of the bearer, it can be set up anywhere that is more than 6" horizontally away from all enemy models, instead of more than 9".
+[STRATAGEMS]: PERSISTENT PESTS
+1CP
+TALLYBAND SUMMONERS – STRATEGIC PLOY STRATAGEM
+There is no simple way to wholly cleanse a Nurgling infestation once it has taken root.
+WHEN: Any phase.
+
+TARGET: One NURGLINGS unit from your army that was just destroyed. You can target that unit with this Stratagem even though it was just destroyed.
+
+EFFECT: Add a new unit to your army identical to your destroyed unit, in Strategic Reserves, at its Starting Strength and with its full wounds remaining.
+
+RESTRICTIONS: You can only use this Stratagem once per battle.
+CLUTCHING CORRUPTION
+1CP
+TALLYBAND SUMMONERS – BATTLE TACTIC STRATAGEM
+The daemons of Nurgle grasp their victims tightly with rotting talons and coiling tentacles, their clutch as inescapable as entropy itself.
+WHEN: Fight phase.
+
+TARGET: One DEATH GUARD unit from your army that has not been selected to fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack that targets an enemy unit that is within Engagement Range of one or more PLAGUE LEGIONS units from your army, you can re-roll the Hit roll.
+ALL IS ROT
+1CP
+TALLYBAND SUMMONERS – STRATEGIC PLOY STRATAGEM
+Death Guard warriors open fire into foes already embattled by Nurgle’s daemons, knowing that no matter who they hit, all will wither and rot.
+WHEN: Your Shooting phase.
+
+TARGET: One PLAGUE LEGIONS unit from your army that is within Engagement Range of one or more enemy units.
+
+EFFECT: Until the end of the phase, enemy units are not considered to be within Engagement Range of your unit for the purposes of selecting targets of ranged weapons. Until the end of the phase, each time an enemy model loses a wound, while that model’s unit is within Engagement Range of your unit, roll one D6: on a 5+, your unit suffers 1 mortal wound after the attacking unit has finished making its attacks.
+FLESHY AVALANCHE
+1CP
+TALLYBAND SUMMONERS – STRATEGIC PLOY STRATAGEM
+The ephemeral structures of realspace have no power to halt the onset of Nurgle's Great Unclean Ones; they crumble, rot and burst apart before their unholy bulk.
+WHEN: Your Movement phase or your Charge phase.
+
+TARGET: One PLAGUE LEGIONS MONSTER unit from your army that has not been selected to move or charge this phase.
+
+EFFECT: Until the end of the phase, each time your unit makes a Normal, Advance or Charge move, it can move horizontally through terrain features.
+AVATARS OF DECAY
+1CP
+TALLYBAND SUMMONERS – STRATEGIC PLOY STRATAGEM
+Countless diseases blossom in the unreal flesh of Nurgle's daemon childer, manifestations of his blessings to be spread to all.
+WHEN: Your Shooting phase.
+
+TARGET: One PLAGUE LEGIONS unit from your army.
+
+EFFECT: Until the end of the phase, while an enemy unit is within 6" of your unit, that enemy unit is Afflicted.
+MIRESLICK
+1CP
+TALLYBAND SUMMONERS – STRATEGIC PLOY STRATAGEM
+Beneath the tread of Nurgle’s daemons, even ferrocrete or plasteel soon turns to a quagmire of rotting matter, in which their unlucky enemies begin to sink and become trapped.
+WHEN: Your opponent’s Movement phase, when an enemy unit (excluding MONSTERS and VEHICLES) is selected to Fall Back.
+
+TARGET: One PLAGUE LEGIONS unit from your army that is within Engagement Range of that enemy unit.
+
+EFFECT: Until the end of the phase, while an enemy unit is within Engagement Range of your unit, each time that unit is selected to Fall Back, it must take a Leadership test. If that test is failed, that unit must Remain Stationary this phase instead.
+[SHAMBLEROT VECTORIUM]
+[DETACHMENT RULE]
+[NUMBERLESS HORDE]: No matter how many Poxwalkers the enemy gun down or tear limb-from-limb at close quarters, more groaning mutants keep coming from every side.
+[ENHANCEMENTS]: Witherbone Pipes
+25 pts
+
+This sinister artefact emits a reedy dirge to which Poxwalkers seem drawn and by whose mournful notes they appear energised and lent an echo of purpose.
+
+NOXIOUS BLIGHTBRINGER only. While the bearer is leading a POXWALKERS unit, add 1 to the Objective Control characteristic of models in that unit, and each time that unit takes a Battle-shock or Leadership test, add 1 to that test.
+[STRATAGEMS]: GRIP OF THE WALKING POX
+1CP
+SHAMBLEROT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Those infected by walking pox may fall as though fatally wounded, but they soon rise again.
+WHEN: Fight phase, just after an enemy unit has selected its targets.
+
+TARGET: One POXWALKERS unit from your army that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: After the attacking unit has fought, roll one D6 for each model from your unit that was destroyed as a result of those attacks: on a 6, the attacking unit suffers 1 mortal wound. If your unit is not destroyed after the attacking unit has fought, enemy models destroyed as a result of this Stratagem count as enemy models destroyed by an attack made by a model in your unit for the purposes of the Curse of the Walking Pox ability.
+SMEARED WITH FILTH
+1CP
+SHAMBLEROT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Hacking a path through a horde of Poxwalkers leaves aggressors coated in infectious matter.
+WHEN: Fight phase.
+
+TARGET: One POXWALKERS unit from your army that was just destroyed. You can target that unit with this Stratagem even though it was just destroyed.
+
+EFFECT: Select one enemy unit that made one or more attacks that targeted your unit this phase. Until the end of the battle, that enemy unit is Afflicted.
+GNAWING HUNGER
+1CP
+SHAMBLEROT VECTORIUM – BATTLE TACTIC STRATAGEM
+Gripped by a sudden, monstrous hunger, the Poxwalkers surge forward in a ravenous mass.
+WHEN: Your Command phase.
+
+TARGET: One POXWALKERS unit from your army.
+
+EFFECT: Until the end of the turn, add 1 to the Move characteristic of models in your unit, and add 1 to the Attacks and Strength characteristics of melee weapons equipped by models in your unit.
+HIDDEN AMONGST THE DEAD
+1CP
+SHAMBLEROT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Another wave of Poxwalkers rises from the battlefield’s carrion heaps.
+WHEN: The Reinforcements step of your Movement phase.
+
+TARGET: One POXWALKERS unit from your army that is in Strategic Reserves and that is not an Attached unit.
+
+EFFECT: Until the end of the phase, models in that unit have the Deep Strike ability.
+SHOCK AND HORROR
+1CP
+SHAMBLEROT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Already dismayed by this living nightmare, the enemy falters before another sudden onslaught.
+WHEN: Your Charge phase, just after a DEATH GUARD unit from your army ends a Charge move.
+
+TARGET: That DEATH GUARD unit.
+
+EFFECT: Each enemy unit within Engagement Range of your unit must take a Battle-shock test, subtracting 1 from that test.
+SHAMBLING WALL
+1CP
+SHAMBLEROT VECTORIUM – STRATEGIC PLOY STRATAGEM
+Lacking even basic self-preservation instincts, Poxwalkers make excellent walking shields.
+WHEN: Your opponent’s Shooting phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD unit from your army that was selected as the target of one or more of the attacking unit’s attacks, and one friendly POXWALKERS unit within 3" of your unit and visible to both your unit and the attacking unit.
+
+EFFECT: Until the end of the phase, each time you would allocate an attack to a model in your DEATH GUARD unit, if your POXWALKERS unit is visible to the attacking model and is an eligible target for that attack, no saving throw is made for that attack; instead a number of POXWALKERS from your POXWALKERS unit equal to the Damage characteristic of that attack are destroyed.
+[DEATH LORD’S CHOSEN]
+[DETACHMENT RULE]
+[DEADLY VECTORS]: The plagues and parasites to which these elite warriors play host are amongst the most lethal in the galaxy. Moment by moment, even the most resilient foes sicken and wither in their presence until all that remains is rotted matter deliquescing sloppily from mouldering bones.
+[ENHANCEMENTS]: Face of Death
+10 pts
+
+So grotesque and monstrous is this champion’s aspect that it fills the enemy with unreasoning dread simply to look upon him.
+
+TERMINATOR model only. At the start of the Fight phase, each enemy unit within Engagement Range of the bearer’s unit must take a Battle-shock test.
+[STRATAGEMS]: BLOOMING PESTILENCE
+1CP
+DEATH LORD’S CHOSEN – EPIC DEED STRATAGEM
+Death Guard warriors know to chant the sevenfold prayers to unleash Nurgle's bounty on the foe.
+WHEN: Start of any phase.
+
+TARGET: One TERMINATOR unit from your army.
+
+EFFECT: Until the end of the phase, add 3" to the Contagion Range of models in your unit.
+GRIM REAPERS
+1CP
+DEATH LORD’S CHOSEN – BATTLE TACTIC STRATAGEM
+Swollen with bitter arrogance, these warriors carve a path through their perceived lessers and leave them as worm food.
+WHEN: Fight phase.
+
+TARGET: One TERMINATOR unit from your army that has not been selected to fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack that targets an enemy unit (excluding MONSTERS and VEHICLES) you can re-roll the Hit roll.
+UNDYING SPITE
+1CP
+DEATH LORD’S CHOSEN – STRATEGIC PLOY STRATAGEM
+Driven by bitterness and the putrid vitality of Nurgle's gifts, these warriors fight on for several moments, even after death.
+WHEN: Fight phase, just after an enemy unit has selected its targets.
+
+TARGET: One TERMINATOR unit from your army that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: Until the end of the phase, each time a model in your unit is destroyed, if that model has not fought this phase, roll one D6. On a 4+, do not remove the destroyed model from play; it can fight after the attacking unit has finished making its attacks, and is then removed from play.
+SIGNAL POX
+1CP
+DEATH LORD’S CHOSEN – EPIC DEED STRATAGEM
+Guided in by rasping jets of fumes sent up by this Lord of Virulence, plague-ridden artillery fire and airbursting spore-shells saturate the target zone.
+WHEN: Your Command phase.
+
+TARGET: One LORD OF VIRULENCE model from your army.
+
+EFFECT: Select one objective marker within 30" of and visible to your model. Until the start of your next turn, while an enemy unit is within range of that objective marker, that unit is Afflicted.
+MORTARION'S TEACHINGS
+1CP
+DEATH LORD’S CHOSEN – STRATEGIC PLOY STRATAGEM
+Exemplifying the Daemon Primarch's doctrines on versatile heavy infantry tactics, these warriors position themselves and let fly.
+WHEN: Your Shooting phase.
+
+TARGET: One TERMINATOR unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, ranged weapons equipped by models in your unit have the [ASSAULT] and [HEAVY] abilities.
+SICKENING IMPACT
+1CP
+DEATH LORD’S CHOSEN – STRATEGIC PLOY STRATAGEM
+Employing their crushing bulk and contagious gifts, these Terminators slam into their victims and grind them into putrefying mulch.
+WHEN: Your Charge phase, just after a TERMINATOR unit from your army ends a Charge move.
+
+TARGET: That TERMINATOR unit.
+
+EFFECT: Select one enemy unit within Engagement Range of your unit, then roll one D6 for each model in your unit that is within Engagement Range of that enemy unit: for each 2+, that enemy unit suffers 1 mortal wound (to a maximum of 6 mortal wounds).
+[FLYBLOWN HOST]
+[DETACHMENT RULE]: Verminous Haze
+
+A cloud of winged insects descends over Mortarion’s pathogenic sons, obscuring their malodorous ranks and shielding them from the eyes and augurs of the enemy. Beneath thrumming storms of fat-bodied flies, Plague Marines stride towards their wavering foes until they are close enough to unleash punishing volleys of killing fire.
+
+DEATH GUARD INFANTRY units (excluding POXWALKERS units) from your army that are not embarked within a TRANSPORT have the Scouts 5" and Stealth abilities.
+[Verminous Haze]: A cloud of winged insects descends over Mortarion’s pathogenic sons, obscuring their malodorous ranks and shielding them from the eyes and augurs of the enemy. Beneath thrumming storms of fat-bodied flies, Plague Marines stride towards their wavering foes until they are close enough to unleash punishing volleys of killing fire.
+[ENHANCEMENTS]: Droning Chorus
+15 pts
+
+Festering swarms follow this champion to battle, and the drone of a billion flies invigorates his warriors’ rotting bodies, lending them fresh focus.
+
+DEATH GUARD INFANTRY model only. Ranged weapons equipped by models in the bearer’s unit have the [ASSAULT] ability.
+[STRATAGEMS]: NAUSEATING PAROXYSMS
+1CP
+FLYBLOWN HOST – STRATEGIC PLOY STRATAGEM
+The contagion borne by the Death Guard and their attendant swarms of winged vermin triggers bouts of sickness and convulsion in those they encounter.
+WHEN: Start of the Fight phase.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that is within Engagement Range of one or more enemy units.
+
+EFFECT: Select one enemy unit within Engagement Range of your unit. That unit must take a Battle-shock test, subtracting 1 from the result.
+VERMIN CLOUD
+1CP
+FLYBLOWN HOST – BATTLE TACTIC STRATAGEM
+The storm of insectile contagion sweeps forward, dragging the Death Guard in its wake. None will escape the Plague God’s embrace.
+WHEN: Fight phase.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that has not been selected to fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in this unit makes a Pile-in or Consolidation move, it can move up to 6" instead of up to 3".
+EYE OF THE SWARM
+1CP
+FLYBLOWN HOST – STRATEGIC PLOY STRATAGEM
+The vermin swarms intensify as the Death Guard close in upon the enemy. As their foes clutch and tear their crawling skin, pitiless Plague Marines unleash volleys of point‑blank fire into their tormented foes.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, ranged weapons equipped by models in your unit (excluding Blast weapons) have the [PISTOL] ability.
+DRONING HORROR
+1CP
+FLYBLOWN HOST – BATTLE TACTIC STRATAGEM
+Clouds of droning daemon flies sweep across the battlefield to envelop the enemies of the Death Guard. As their victims claw and scratch at the seething swarms, Mortarion’s sons pick off their targets at leisure.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that has not been selected to shoot this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes a ranged attack, re-roll a Hit roll of 1. If that attack targets a unit within half range, you can re-roll the Hit roll instead.
+ENERVATING ONSLAUGHT
+1CP
+FLYBLOWN HOST – STRATEGIC PLOY STRATAGEM
+Swathed in a buzzing cloak of pathogenic decay, Nurgle’s chosen crash into the foe, disease dealing death as surely as fist, maul and blade.
+WHEN: Your Charge phase, just after a DEATH GUARD INFANTRY unit from your army makes a Charge move.
+
+TARGET: That DEATH GUARD INFANTRY unit.
+
+EFFECT: Select one enemy unit within Engagement Range of your unit (excluding MONSTERS and VEHICLES). Roll one D6 for each model in your unit that is within Engagement Range of that unit, adding 1 to the result if that model is not a CULTIST or POXWALKER model: for each 5+, the selected enemy unit suffers 1 mortal wound (to a maximum of 6 mortal wounds).
+MYPHITIC INVIGORATION
+1CP
+FLYBLOWN HOST – BATTLE TACTIC STRATAGEM
+Daemon flies are drawn to and invigorated by the foul miasmas surrounding Myphitic Blight‑haulers. In the vicinity of these malodorous constructs, the swarms gather in densities great enough to form a living barrier to the foe’s attacks.
+WHEN: Your opponent’s Shooting phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD INFANTRY unit from your army that is within 6" of one or more friendly MYPHITIC BLIGHT-HAULER units and that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: Until the end of the phase, each time an attack targets your unit, if the Strength characteristic of that attack is greater than the Toughness characteristic of this unit, subtract 1 from the Wound roll.
+[CRUSADE RULES]
+[BOONS OF NURGLE]: Battle Honour
+[SPAWNDOM]: There are significant risks to dedicating oneself to Nurgle and inviting the Plague Gods repulsive gifts. Many powerful champions have degenerated into swollen masses of rotting flesh, putrid muscle and screaming mouths, ending their Path to Glory as insane mutant aberrations. These mindless beasts are then herded together with other unfortunate Spawn and goaded towards the enemy to spread sickness in Nurgle’s name.
+[A GRAND PLAGUE]: Some plague champions obsess over perfecting Nurgle’s supernatural plagues as a form of worship, leading their warbands into campaigns of military conquest to facilitate their ritualised experiments.
+[PATH OF CONTAGION]
+[FAILURE]: Population Density
+[SUCCESS]
+[BLESSINGS OF NURGLE]: Crusade tracker
+[ALCHEMICAL PATHOGENS]: Many are the alchemical poisons and weaponised pathogens with which the DEATH GUARD anoint their weapons, the Biologus Putrifiers and Foul Blightspawn working constantly to refine them.
+[BREW YOUR BATCH]
+[PATHOGEN POTENCY]: Crusade tracker
+[TAILOR THE TOXINS]
+[BATTLE TRAITS]: When a DEATH GUARD unit gains a Battle Trait, you can use one of the tables presented here to determine which Battle Trait that unit has gained.
+[INFANTRY UNITS
+D6]
+[DAEMON UNITS
+D6]
+[VEHICLE UNITS
+D6]
+[AGENDAS]: If your Crusade army includes any DEATH GUARD units, you can select Agendas from those presented here.
+[REQUISITIONS]: If your Crusade army includes any DEATH GUARD units, you can spend Requisition points (RP) on any of the following Requisitions.
+[CRUSADE RELICS]: When a DEATH GUARD CHARACTER model gains a Crusade Relic, you can select one of the Relics presented here.
+[ARTIFICER RELICS]: BOUNTIFUL CENSER
+
+Said to use the ever-regenerating heart of a Great Unclean One as its fuel, this smog-wreathed censer emits roiling clouds of sorcerous fumes. These cause grotesque bloating and swelling within the mightiest warriors and war engines of the Death Guard, an overabundance of blessed foulness leaving them ever on the verge of violently bursting.
+
+Each time a friendly model with the Deadly Demise ability within 9" of the bearer is destroyed, the bearer can use this Crusade Relic. If it does, add 2 to the roll to determine whether mortal wounds are inflicted by that model’s Deadly Demise ability. You cannot target that model with the Putrid Detonation Stratagem.
+[ANTIQUITY RELICS]: ORB OF DECAY
+
+Scores of terrible maladies are stored in this orb, collected from battlefields and conquered worlds the galaxy over. Its carrier can unleash them all at the right moment to overwhelm their enemies.
+
+Once per battle, when you target the bearer’s unit with the Grenade Stratagem, the bearer can use this Crusade Relic. If they do, until that Stratagem has been resolved, add 2 to the result of each dice you roll for that Stratagem.
+[LEGENDARY RELICS]: PUTRID HEART
+
+This parasitic daemon-organ squirms into its host’s body and melds with its biology before pumping corruption through every cell. One so blessed becomes an avatar of contagion made manifest, a seething nexus of infectious foulness whose presence few can long survive.
+
+The bearer has the Feel No Pain 5+ ability. In addition, add 6" to the Contagion Range of models in the bearer’s unit.
+[CRUSADE BADGES]: When your Crusade force accomplishes specific long-term goals, you can earn the Crusade badges shown below, representing your warriors’ successes over many battles.
+[PLAGUE CHAMPION]: Your rancid star is on the rise. Champions of order and purity have fallen beneath your putrid blade, their armies scattered in despair before your inexorable advance. The plagues of Nurgle spread all the faster wherever you take to the battlefield, encouraged by the dark alchemy of your followers, lent virulence by the horror of your victories. Your feet are set firmly on the Path to Glory. Your future is one of glorious apotheosis or a descent into festering spawndom.
+[CHOSEN OF NURGLE]: Sevenfold are your blessings, for you serve Grandfather Nurgle and the Death Lord Mortarion well. Entire worlds have been transformed into putrid plague beds by your efforts. Planetary systems have soured in the grip of disease and misery, crushed beneath your armoured tread. With every victory, you court the mightiest blessings of the Plague God and draw closer to final triumph or utter damnation.
+[DISEASED DAEMON LORD]: Ultimate glory is yours, for great Nurgle has rewarded you with daemonic immortality. Your name has become a byword for sickness and suffering across entire galactic sectors. Yet even now, there is more to do, for the war will not be won until the stars themselves rot and fall, spoiled from the heavens. With your newfound supernatural power, of course, even this mighty goal does not seem beyond your reach.
+[BOARDING ACTIONS]: INTRODUCTION
+Within the following pages you will find numerous Boarding Actions Detachments that can be used in your Boarding Actions games. Each lists which units you can include in your army, any modifications to those units’ army rule as presented in their Codex or Index, a Detachment rule unique to that Detachment, and a number of Enhancements and Stratagems that you can use.
+
+
+ARMY FACTION
+A keyword that will be shared by all units in your army.
+
+MUSTERING RULES
+Which units you are allowed to include in your army.
+
+FORMING BOARDING SQUADS
+Any additional rules that will apply in the missions Form Boarding Squads step. Note that not all Detachments will have these.
+
+RULES ADAPTATIONS
+Some units will be unable to use certain abilities in Boarding Actions battles. Where this is the case, these units and their relevant abilities will be listed here.
+
+
+ARMY RULE
+Due to the distinct nature of close-quarters battle in Boarding Actions, most army rules require some modifications to their effects. Where this is the case, these will be described here.
+
+DETACHMENT RULE
+Each faction will have a number of different Detachments to choose from, each with its own Detachment rule to reflect the unique fighting methods of such forces.
+
+ENHANCEMENTS
+Further Enhancements that you can give to CHARACTER models from your army, beyond those(Boarding Actions Enhancements), will be found here.
+
+STRATAGEMS
+Additional Stratagems that you can use, in addition to those (Boarding Actions Stratagems), will be found here.
+[INTRODUCTION]: Within the following pages you will find numerous Boarding Actions Detachments that can be used in your Boarding Actions games. Each lists which units you can include in your army, any modifications to those units’ army rule as presented in their Codex or Index, a Detachment rule unique to that Detachment, and a number of Enhancements and Stratagems that you can use.
+[VECTORS OF DECAY]: The Death Guard are well-practised in shipboard warfare and punishing boarding actions. Spearing deep in the enemy vessel like the tendrils of some nightmare parasite, they spread corruption and entropy through foes and mechanical systems alike.
+[MUSTERING A BOARDING PATROL]
+[FORMING BOARDING SQUADS]: POXWALKERS
+[RULES ADAPTATIONS]: The BIOLOGUS PUTRIFIER model loses the Explosive Maladies ability.
+The DEATH GUARD CHAOS LORD model loses the Desiccation Conduit ability.
+The DEATH GUARD CHAOS SPAWN unit loses the Regenerating Monstrosities ability.
+The DEATH GUARD TERMINATOR SORCERER model loses the Pestilent Familiar ability.
+The LORD OF CONTAGION model loses the Abundance of Sickness ability.
+The PLAGUE SURGEON model loses the Tainted Narthecium ability.
+The TALLYMAN model loses the The Seven-fold Chant ability.
+The TYPHUS model loses the Tire Eater Plague ability.
+[Slow Decay]: Steady and inexorable, the dark gifts of the Plague God seep from the Death Guard to corrupt all.
+[DETACHMENT RULE]: Sevenfold Offerings
+
+Seven by seven the enemy fall, reaped like blighted crops or rotted from within. Seven by seven their souls are offered up to the Lord of Pestilence.
+
+For every seven enemy models that have been destroyed, add 2" to the Contagion Range of units from your army. Note that any increase to the Contagion Range of units from your army as a result of this rule does not take place while a unit from your army is attacking. In such an event, the increase will take effect after such a unit has finished making its attacks.
+[Sevenfold Offerings]: Seven by seven the enemy fall, reaped like blighted crops or rotted from within. Seven by seven their souls are offered up to the Lord of Pestilence.
+[ENHANCEMENTS]: Foul Constitution
+
+Rancid with might, feverish with unclean power, this warrior’s diseased body is as unnaturally resilient as it is unfeeling of pain.
+
+Each time an attack is allocated to the bearer, subtract 1 from the Damage characteristic of that attack.
+[STRATAGEMS]: CHINKS IN THE ARMOUR
+1CP
+VECTORS OF DECAY – BATTLE TACTIC STRATAGEM
+Even the slightest weakness is enough for the foulness of the Death Guard to find a way in.
+WHEN: Your Shooting phase or the Fight phase.
+
+TARGET: One DEATH GUARD unit from your army that has not been selected to shoot or fight this phase.
+
+EFFECT: Until the end of the phase, each time a model in your unit makes an attack that targets a unit within Contagion Range of one or more units from your army, a Critical Hit is scored on an unmodified Hit roll of 5+, instead of only a 6.
+GROTESQUE DEMISE
+1CP
+VECTORS OF DECAY – STRATEGIC PLOY STRATAGEM
+Many of the plague weapons and revolting diseases unleashed by the Death Guard inflict endings so hideous that the mere sight of them is enough to send unharmed enemies fleeing in horror.
+WHEN: Your Shooting phase or the Fight phase, just after a DEATH GUARD unit from your army (excluding CULTISTS and POXWALKERS units) has shot or fought.
+
+TARGET: That DEATH GUARD unit.
+
+EFFECT: Select one enemy unit that had one or more models destroyed as a result of those attacks. That enemy unit must take a Battle-shock test.
+INFESTATION
+1CP
+EMBARKED REGIMENT – STRATEGIC PLOY STRATAGEM
+The taint left by the servants of Nurgle is not easily scoured from the stuff of realspace.
+WHEN: Start or end of any turn, when an enemy unit attempts to Seize an objective marker you have Secured.
+
+TARGET: One DEATH GUARD unit from your army (excluding CULTISTS and POXWALKERS units) within Contagion Range of that objective marker.
+
+EFFECT: Roll one D6: on a 5+, until the end of your next turn, that objective marker remains Secured by your army and you are considered to control it, regardless of how many enemy models are within range of it.
+
+RESTRICTIONS: You can only use this Stratagem once per battle round.
+SEEPING CORROSION
+1CP
+VECTORS OF DECAY – STRATEGIC PLOY STRATAGEM
+Crawling tendrils of foulness spread through the voidship at the touch of the Death Guard, poisoning and rotting luckless foes.
+WHEN: Your Movement phase, when a DEATH GUARD unit from your army (excluding CULTISTS and POXWALKERS units) attempts to open a Hatchway.
+
+TARGET: That DEATH GUARD unit.
+
+EFFECT: Select one enemy unit within 1" of your unit and on the opposite side of that Hatchway from your unit, and roll one D6: on a 2-4, that enemy unit suffers 1 mortal wound; on a 5+, that enemy unit suffers 2 mortal wounds. Until the end of the phase, if an enemy unit attempts to prevent that Hatchway from being opened, when rolling off, you can re-roll your result.
+[UNCLEAN UPRISING]: Under the corrupting influence of Nurgle’s worshippers, voidships can sicken just like living bodies. Corridors awash with chanting, diseased cultists, chambers and vital systems clogged by rancid entities and plague-spawned filth, even the most redoubtable warship can sicken and die.
+[MUSTERING A BOARDING PATROL]
+[FORMING BOARDING SQUADS]: POXWALKERS units do not split into separate units in the Form Boarding Squads step.
+[RULES ADAPTATIONS]: DEATH GUARD CULTISTS units can perform the Secure Site Tactical Manoeuvre as if they had the BATTLELINE keyword.
+The BIOLOGUS PUTRIFIER model loses the Explosive Maladies ability.
+The DEATH GUARD CHAOS LORD model loses the Desiccation Conduit ability.
+The DEATH GUARD CHAOS SPAWN unit loses the Regenerating Monstrosities ability.
+The DEATH GUARD TERMINATOR SORCERER model loses the Pestilent Familiar ability.
+The LORD OF CONTAGION model loses the Abundance of Sickness ability.
+The PLAGUE SURGEON model loses the Tainted Narthecium ability.
+The TALLYMAN model loses the The Seven-fold Chant ability.
+The TYPHUS model loses the The Eater Plague ability.
+[Slow Decay]: Steady and inexorable, the dark gifts of the Plague God seep from the Death Guard to corrupt all.
+[DETACHMENT RULE]: Relentless Spread
+
+Like a virus seeking fresh hosts, the unclean worshippers of the Plague God spill through the ship’s corridors on the hunt for untainted souls.
+
+Each time a DEATH GUARD unit from your army makes a Consolidation move:
+
+It can move up to D3+3" instead of up to 3".
+If it cannot end that move within Engagement Range of one or more enemy units that are visible to it (and in Unit Coherency), it can still make that Consolidation move, and when doing so can move in any direction.
+[Relentless Spread]: Like a virus seeking fresh hosts, the unclean worshippers of the Plague God spill through the ship’s corridors on the hunt for untainted souls.
+[ENHANCEMENTS]: Pox-Bearer
+
+This foul champion is a living vector for the spread of the walking plague, a suppurating nexus of filthy unlife that cannot be cleansed.
+
+Once per battle, at the end of your Movement phase, the bearer can use this Enhancement. If it does, select one friendly POXWALKERS unit within 9" of and visible to the bearer; return up to D3+2 destroyed models to that unit.
+[STRATAGEMS]: POX FLARE
+1CP
+UNCLEAN UPRISING – BATTLE TACTIC STRATAGEM
+Like fever heat bursting into unclean flame, the diseases infesting these Poxwalkers flare with sudden infectious vitality.
+WHEN: Fight phase.
+
+TARGET: One POXWALKERS unit from your army that has not been selected to fight this phase.
+
+EFFECT: Until the end of the phase, improve the Armour Penetration characteristic of melee weapons equipped by models in your unit by 1.
+PATH OF PESTILENCE
+1CP
+UNCLEAN UPRISING – STRATEGIC PLOY STRATAGEM
+Long have lurking cultists planned the uprising and prepared the route for their plague-blessed masters to process to victory.
+WHEN: Your Movement phase.
+
+TARGET: One DEATH GUARD CULTISTS unit from your army that has not been selected to move this phase and is not within Engagement Range of one or more enemy units.
+
+EFFECT: Select one closed Hatchway within 1” of your unit. Your unit can attempt to operate that Hatchway.
+
+RESTRICTIONS: Until the end of the turn, your unit cannot attempt to operate a Hatchway again.
+THE DEAD RISE
+1CP
+VECTORS OF DECAY – STRATEGIC PLOY STRATAGEM
+What appeared moments before to be a mere carrion heap suddenly lurches into foul and grinning unlife.
+WHEN: Your Movement phase, at the start of the Reinforcements step.
+
+TARGET: One POXWALKERS unit from your army that is in Reserves.
+
+EFFECT: Until the end of the phase, your unit has the Deep Strike ability.
+
+RESTRICTIONS: You can only use this Stratagem once.
+SHAMBLING ONSLAUGHT
+1CP
+UNCLEAN UPRISING – STRATEGIC PLOY STRATAGEM
+Relentless, untiring, the plague-rotted hordes press forward in a tide of grasping hands, stinking bodies and gnashing, splintered teeth.
+WHEN: Your opponent's Movement phase, just after an enemy unit is selected to Fall Back.
+
+TARGET: One POXWALKERS unit from your army within Engagement Range of that enemy unit.
+
+EFFECT: After that enemy unit ends that Fall Back move, if your unit is not within Engagement Range of one or more enemy units, your unit can make a Normal move.
+[ARCH-CONTAMINATORS]: Spearheading assaults onto enemy voidships or digging in to defend the most vital of their own plague ships’ systems and chambers, these chosen of Mortarion are as indomitable as they are foul. No foe can long endure their feculent ferocity.
+[MUSTERING A BOARDING PATROL]
+[RULES ADAPTATIONS]: BLIGHTLORD TERMINATORS units can perform the Secure Site Tactical Manoeuvre as if they had the BATTLELINE keyword.
+The DEATH GUARD CHAOS SPAWN unit loses the Regenerating Monstrosities ability.
+The DEATH GUARD TERMINATOR SORCERER model loses the Pestilent Familiar ability.
+The LORD OF CONTAGION model loses the Abundance of Sickness ability.
+The TYPHUS model loses the The Eater Plague ability.
+[Slow Decay]: Steady and inexorable, the dark gifts of the Plague God seep from the Death Guard to corrupt all.
+[DETACHMENT RULE]: Inescapable Corruption
+
+The combined plague blessings of so many champions of the Plague God is universally contagious, a dreadful omnirot that infests flesh, metal and even the minds and souls of its victims.
+
+Each time an enemy unit is selected to perform a Tactical Manoeuvre, if that unit is within Contagion Range of one or more units from your army, that enemy unit must take a Leadership test. If that test is failed, that Tactical Manoeuvre has no effect (that enemy unit is still eligible to shoot and declare a charge this turn as normal).
+
+In addition, in your Command phase, roll one D6 for each objective marker that is within Contagion Range of one or more units from your army and is Secured by your opponent’s army: on a 5+, that objective marker is no longer Secured by your opponent’s army.
+[Inescapable Corruption]: The combined plague blessings of so many champions of the Plague God is universally contagious, a dreadful omnirot that infests flesh, metal and even the minds and souls of its victims.
+[ENHANCEMENTS]: Miasmic Odour
+
+An omnipresent reek of decay wreathes this dark champion, mingling with swarms of parasitic plague flies and turgid clouds of infectious spores.
+
+Add 3" to the Contagion Range of the bearer.
+[STRATAGEMS]: ALLIES OF ENTROPY
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY STRATAGEM
+The foul vitality that flows through these warriors is slow to depart, even in extremis.
+WHEN: Fight phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD unit from your army that was selected as the target of one or more of the attacking unit’s attacks.
+
+EFFECT: Until the end of the phase, each time a model in your unit is destroyed, if that model has not fought this phase, roll one D6: on a 4+, do not remove the destroyed model from play; it can fight after the attacking unit has finished making its attacks, and is then removed from play.
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY STRATAGEM
+Like infectious spores contaminating their victim, the warriors of the Death Guard teleport into battle then dig in as their foulness slowly spreads around them.
+WHEN: Your Shooting phase.
+
+TARGET: One DEATH GUARD TERMINATOR unit from your army that has not been selected to shoot this phase.
+
+EFFECT: If your unit was set up on the battlefield this turn, it can perform a Tactical Manoeuvre this phase as if it was not set up on the battlefield this turn.
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY STRATAGEM
+Mere proximity to these repulsive plague champions is enough to see vital systems rust and crumble as the taint of Chaos consumes them.
+WHEN: Start of your Shooting phase.
+
+TARGET: One DEATH GUARD TERMINATOR unit from your army that is not within Engagement Range of one or more enemy units.
+
+EFFECT: Select one objective marker within Contagion Range of and visible to your unit. That objective marker is Secured by your army.
+
+RESTRICTIONS: You can only use this Stratagem once and, until the end of the turn, your unit is not eligible to shoot or declare a charge.
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC STRATAGEM
+Plague flies engulf these warriors in a storm of buzzing wings and pustulent bodies, soaking up incoming enemy fire and obscuring the Death Guard elite from the foe.
+WHEN: Your opponent’s Shooting phase, just after an enemy unit has selected its targets.
+
+TARGET: One DEATH GUARD unit from your army that was selected as the target of one or more of the attacking unit's attacks.
+
+EFFECT: Until the end of the turn, each time an attack targets your unit, subtract 1 from the Hit roll.
+[Disable Ads]: E-mail:
+[PRIVACY PREFERENCES]: We and our partners share information on your use of this website to help improve your experience. For more information, or to opt out click the Do Not Sell My Information button below.
+
+--- UNIT DATASHEETS ---
+
+### Datasheets
+Abilities:
+  [Deadly Demise 1, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Foul Infusion:]: While this model is leading a unit, weapons equipped by models in that unit have the [LETHAL HITS] ability. In addition, each time a model in that unit makes an attack, a Critical Hit is scored on an unmodified Hit roll of 5+, instead of only a 6.
+Extraction of Fresh Disease: The first time this model’s unit destroys an enemy unit as the result of a melee attack, until the end of the battle, add 6 to the Objective Control characteristic of this model.
+  [1 Biologus Putrifier]: This model is equipped with: hyper blight grenades; injector pistol; plague knives.
+  [1 model]: 60
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Final Ingredient
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+  [Deadly Demise D3]: CORE:
+  [Death Guard Defenders:]: While this model is within 3" of one or more friendly DEATH GUARD INFANTRY units, this model has the Lone Operative ability.
+Fevered Strategist: Once per battle round, one model from your army with this ability can use it when a friendly DEATH GUARD unit within 12" of that model is targeted with a Stratagem. If it does, reduce the CP cost of that usage of that Stratagem by 1CP.
+Miasma of Pestilence (Aura): While a friendly DEATH GUARD unit is within 6" of this model, each time a ranged attack ta
+  [1 Daemon Prince of Nurgle]: This model is equipped with: infernal cannon; hellforged weapons.
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Daemon Weapon of Nurgle]: 10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+  [Deadly Demise D3, Deep Strike]: CORE:
+  [Horrifying Visage:]: Each time this model ends a Charge move, select one enemy unit within Engagement Range of it. That unit must take a Battle-shock test, subtracting 1 from that test.
+Enfeebling Miasma (Aura): While an enemy unit (excluding MONSTERS and VEHICLES) is within 6" of this model, each time that unit is selected to Fall Back, models in that enemy unit must take Desperate Escape tests. When doing so, if that enemy unit is Battle-shocked, subtract 1 from each of those Desperate Escape tests.
+  [1 Daemon Prince of Nurgle with Wings]: This model is equipped with: infernal cannon; hellforged weapons.
+  [Leader]: CORE:
+  [Blinding Spray:]: In the Fight phase, you can select one model from your army with this ability to use this ability. If you do, until the end of the phase, that model’s unit has the Fights First ability. Each model can only be selected for this ability once per battle.
+Putrefying Stink: Enemy models cannot start or end an Advance move within 9" of this model.
+  [1 Foul Blightspawn]: This model is equipped with: plague sprayer; close combat weapon.
+  [Reverberating Summons:]: Each time a model is destroyed by this weapon, you can select one friendly PLAGUEBEARERS unit within 12" of the bearer and return 1 destroyed Plaguebearer model to that unit.
+  [Deadly Demise D6, Deep Strike, Feel No Pain 6+]: CORE:
+  [Pact of Decay]: FACTION:
+  [Daemon Lord of Nurgle (Aura):]: While a friendly PLAGUE LEGIONS unit is within 6" of this model, add 1 to the Toughness characteristic of models in that unit.
+Nurgle’s Rot (Psychic): At the end of your Movement phase, you can select one enemy unit within 12" of this model. Until the start of your next Movement phase, that unit is rotted. While a unit is rotted, subtract 1 from the Toughness characteristic of models in that unit.
+  [1 Great Unclean One]: This model is equipped with: plague flail; putrid vomit; bilesword.
+  [Reverberant Rancidity]: Numberless Horde
+  [Entropic Knell]: 15
+  [Unclean Icon:]: While this model is leading a unit, add 1 to the Objective Control characteristic of models in that unit.
+Blessed Icon of Disease: Once per battle, at the start of any phase, you can select one friendly DEATH GUARD unit that is Battle-shocked and within 12" of this model. That unit is no longer Battle-shocked.
+  [1 Icon Bearer]: This model is equipped with: boltgun; plague knife.
+  [Deep Strike, Leader]: CORE:
+  [Vector of Disease:]: While this model is leading a unit, melee weapons equipped by models in that unit have the [SUSTAINED HITS 1] and [LANCE] abilities.
+Unholy Resilience: The first time a model with this ability is destroyed in a battle round, roll one D6 at the end of the phase. On a 2+, set that model back up on the battlefield, as close as possible to where it was destroyed and not within Engagement Range of any enemy units, with 3 wounds remaining. Each model can only be set up in this way once per battle.
+  [1 Lord of Contagion]: This model is equipped with: manreaper.
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+BATTLEFIELD COMMAND
+1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE V
+  [Gift of Poxes:]: Add 3" to the range of this model’s Contagion Range.
+Shroud of Disease: While this model is leading a unit, that unit cannot be targeted by ranged attacks unless the attacking model is within 18".
+  [1 Lord of Poxes]: This model is equipped with: plasma pistol; great plague blade.
+  [Virulent Aura:]: While this model is leading a unit, each time a model in that unit makes a ranged attack, you can re-roll the Wound roll.
+Blight Bombardment: At the start of your Shooting phase, select one enemy unit within 30" of and visible to this model. Until the end of the phase, each time a friendly DEATH GUARD model makes a ranged attack that targets that unit, re-roll a Hit roll of 1 (if that attack is made with a Blast weapon, you can re-roll the Hit roll instead).
+  [1 Lord of Virulence]: This model is equipped with: twin plague spewer; power fist.
+  [Gift of Contagion (Psychic):]: While this model is leading a unit, each time a model in that unit makes an attack that targets a unit that is Afflicted, that attack has the [SUSTAINED HITS 1] ability.
+Pestilent Fallout (Psychic): In your Shooting phase, after this model has shot, select one enemy INFANTRY unit hit by one or more of those attacks made with its Plague Wind. Until the end of your opponent’s next turn, that unit is enfeebled. While a unit is enfeebled, subtract 2" from the Move characteristic of models in that un
+  [1 Malignant Plaguecaster]: This model is equipped with: bolt pistol; Plague Wind; corrupted staff.
+  [Diseased Influence:]: Just after an enemy unit ends a Normal, Advance or Fall Back move within 9" of a friendly DEATH GUARD unit that is within 6" of this model, if that DEATH GUARD unit is not within Engagement Range of one or more enemy units, it can make a Normal move of up to 5".
+  [Boon of Death:]: In the Fight phase, when a friendly DEATH GUARD unit within 6" of this model is selected as the target of an attack, this model can use this ability. If it does, until the end of the phase, each time a model in that DEATH GUARD unit is destroyed by a melee attack, if that model has not fought this phase, roll one D6. On a 2+, do not remove it from play; that destroyed model can fight after the attacking unit has finished making its attacks, and it is then removed from play.
+  [Inflamed Reprisal:]: In your opponent’s Shooting phase, when a friendly DEATH GUARD unit within 6" of this model is selected as the target of an attack, this model can use this ability. If it does, after the attacking unit has finished making its attacks, that Death Guard unit can shoot as if it were your Shooting phase, but when resolving those attacks it can only target that enemy unit (and only if it is an eligible target).
+  [If this model is in your army, it must be your WARLORD.]
+  [Deadly Demise D6, Deep Strike, Feel No Pain 5+]: CORE:
+  [Lord of the Death Guard:]: Once per turn, this model can use one of the Lord of the Death Guard abilities (see left).
+Host of Plagues: At the end of your Movement phase, roll one D6 for each enemy unit within 6" of this model, adding 1 to the result if that enemy unit is Afflicted: on a 3+, that enemy unit suffers D3 mortal wounds.
+  [1 Mortarion – EPIC HERO]: This model is equipped with: Lantern; Rotwind; Silence.
+  [Sickening Vitality:]: While this model is leading a unit, add 1" to the Move characteristic of models in that unit and you can re-roll Advance and Charge rolls made for that unit.
+Tocsin of Misery (Aura): In the Battle-shock step of your opponent’s Command phase, if an enemy unit that is below its Starting Strength is within 9" of this model, that enemy unit must take a Battle-shock test, subtracting 1 from that test if it is a PSYKER unit.
+  [1 Noxious Blightbringer]: This model is equipped with: plasma pistol; cursed plague bell.
+  [Tainted Narthecium:]: While this model is leading a unit, in your Command phase, you can return 1 destroyed Bodyguard model to that unit.
+Inflamed Infections: At the start of the Fight phase, select one enemy unit within Engagement Range of this model. Until the end of the phase, each time this model makes an attack that targets that unit, an unmodified Hit roll of 5+ scores a Critical Hit. If that unit is Below Half-strength, an unmodified Hit roll of 4+ scores a Critical Hit instead.
+  [1 Plague Surgeon]: This model is equipped with: bolt pistol; balesword.
+  [Virulent Blessing (Psychic):]: At the start of the Fight phase, you can select one enemy unit within 24" and visible to this model. Until the end of the phase, each time an attack made by a PLAGUE LEGIONS model is allocated to a model in that unit, add 1 to the Damage characteristic of that attack.
+Deluge of Nurgle (Aura): While an enemy unit is within 6" of this model, subtract 2 from the Move characteristic and subtract 1 from the Objective Control characteristic of models in that unit.
+  [1 Rotigus – EPIC HERO]: This model is equipped with: streams of brackish filth; gnarlrod.
+  [Malicious Calculations:]: While this model is leading a unit, each time a model in that unit makes an attack, you can ignore any or all modifiers to that attack’s Ballistic Skill or Weapon Skill characteristics and/or any or all modifiers to the Hit roll.
+Sevenfold Chant: In your Command phase, if this model is on the battlefield, roll 2D6: on a 7+, you gain 1CP.
+  [1 Tallyman]: This model is equipped with: plasma pistol; close combat weapon.
+  [The Destroyer Hive:]: While this model is leading a unit, each time a melee attack targets that unit, subtract 1 from the Hit roll.
+Eater Plague (Psychic): In your Shooting phase, you can select one enemy unit within 18" of and visible to this PSYKER (excluding units with the Lone Operative ability that are not part of an Attached unit and are not within 12" of this PSYKER) and roll one D6: on a 1, this PSYKER’s unit suffers D3 mortal wounds; on a 2-5, that enemy unit suffers D6 mortal wounds; on a 6, that enemy unit
+  [1 Typhus – EPIC HERO]: This model is equipped with: Lakrimae.
+  [Lord of Chaos:]: Once per battle round, one unit from your army with this ability can use it when its unit is targeted with a Stratagem. If it does, reduce the CP cost of that use of that Stratagem by 1CP.Revolting Regeneration: At the start of your Command phase, this model regains up to D3 lost wounds.
+  [1 Chaos Lord on Palanquin of Nurgle]: This model is equipped with: bolt pistol; Astartes chainsword; close combat weapon; Nurgling's claws and teeth.
+  [1 model90]
+  [Chaos Lord:]: While this model is leading a unit, each time a model in that unit makes an attack, re-roll a Hit roll of 1.Desiccation Conduit (Aura): While an enemy unit is within Contagion Range of this model, at the end of the turn, roll one D6: on a 4+, that enemy unit suffers D3 mortal wounds.
+  [1 Death Guard Chaos Lord]: This model is equipped with: plague bolt pistol; Astartes chainsword.
+  [1 model65]
+  [1 Death Guard Chaos Lord in Terminator Armour]: This model is equipped with: plague combi-bolter; plague-encrusted exalted weapon.
+  [1 model85]
+  [Face of Death10Vile Vigour15Helm of the Fly King20Warprot Talisman30]
+  [Putrescent Vitality (Psychic):]: At the start of the Fight phase, you can roll one D6: on a 1, this PSYKER’s unit suffers D3 mortal wounds; on a 2+, until the end of the phase, each time an attack is allocated to a model in this PSYKER’s unit, subtract 1 from the Damage characteristic of that attack.Pestilent Familiar (Psychic): Once per battle, after selecting targets for a Psychic weapon equipped by this model, until the end of the phase, improve the Strength and Damage characteristics of that weapon by 2. Designer’s Note: Pl
+  [1 Death Guard Sorcerer in Terminator Armour]: This model is equipped with: Curse of the Leper; plague combi-bolter; force weapon.
+  [1 model70]
+  [Sevenfold OfferingsRelentless SpreadInescapable Corruption]
+  [Gift of Poxes (Psychic):]: While this model is leading a unit, weapons equipped by models in that unit have the [SUSTAINED HITS 1] ability.Feculent Despair (Aura, Psychic): While an enemy unit is within 6" of this model, each time that unit takes a Battle-shock test, subtract 1 from that test.
+  [1 Sorcerer on Palanquin of Nurgle]: This model is equipped with: bolt pistol; Infernal Gaze; force weapon; Nurgling's claws and teeth.
+  [1 model80]
+  [Infused with the Blessings of Nurgle:]: In your Shooting phase, each time this unit is selected to shoot, after this unit has shot, select one enemy unit hit by one or more of those attacks. Until the start of your next turn, that enemy unit is Afflicted.
+  [Icon of Despair (Aura):]: While an enemy unit is within 6" of the bearer, worsen the Leadership characteristic of models in that unit by 1.
+  [1 Plague Champion]: 4-9 Plague Marines
+Every model is equipped with: boltgun; plague knives.
+  [5 models]: 95
+
+7 models	
+130
+
+10 models	
+190
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Biologus Putrifier]: This unit can be led by the following units:
+
+Foul Blightspawn
+Icon Bearer
+Lord of Poxes
+Malignant Plaguecaster
+Noxious Blightbringer
+Plague Surgeon
+Tallyman
+  [Deep Strike]: CORE:
+  [Infected Outbreak:]: At the end of your Command phase, if this unit is within range of an objective marker you control, that objective marker remains under your control until your opponent’s Level of Control over that objective marker is greater than yours at the end of a phase.
+  [Daemonic Icon:]: Models in the bearer’s unit have a Leadership characteristic of 6+.
+  [Instrument of Chaos:]: Add 1 to Charge rolls made for the bearer’s unit.
+  [1 Plagueridden]: 9 Plaguebearers
+Every model is equipped with: plaguesword.
+  [10 models]: 110
+  [Deadly Demise D3, Firing Deck 2]: CORE:
+  [Fire Support:]: In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, each time a friendly model that disembarked from this TRANSPORT this turn makes an attack that targets that enemy unit, you can re-roll the Wound roll.
+  [1 Chaos Rhino]: This model is equipped with: combi-bolter; armoured tracks.
+  [Termite Assault:]: This model must start the battle in Reserves, but neither it nor any units embarked within it are counted towards any limits placed on the maximum number of Reserves units you can start the battle with. This model can be set up in the Reinforcements step of your first, second or third Movement phase, regardless of any mission rules. Any units embarked within this model can disembark after it has been set up on the battlefield, and if they do they must be set up more than 9" away from all enemy m
+  [1 Terrax-pattern Termite]: This model is equipped with: Terrax melta cutter; 2 combi-bolters; Termite drill.
+  [1 model200]
+  [Putrescent Fog (Aura):]: Enemy units that are set up on the battlefield as Reinforcements cannot be set up within 12" of this model.
+Diseased Cover: Each time a ranged attack is allocated to a model, if that model is not fully visible to the attacking unit because of this Fortification, that model has the Benefit of Cover against that attack.
+Fortification: While an enemy unit is only within Engagement Range of one or more FORTIFICATIONS from your army:
+
+That unit can still be selected as the target of ranged attacks, b
+  [1 Miasmic Malignifier]: This model is equipped with: miasmic gouts.
+  [Deadly Demise D6]: CORE:
+  [Scuttling Walker:]: Each time this unit makes a Normal, Advance or Fall Back move, it can move through models (excluding TITANIC models) and terrain features. When doing so, it can move within Engagement Range of enemy models, but cannot end that move within Engagement Range of them, and any Desperate Escape test is automatically passed.
+Barrage of Filth: In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, that unit cannot have th
+  [1 Defiler]: This model is equipped with: 1 Hades battle cannon; 2 excruciator cannons; 1 heavy missile launcher; 1 heavy baleflamer; 1 shearing claws
+  [Miasmic Bombardment]: Manifold Maladies
+Numberless Horde
+Deadly Vectors
+  [Deadly Demise 1, Deep Strike, Scouts 6"]: CORE:
+  [Grotesque Regeneration:]: At the end of each phase, if a Beasts of Nurgle model in this unit has lost any wounds but is not destroyed, that model regains all of its lost wounds.
+  [1-2 Beasts of Nurgle]: Every model is equipped with: putrid appendages.
+  [Blistering Fusillade:]: If this unit has a Starting Strength of 5 or more, or if a CHARACTER is leading this unit, then each time a model in this unit makes a ranged attack that targets an Afflicted unit, improve the Strength and Armour Penetration characteristics of that attack by 1.
+  [1 Blightlord Champion]: 2-9 Blightlord Terminators
+Every model is equipped with: combi-bolter; bubotic blade.
+  [3 models]: 115
+
+5 models	
+185
+
+10 models	
+370
+  [Lord of Contagion]: This unit can be led by the following units:
+
+Lord of Virulence
+Typhus
+  [Assault Ramp:]: Each time a unit disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [1 Chaos Land Raider]: This model is equipped with: 2 soulshatter lascannons; twin heavy bolter; armoured tracks.
+  [Metalophagic Infection:]: In your Shooting phase, after this model has shot, select one enemy MONSTER or VEHICLE unit hit by one or more of those attacks. Roll one D6, adding 1 to the result if that unit is Afflicted; on a 5+, that unit suffers D3 mortal wounds.
+  [1 Chaos Predator Annihilator]: This model is equipped with: Predator twin lascannon; armoured tracks.
+  [Hail of Corrosive Disease:]: In your Shooting phase, after this model has shot, select one enemy unit (excluding MONSTERS and VEHICLES) hit by one or more of those attacks. Until the end of the phase, each time a friendly DEATH GUARD unit makes a ranged attack that targets that enemy unit, improve the Armour Penetration characteristic of that attack by 1. The same enemy unit can only be affected by this ability once per phase.
+  [1 Chaos Predator Destructor]: This model is equipped with: predator autocannon; armoured tracks.
+  [Deadly Demise 1, Feel No Pain 5+, Scouts 6"]: CORE:
+  [Lethal Ichor:]: Each time a melee attack is allocated to a model in this unit, after the attacking unit has finished making its attacks, roll one D6 (to a maximum of six D6 per attacking unit): for each 4+, the attacking unit suffers 1 mortal wound.
+  [2 Chaos Spawn]: Every model is equipped with: hideous mutations.
+  [2 models]: 80
+  [Silent Bodyguard:]: While a CHARACTER model is leading this unit, that CHARACTER model has the Feel No Pain 4+ ability.
+Death Approaches: In your Movement phase, when this unit is set up on the battlefield using the Deep Strike ability, it can be set up anywhere on the battlefield that is more than 6" horizontally away from all Afflicted enemy units, and more than 9" horizontally away from all other enemy units.
+  [1 Deathshroud Champion]: 2-5 Deathshroud Terminators
+Every model is equipped with: plaguespurt gauntlet; manreaper.
+  [Hovering Death:]: This model is eligible to shoot and declare a charge in a turn in which it Fell Back.
+  [1 Foetid Bloat-drone]: This model is equipped with: fleshmower; plague probe.
+  [Explosive Blight:]: In your Shooting phase, each time this model makes an attack that destroys an enemy unit, before removing the last model in that unit from play, roll a D6, adding 1 to the result if that unit is Afflicted: on a 5+, each enemy unit within 6" of that model is Afflicted until the start of your next turn.
+  [Deadly Demise 1]: CORE:
+  [Diseased Malice:]: Each time this model makes an attack that targets an Afflicted unit, add 1 to the Wound roll.
+Froth-spattered Frenzy: If this model is equipped with two melee weapons in addition to its close combat weapon, add 2 to the Attacks characteristic of those two weapons.
+  [1 Helbrute]: This model is equipped with: multi-melta; Helbrute fist; close combat weapon.
+  [Tank Hunters:]: In your Shooting phase, each time a model in this unit makes an attack that targets a MONSTER or VEHICLE unit, add 1 to the Hit roll and add 1 to the Wound roll.
+  [1-2 Myphitic Blight-hulers]: Every model is equipped with: bile spurt; missile launcher; multi-melta; gnashing maw.
+  [Deep Strike, Infiltrators]: CORE:
+  [Mischief Makers:]: Each time an enemy unit (excluding TITAN units) within Engagement Range of one or more units with this ability is selected to fight, until the end of the phase, each time a model in that enemy unit makes a melee attack, subtract 1 from the Hit roll.
+  [3-6 Nurgling Swarms]: Every model is equipped with: diseased claws and teeth.
+  [Death’s Heads:]: In your Shooting phase, after this unit has shot, select one enemy unit hit by one or more of those attacks. Until the end of the turn, each time a friendly PLAGUE LEGIONS unit makes an attack that targets that unit, you can re-roll the Wound roll.
+  [1 Plaguebringer]: 2-5 Plague Drones
+Every model is equipped with: death’s heads; foul mouthparts; plaguesword.
+  [Spore-laced Shock Waves:]: In your Shooting phase, each time you select a target for this model’s Plagueburst mortar, roll one D6 for the target unit and every other enemy unit within 3" of the target unit, adding 1 to that roll if the unit being rolled for is Afflicted. On a 6+, the unit being rolled for is struck by spores; after resolving all of this model’s attacks against the target unit, each unit struck by spores suffers D3 mortal wounds.
+  [1 Plagueburst Crawler]: This model is equipped with: 2 entropy cannons; heavy slugger; Plagueburst mortar; armoured tracks.
+  [Infiltrators, Feel No Pain 5+]: CORE:
+  [Curse of the Walking Pox:]: Each time a POXWALKER model in this unit makes an attack that destroys an enemy model (excluding MONSTER and VEHICLE models), after this unit has resolved its attacks, you can return one destroyed POXWALKER model to this unit.
+
+While TYPHUS is leading this unit, enemy models destroyed as a result of TYPHUS’ Eater Plague ability count as enemy models destroyed by an attack made by a POXWALKER model in this unit for the purposes of this ability.
+  [10-20 Poxwalkers]: Every model is equipped with: improvised weapon.
+  [Malignant Plaguecaster]: This unit can be led by the following units:
+
+Noxious Blightbringer
+Typhus
+  [Atomantic Arc-reactor:]: Each time this unit shoots its Cerberus neutron pulse array in your Shooting phase, provided it Remained Stationary this turn, that weapon has the [LETHAL HITS] ability.
+  [1 Cerberus]: This model is equipped with: Cerberus neutron pulse array; armoured tracks.
+  [1 model270]
+  [Deadly Demise D6+2, Hover]: CORE:
+  [Aerial Assault:]: Each time a unit with the Deep Strike ability disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [Thunderhawk Cluster Bombs:]: Each time the bearer ends a Normal move, you can select one enemy unit it moved over during that move and roll six D6: for each 3+, that unit suffers 1 mortal wound.
+  [1 Chaos Thunderhawk]: This model is equipped with: 2 lascannons; Thunderhawk heavy cannon; 4 twin heavy bolters; armoured hull; Thunderhawk cluster bombs.
+  [1 model840]
+  [Scouts 6"]: CORE:
+  [1 Death Guard Cultist Champion]: 9-19 Death Guard CultistsEvery model is equipped with: Cultist firearm; brutal assault weapon.
+  [10 models5020 models100]
+  [Infectious Bloodshed:]: Each time this unit makes a Charge move, until the end of the turn, weapons equipped by models in this unit have the [SUSTAINED HITS 1] ability.
+  [Diseased Icon:]: Melee weapons in the bearer’s unit have the [LETHAL HITS] ability.
+  [1 Possessed Champion]: 4-9 PossessedEach model is equipped with: hideous mutations.
+  [5 models15510 models310]
+  [Rejuvenating Swarm10Droning Chorus15Insectile Murmuration20Plagueveil25]
+  [Deredeo Strike:]: Each time this model makes a ranged attack that targets a unit that is not Below Half-strength, you can re-roll the Hit roll.
+  [1 Deredeo Dreadnought]: This model is equipped with: anvilus autocannon battery; twin heavy bolter; armoured feet.
+  [1 model160]
+  [Deadly Demise D6+2]: CORE:
+  [Titan-killer:]: Each time this model makes a ranged attack with its twin Falchion volcano cannon that targets a MONSTER or VEHICLE unit, that attack has the [DEVASTATING WOUNDS] ability.
+  [1 Falchion]: This model is equipped with: 2 quad lascannons; twin heavy bolter; twin Falchion volcano cannon; armoured tracks.
+  [1 model420]
+  [Rolling Fortress:]: Each time a ranged attack is allocated to a model from your army, if that model is not fully visible to every model in the attacking unit because of this Fellblade model, that model has the Benefit of Cover against that attack.
+  [1 Fellblade]: This model is equipped with: demolisher cannon; Fellblade accelerator cannon; 2 quad lascannons; twin heavy bolter; armoured tracks.
+  [1 model480]
+  [Deadly Demise D6, Hover]: CORE:
+  [Strafing Run:]: Each time this model makes a ranged attack that targets a unit that cannot Fly, add 1 to the Hit roll.
+  [1 Fire Raptor Gunship]: This model is equipped with: twin avenger bolt cannon; 2 twin autocannons; 2 twin hellstrike launchers; armoured hull
+  [1 model290]
+  [Feel No Pain 5+]: CORE:
+  [Fearsome (Aura):]: While an enemy unit is within 6" of this unit, each time that enemy unit takes a Battle-shock or Leadership test, subtract 1 from the result.
+  [4 Nightmare Hulks]: 3 Gellerpox MutantsEvery Gellerpox Mutant is equipped with: brutal weapons. One Nightmare Hulk is equipped with: belly-flamer; hideous mutations. Every other Nightmare Hulk is equipped with: hideous mutations.
+  [7 models125]
+  [Deadly Demise 1, Deep Strike]: CORE:
+  [1 Greater Blight Drone]: This model is equipped with: bile maw; blightreaper cannon; greater plague probe.
+  [1 model150]
+  [Interceptor:]: Each time this model makes a ranged attack that targets a unit that can FLY, add 1 to the Hit roll.
+  [1 Hell Blade]: This model is equipped with: 2 twin autocannons; armoured hull.
+  [1 model115]
+  [Bomb Rack:]: Each time this model ends a Normal move, you can select one enemy unit it moved across during that move and roll six D6: for each 3+, that unit suffers 1 mortal wound.
+  [1 Hell Talon]: This model is equipped with: autocannon; twin lascannon; armoured hull.
+  [1 model140]
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Line-breaker:]: When making ranged attacks, this model can target enemy units within Engagement Range of it with Blast weapons (provided no other friendly units are also within Engagement Range of that enemy unit). In addition, when making ranged attacks, this model does not suffer the penalty to its Hit rolls for being within Engagement Range of one or more enemy units.
+  [1 Kratos]: This model is equipped with: autocannon; Kratos battle cannon; 4 heavy bolters; armoured tracks.
+  [1 model240]
+  [1 Land Raider Achilles]: This model is equipped with: quad launcher; 2 twin volkite culverins; armoured tracks.
+  [1 model230]
+  [Explorator Augury Web:]: Enemy units that are set up on the battlefield as Reinforcements cannot be set up within 12" of this bearer, but the bearer must halve its Transport Capacity.
+  [1 Land Raider Proteus]: This model is equipped with: 2 twin lascannons; armoured tracks.
+  [1 model220]
+  [Duty Eternal:]: Each time an attack is allocated to this model, subtract 1 from the Damage characteristic of that attack.
+  [1 Leviathan Dreadnought]: This model is equipped with: 2 heavy flamers; 2 grav-flux bombards; armoured feet.
+  [Deadly Demise 2D6]: CORE:
+  [Inviolable Transport:]: Once per battle round, when an attack is allocated to this model, you can change the Damage characteristic of that attack to 0.
+  [1 Mastodon]: This model is equipped with: 2 heavy flamers; 2 lascannons; siege melta array; skyreaper battery; armoured tracks.
+  [1 model540]
+  [Feel No Pain 6+]: CORE:
+  [Mischief Makers (Aura):]: While an enemy unit (excluding MONSTERS and VEHICLES) is within 6" of this unit, each time a model in that unit makes a melee attack, subtract 1 from the Hit roll.
+  [16 Mutoid Vermin]: Every model is equipped with: diseased claws and fangs.
+  [16 models85]
+  [Powerful Volley:]: Each time this model shoots in your Shooting phase, provided it Remained Stationary this turn, all [HEAVY] weapons equipped by models in this unit have the [LETHAL HITS] ability.
+  [1 Rapier Carrier]: This model is equipped with: boltgun; quad heavy bolter; close combat weapon.
+  [Conversion:]: Each time an attack made with this weapon targets a unit more than 12" from the bearer, an unmodified successful Hit roll of 4+ scores a Critical Hit.
+  [Even In Death I Serve:]: The first time this model is destroyed, remove it from play without resolving its Deadly Demise ability. Then, at the end of the phase, roll one D6: on a 2+, set this model back up on the battlefield as close as possible to where it was destroyed and not within Engagement Range of any enemy units, with D6 wounds remaining.
+  [1 Relic Contemptor Dreadnought]: This model is equipped with: 2 heavy plasma cannons; armoured feet.
+  [Armoured Spearhead:]: Each time this model makes an attack that targets an enemy unit, re-roll a Hit roll of 1 and, if that unit is within range of an objective marker you do not control, you can re-roll the Hit roll instead.
+  [1 Sicaran Battle Tank]: This model is equipped with: heavy bolter; Herakles-pattern autocannon; armoured tracks.
+  [Rotating Death:]: This model’s Punisher rotary cannon has the [SUSTAINED HITS 1] ability when targeting INFANTRY units.
+  [1 Sicaran Punisher]: This model is equipped with: heavy bolter; Punisher rotary cannon; armoured tracks.
+  [Ferocious Assault:]: Each time this model makes a ranged attack that targets the closest eligible MONSTER or VEHICLE unit, add 1 to the Hit roll.
+  [1 Sicaran Venator]: This model is equipped with: heavy bolter; Venator neutron laser; armoured tracks.
+  [1 model180]
+  [Deadly Demise  2D6, Hover]: CORE:
+  [1 Sokar-pattern Stormbird]: This model is equipped with: hellstrike missile battery; 3 twin heavy bolters; 4 twin lascannons; armoured hull.
+  [1 model900]
+  [1 Spartan]: This model is equipped with: 2 quad lascannons; twin heavy bolter; armoured tracks.
+  [1 model300]
+  [Armoured Resilience:]: Each time an attack is allocated to this model, subtract 1 from the Damage characteristic of that attack.
+  [1 Storm Eagle Gunship]: This model is equipped with: twin heavy bolter; 2 twin hellstrike launchers; vengeance launcher; armoured hull.
+  [1 model250]
+  [Sunderer of Fortresses:]: Each time this model makes an attack that targets a VEHICLE, improve the Strength and Damage characteristic of that attack by 1 (if that attack targets a FORTIFICATION unit, improve the Strength and Damage characteristics of that attack by 2 instead).
+  [1 Typhon]: This model is equipped with: dreadhammer siege cannon; armoured tracks.
+  [1 model320]
+  [Pinning Bombardment:]: In your Shooting phase, after this model has shot, if one or more of those attacks made with its Scorpius multi-launcher scored a hit against an enemy INFANTRY unit, that unit must take a Battle-shock test.
+  [1 Whirlwind Scorpius]: This model is equipped with: Scorpius multi-launcher; armoured tracks.
+  [1 Xiphon Interceptor]: This model is equipped with: 2 twin lascannons; Xiphon missile battery; armoured hull.
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, BIOLOGUS PUTRIFIER
+
+### Biologus Putrifier
+Abilities:
+  [Deadly Demise 1, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Foul Infusion:]: While this model is leading a unit, weapons equipped by models in that unit have the [LETHAL HITS] ability. In addition, each time a model in that unit makes an attack, a Critical Hit is scored on an unmodified Hit roll of 5+, instead of only a 6.
+Extraction of Fresh Disease: The first time this model’s unit destroys an enemy unit as the result of a melee attack, until the end of the battle, add 6 to the Objective Control characteristic of this model.
+  [1 Biologus Putrifier]: This model is equipped with: hyper blight grenades; injector pistol; plague knives.
+  [1 model]: 60
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Final Ingredient
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, BIOLOGUS PUTRIFIER
+
+### Daemon Prince of Nurgle
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Death Guard Defenders:]: While this model is within 3" of one or more friendly DEATH GUARD INFANTRY units, this model has the Lone Operative ability.
+Fevered Strategist: Once per battle round, one model from your army with this ability can use it when a friendly DEATH GUARD unit within 12" of that model is targeted with a Stratagem. If it does, reduce the CP cost of that usage of that Stratagem by 1CP.
+Miasma of Pestilence (Aura): While a friendly DEATH GUARD unit is within 6" of this model, each time a ranged attack ta
+  [1 Daemon Prince of Nurgle]: This model is equipped with: infernal cannon; hellforged weapons.
+  [1 model]: 195
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Daemon Weapon of Nurgle]: 10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Keywords: MONSTER, CHARACTER, CHAOS, NURGLE, DAEMON, DAEMON PRINCE
+
+### Daemon Prince of Nurgle with Wings
+Abilities:
+  [Deadly Demise D3, Deep Strike]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Horrifying Visage:]: Each time this model ends a Charge move, select one enemy unit within Engagement Range of it. That unit must take a Battle-shock test, subtracting 1 from that test.
+Enfeebling Miasma (Aura): While an enemy unit (excluding MONSTERS and VEHICLES) is within 6" of this model, each time that unit is selected to Fall Back, models in that enemy unit must take Desperate Escape tests. When doing so, if that enemy unit is Battle-shocked, subtract 1 from each of those Desperate Escape tests.
+  [1 Daemon Prince of Nurgle with Wings]: This model is equipped with: infernal cannon; hellforged weapons.
+  [1 model]: 180
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Daemon Weapon of Nurgle]: 10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Keywords: MONSTER, CHARACTER, FLY, CHAOS, NURGLE, DAEMON, DAEMON PRINCE WITH WINGS
+
+### Foul Blightspawn
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Blinding Spray:]: In the Fight phase, you can select one model from your army with this ability to use this ability. If you do, until the end of the phase, that model’s unit has the Fights First ability. Each model can only be selected for this ability once per battle.
+Putrefying Stink: Enemy models cannot start or end an Advance move within 9" of this model.
+  [1 Foul Blightspawn]: This model is equipped with: plague sprayer; close combat weapon.
+  [1 model]: 75
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, FOUL BLIGHTSPAWN
+
+### Icon Bearer
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Unclean Icon:]: While this model is leading a unit, add 1 to the Objective Control characteristic of models in that unit.
+Blessed Icon of Disease: Once per battle, at the start of any phase, you can select one friendly DEATH GUARD unit that is Battle-shocked and within 12" of this model. That unit is no longer Battle-shocked.
+  [1 Icon Bearer]: This model is equipped with: boltgun; plague knife.
+  [1 model]: 45
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same Leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, ICON BEARER
+
+### Lord of Contagion
+Abilities:
+  [Deep Strike, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Vector of Disease:]: While this model is leading a unit, melee weapons equipped by models in that unit have the [SUSTAINED HITS 1] and [LANCE] abilities.
+Unholy Resilience: The first time a model with this ability is destroyed in a battle round, roll one D6 at the end of the phase. On a 2+, set that model back up on the battlefield, as close as possible to where it was destroyed and not within Engagement Range of any enemy units, with 3 wounds remaining. Each model can only be set up in this way once per battle.
+  [1 Lord of Contagion]: This model is equipped with: manreaper.
+  [1 model]: 120
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+BATTLEFIELD COMMAND
+1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE V
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+Inescapable Corruption
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Face of Death
+10
+Vile Vigour
+15
+Helm of the Fly King
+20
+Warprot Talisman
+30
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Disgusting Reinvigoration
+Miasmic Odour
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, TERMINATOR, LORD OF CONTAGION
+
+### Lord of Poxes
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Gift of Poxes:]: Add 3" to the range of this model’s Contagion Range.
+Shroud of Disease: While this model is leading a unit, that unit cannot be targeted by ranged attacks unless the attacking model is within 18".
+  [1 Lord of Poxes]: This model is equipped with: plasma pistol; great plague blade.
+  [1 model]: 75
+  [Plague Marines]: This model can be attached to the following unit:
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Cornucophagus
+35
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, LORD OF POXES
+
+### Lord of Virulence
+Abilities:
+  [Deep Strike, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Virulent Aura:]: While this model is leading a unit, each time a model in that unit makes a ranged attack, you can re-roll the Wound roll.
+Blight Bombardment: At the start of your Shooting phase, select one enemy unit within 30" of and visible to this model. Until the end of the phase, each time a friendly DEATH GUARD model makes a ranged attack that targets that unit, re-roll a Hit roll of 1 (if that attack is made with a Blast weapon, you can re-roll the Hit roll instead).
+  [1 Lord of Virulence]: This model is equipped with: twin plague spewer; power fist.
+  [1 model]: 100
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+BATTLEFIELD COMMAND
+1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE V
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+Inescapable Corruption
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Tendrilous Emissions
+30
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Face of Death
+10
+Vile Vigour
+15
+Helm of the Fly King
+20
+Warprot Talisman
+30
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Disgusting Reinvigoration
+Miasmic Odour
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, TERMINATOR, LORD OF VIRULENCE
+
+### Malignant Plaguecaster
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Gift of Contagion (Psychic):]: While this model is leading a unit, each time a model in that unit makes an attack that targets a unit that is Afflicted, that attack has the [SUSTAINED HITS 1] ability.
+Pestilent Fallout (Psychic): In your Shooting phase, after this model has shot, select one enemy INFANTRY unit hit by one or more of those attacks made with its Plague Wind. Until the end of your opponent’s next turn, that unit is enfeebled. While a unit is enfeebled, subtract 2" from the Move characteristic of models in that un
+  [1 Malignant Plaguecaster]: This model is equipped with: bolt pistol; Plague Wind; corrupted staff.
+  [1 model]: 60
+  [Plague Marines]: This model can be attached to the following units:
+
+Poxwalkers
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Bilemaw Blight
+10
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Visions of Virulence
+15
+Fell Harvester
+10
+Beckoning Blight
+20
+Tome of Bounteous Blessings
+20
+Sorrowsyphon
+10
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, PSYKER, CHAOS, NURGLE, MALIGNANT PLAGUECASTER
+
+### Mortarion
+Abilities:
+  [Diseased Influence:]: Just after an enemy unit ends a Normal, Advance or Fall Back move within 9" of a friendly DEATH GUARD unit that is within 6" of this model, if that DEATH GUARD unit is not within Engagement Range of one or more enemy units, it can make a Normal move of up to 5".
+  [Boon of Death:]: In the Fight phase, when a friendly DEATH GUARD unit within 6" of this model is selected as the target of an attack, this model can use this ability. If it does, until the end of the phase, each time a model in that DEATH GUARD unit is destroyed by a melee attack, if that model has not fought this phase, roll one D6. On a 2+, do not remove it from play; that destroyed model can fight after the attacking unit has finished making its attacks, and it is then removed from play.
+  [Inflamed Reprisal:]: In your opponent’s Shooting phase, when a friendly DEATH GUARD unit within 6" of this model is selected as the target of an attack, this model can use this ability. If it does, after the attacking unit has finished making its attacks, that Death Guard unit can shoot as if it were your Shooting phase, but when resolving those attacks it can only target that enemy unit (and only if it is an eligible target).
+  [If this model is in your army, it must be your WARLORD.]
+  [Deadly Demise D6, Deep Strike, Feel No Pain 5+]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Lord of the Death Guard:]: Once per turn, this model can use one of the Lord of the Death Guard abilities (see left).
+Host of Plagues: At the end of your Movement phase, roll one D6 for each enemy unit within 6" of this model, adding 1 to the result if that enemy unit is Afflicted: on a 3+, that enemy unit suffers D3 mortal wounds.
+  [1 Mortarion – EPIC HERO]: This model is equipped with: Lantern; Rotwind; Silence.
+  [1 model]: 380
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: MONSTER, CHARACTER, PSYKER, FLY, EPIC HERO, GRENADES, CHAOS, NURGLE, DAEMON, PRIMARCH, MORTARION
+
+### Noxious Blightbringer
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Sickening Vitality:]: While this model is leading a unit, add 1" to the Move characteristic of models in that unit and you can re-roll Advance and Charge rolls made for that unit.
+Tocsin of Misery (Aura): In the Battle-shock step of your opponent’s Command phase, if an enemy unit that is below its Starting Strength is within 9" of this model, that enemy unit must take a Battle-shock test, subtracting 1 from that test if it is a PSYKER unit.
+  [1 Noxious Blightbringer]: This model is equipped with: plasma pistol; cursed plague bell.
+  [1 model]: 50
+  [Plague Marines]: This model can be attached to the following units:
+
+Poxwalkers
+You can attach this model to a PLAGUE MARINES or POXWALKERS unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same Leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Witherbone Pipes
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, NOXIOUS BLIGHTBRINGER
+
+### Plague Surgeon
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Tainted Narthecium:]: While this model is leading a unit, in your Command phase, you can return 1 destroyed Bodyguard model to that unit.
+Inflamed Infections: At the start of the Fight phase, select one enemy unit within Engagement Range of this model. Until the end of the phase, each time this model makes an attack that targets that unit, an unmodified Hit roll of 5+ scores a Critical Hit. If that unit is Below Half-strength, an unmodified Hit roll of 4+ scores a Critical Hit instead.
+  [1 Plague Surgeon]: This model is equipped with: bolt pistol; balesword.
+  [1 model]: 50
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same Leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Needle of Nurgle
+25
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, PLAGUE SURGEON
+
+### Tallyman
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Malicious Calculations:]: While this model is leading a unit, each time a model in that unit makes an attack, you can ignore any or all modifiers to that attack’s Ballistic Skill or Weapon Skill characteristics and/or any or all modifiers to the Hit roll.
+Sevenfold Chant: In your Command phase, if this model is on the battlefield, roll 2D6: on a 7+, you gain 1CP.
+  [1 Tallyman]: This model is equipped with: plasma pistol; close combat weapon.
+  [1 model]: 50
+  [Plague Marines]: This model can be attached to the following unit:
+
+You can attach this model to a PLAGUE MARINES unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, TALLYMAN
+
+### Typhus
+Abilities:
+  [Deep Strike, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [The Destroyer Hive:]: While this model is leading a unit, each time a melee attack targets that unit, subtract 1 from the Hit roll.
+Eater Plague (Psychic): In your Shooting phase, you can select one enemy unit within 18" of and visible to this PSYKER (excluding units with the Lone Operative ability that are not part of an Attached unit and are not within 12" of this PSYKER) and roll one D6: on a 1, this PSYKER’s unit suffers D3 mortal wounds; on a 2-5, that enemy unit suffers D6 mortal wounds; on a 6, that enemy unit
+  [1 Typhus – EPIC HERO]: This model is equipped with: Lakrimae.
+  [1 model]: 100
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+Poxwalkers
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+BATTLEFIELD COMMAND
+1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE V
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+Inescapable Corruption
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHARACTER, PSYKER, EPIC HERO, CHAOS, NURGLE, TERMINATOR, TYPHUS
+
+### Chaos Lord On Palanquin Of Nurgle
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Lord of Chaos:]: Once per battle round, one unit from your army with this ability can use it when its unit is targeted with a Stratagem. If it does, reduce the CP cost of that use of that Stratagem by 1CP.
+Revolting Regeneration: At the start of your Command phase, this model regains up to D3 lost wounds.
+  [1 Chaos Lord on Palanquin of Nurgle]: This model is equipped with: bolt pistol; Astartes chainsword; close combat weapon; Nurgling's claws and teeth.
+  [1 model]: 90
+  [Plague Marines]: This model can be attached to the following unit:
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, NURGLE, CHAOS LORD, PALANQUIN OF NURGLE
+
+### Death Guard Chaos Lord
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Chaos Lord:]: While this model is leading a unit, each time a model in that unit makes an attack, re-roll a Hit roll of 1.
+Desiccation Conduit (Aura): While an enemy unit is within Contagion Range of this model, at the end of the turn, roll one D6: on a 4+, that enemy unit suffers D3 mortal wounds.
+  [1 Death Guard Chaos Lord]: This model is equipped with: plague bolt pistol; Astartes chainsword.
+  [1 model]: 65
+  [Plague Marines]: This model can be attached to the following unit:
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INSANE BRAVERY
+1CP
+CORE – EPIC DEED
+C
+FIRE OVERWATCH
+1CP
+CORE – STRATEGIC PLOY
+C
+RAPID INGRESS
+1CP
+CORE – STRATEGIC PLOY
+C
+GRENADE
+1CP
+CORE – WARGEAR
+C
+GO TO GROUND
+1CP
+CORE – BATTLE TACTIC
+C
+HE
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, GRENADES, CHAOS LORD
+
+### Death Guard Chaos Lord In Terminator Armour
+Abilities:
+  [Deep Strike, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Chaos Lord:]: While this model is leading a unit, each time a model in that unit makes an attack, re-roll a Hit roll of 1.
+Desiccation Conduit (Aura): While an enemy unit is within Contagion Range of this model, at the end of the turn, roll one D6: on a 4+, that enemy unit suffers D3 mortal wounds.
+  [1 Death Guard Chaos Lord in Terminator Armour]: This model is equipped with: plague combi-bolter; plague-encrusted exalted weapon.
+  [1 model]: 85
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INSANE BRAVERY
+1CP
+CORE – EPIC DEED
+C
+FIRE OVERWATCH
+1CP
+CORE – STRATEGIC PLOY
+C
+RAPID INGRESS
+1CP
+CORE – STRATEGIC PLOY
+C
+GO TO GROUND
+1CP
+CORE – BATTLE TACTIC
+C
+HEROIC INTERVENTION
+1CP
+CORE – 
+  [Face of Death]: 10
+Vile Vigour
+15
+Helm of the Fly King
+20
+Warprot Talisman
+30
+Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, TERMINATOR, CHAOS LORD
+
+### Death Guard Sorcerer In Terminator Armour
+Abilities:
+  [Deep Strike, Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Putrescent Vitality (Psychic):]: At the start of the Fight phase, you can roll one D6: on a 1, this PSYKER’s unit suffers D3 mortal wounds; on a 2+, until the end of the phase, each time an attack is allocated to a model in this PSYKER’s unit, subtract 1 from the Damage characteristic of that attack.
+Pestilent Familiar (Psychic): Once per battle, after selecting targets for a Psychic weapon equipped by this model, until the end of the phase, improve the Strength and Damage characteristics of that weapon by 2.
+
+Designer’s Note: 
+  [1 Death Guard Sorcerer in Terminator Armour]: This model is equipped with: Curse of the Leper; plague combi-bolter; force weapon.
+  [1 model]: 70
+  [Blightlord Terminators]: This model can be attached to the following units:
+
+Deathshroud Terminators
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+BATTLEFIELD COMMAND
+1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INSANE BRAVERY
+1CP
+CORE – EPIC DEED
+C
+FIRE OVERWATCH
+1CP
+CORE – STRATEGIC PLOY
+C
+  [Sevenfold Offerings]: Relentless Spread
+Inescapable Corruption
+  [Face of Death]: 10
+Vile Vigour
+15
+Helm of the Fly King
+20
+Warprot Talisman
+30
+Foul Constitution
+Fountaining Filth
+Hand of Nurgle
+Pox-Bearer
+Disgusting Reinvigoration
+Miasmic Odour
+Keywords: INFANTRY, CHARACTER, PSYKER, CHAOS, NURGLE, TERMINATOR, SORCERER
+
+### Sorcerer On Palanquin Of Nurgle
+Abilities:
+  [Leader]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Gift of Poxes (Psychic):]: While this model is leading a unit, weapons equipped by models in that unit have the [SUSTAINED HITS 1] ability.
+Feculent Despair (Aura, Psychic): While an enemy unit is within 6" of this model, each time that unit takes a Battle-shock test, subtract 1 from that test.
+  [1 Sorcerer on Palanquin of Nurgle]: This model is equipped with: bolt pistol; Infernal Gaze; force weapon; Nurgling's claws and teeth.
+  [1 model]: 80
+  [Plague Marines]: This model can be attached to the following unit:
+  [BATTLEFIELD COMMAND]: 1CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+MOBILE VECTOR
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATT
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Daemon Weapon of Nurgle
+10
+Revolting Regeneration
+20
+Arch Contaminator
+25
+Furnace of Plagues
+25
+Shriekworm Familiar
+15
+Eye of Affliction
+20
+Fell Harvester
+10
+Beckoning Blight
+20
+Lord of the Walking Pox
+15
+Talisman of Burgeoning
+25
+Keywords: INFANTRY, CHARACTER, GRENADES, CHAOS, PSYKER, NURGLE, SORCERER, PALANQUIN OF NURGLE
+
+### Plague Marines
+Abilities:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Infused with the Blessings of Nurgle:]: In your Shooting phase, each time this unit is selected to shoot, after this unit has shot, select one enemy unit hit by one or more of those attacks. Until the start of your next turn, that enemy unit is Afflicted.
+  [Icon of Despair (Aura):]: While an enemy unit is within 6" of the bearer, worsen the Leadership characteristic of models in that unit by 1.
+  [1 Plague Champion]: 4-9 Plague Marines
+Every model is equipped with: boltgun; plague knives.
+  [5 models]: 95
+
+7 models	
+130
+
+10 models	
+190
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Biologus Putrifier]: This unit can be led by the following units:
+
+Foul Blightspawn
+Icon Bearer
+Lord of Poxes
+Malignant Plaguecaster
+Noxious Blightbringer
+Plague Surgeon
+Tallyman
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, BATTLELINE, GRENADES, CHAOS, NURGLE, PLAGUE MARINES
+
+### Chaos Rhino
+Abilities:
+  [Deadly Demise D3, Firing Deck 2]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Fire Support:]: In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, each time a friendly model that disembarked from this TRANSPORT this turn makes an attack that targets that enemy unit, you can re-roll the Wound roll.
+  [1 Chaos Rhino]: This model is equipped with: combi-bolter; armoured tracks.
+  [1 model]: 85
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, SMOKE, CHAOS, NURGLE, TRANSPORT, DEDICATED TRANSPORT, RHINO
+
+### Terrax-pattern Termite
+Abilities:
+  [Deadly Demise D3, Deep Strike]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Termite Assault:]: This model must start the battle in Reserves, but neither it nor any units embarked within it are counted towards any limits placed on the maximum number of Reserves units you can start the battle with. This model can be set up in the Reinforcements step of your first, second or third Movement phase, regardless of any mission rules. Any units embarked within this model can disembark after it has been set up on the battlefield, and if they do they must be set up more than 9" away from all enemy m
+  [1 Terrax-pattern Termite]: This model is equipped with: Terrax melta cutter; 2 combi-bolters; Termite drill.
+  [1 model]: 200
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, TRANSPORT, DEDICATED TRANSPORT, TERRAX-PATTERN TERMITE
+
+### Miasmic Malignifier
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Putrescent Fog (Aura):]: Enemy units that are set up on the battlefield as Reinforcements cannot be set up within 12" of this model.
+Diseased Cover: Each time a ranged attack is allocated to a model, if that model is not fully visible to the attacking unit because of this Fortification, that model has the Benefit of Cover against that attack.
+Fortification: While an enemy unit is only within Engagement Range of one or more FORTIFICATIONS from your army:
+
+That unit can still be selected as the target of ranged attacks, b
+  [1 Miasmic Malignifier]: This model is equipped with: miasmic gouts.
+  [1 model]: 105
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: FORTIFICATION, CHAOS, NURGLE, MIASMIC MALIGNIFIER
+
+### Defiler
+Abilities:
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Scuttling Walker:]: Each time this unit makes a Normal, Advance or Fall Back move, it can move through models (excluding TITANIC models) and terrain features. When doing so, it can move within Engagement Range of enemy models, but cannot end that move within Engagement Range of them, and any Desperate Escape test is automatically passed.
+Barrage of Filth: In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, that unit cannot have th
+  [1 Defiler]: This model is equipped with: 1 Hades battle cannon; 2 excruciator cannons; 1 heavy missile launcher; 1 heavy baleflamer; 1 shearing claws
+  [1 model]: 250
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, WALKER, CHAOS, NURGLE, DAEMON, DEFILER
+
+### Blightlord Terminators
+Abilities:
+  [Deep Strike]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Blistering Fusillade:]: If this unit has a Starting Strength of 5 or more, or if a CHARACTER is leading this unit, then each time a model in this unit makes a ranged attack that targets an Afflicted unit, improve the Strength and Armour Penetration characteristics of that attack by 1.
+  [1 Blightlord Champion]: 2-9 Blightlord Terminators
+Every model is equipped with: combi-bolter; bubotic blade.
+  [3 models]: 115
+
+5 models	
+185
+
+10 models	
+370
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQ
+  [Lord of Contagion]: This unit can be led by the following units:
+
+Lord of Virulence
+Typhus
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Inescapable Corruption
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHAOS, NURGLE, TERMINATOR, BLIGHTLORD TERMINATORS
+
+### Chaos Land Raider
+Abilities:
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Assault Ramp:]: Each time a unit disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [1 Chaos Land Raider]: This model is equipped with: 2 soulshatter lascannons; twin heavy bolter; armoured tracks.
+  [1 model]: 220
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TRANSPORT, SMOKE, CHAOS, NURGLE, LAND RAIDER
+
+### Chaos Predator Annihilator
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Metalophagic Infection:]: In your Shooting phase, after this model has shot, select one enemy MONSTER or VEHICLE unit hit by one or more of those attacks. Roll one D6, adding 1 to the result if that unit is Afflicted; on a 5+, that unit suffers D3 mortal wounds.
+  [1 Chaos Predator Annihilator]: This model is equipped with: Predator twin lascannon; armoured tracks.
+  [1 model]: 135
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, SMOKE, CHAOS, NURGLE, PREDATOR ANNIHILATOR
+
+### Chaos Predator Destructor
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Hail of Corrosive Disease:]: In your Shooting phase, after this model has shot, select one enemy unit (excluding MONSTERS and VEHICLES) hit by one or more of those attacks. Until the end of the phase, each time a friendly DEATH GUARD unit makes a ranged attack that targets that enemy unit, improve the Armour Penetration characteristic of that attack by 1. The same enemy unit can only be affected by this ability once per phase.
+  [1 Chaos Predator Destructor]: This model is equipped with: predator autocannon; armoured tracks.
+  [1 model]: 145
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, SMOKE, CHAOS, NURGLE, PREDATOR DESTRUCTOR
+
+### Chaos Spawn
+Abilities:
+  [Deadly Demise 1, Feel No Pain 5+, Scouts 6"]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Lethal Ichor:]: Each time a melee attack is allocated to a model in this unit, after the attacking unit has finished making its attacks, roll one D6 (to a maximum of six D6 per attacking unit): for each 4+, the attacking unit suffers 1 mortal wound.
+  [2 Chaos Spawn]: Every model is equipped with: hideous mutations.
+  [2 models]: 80
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TA
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+Inescapable Corruption
+Keywords: BEAST, CHAOS, NURGLE, CHAOS SPAWN
+
+### Deathshroud Terminators
+Abilities:
+  [Deep Strike]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Silent Bodyguard:]: While a CHARACTER model is leading this unit, that CHARACTER model has the Feel No Pain 4+ ability.
+Death Approaches: In your Movement phase, when this unit is set up on the battlefield using the Deep Strike ability, it can be set up anywhere on the battlefield that is more than 6" horizontally away from all Afflicted enemy units, and more than 9" horizontally away from all other enemy units.
+  [Icon of Despair (Aura):]: While an enemy unit is within 6" of the bearer, worsen the Leadership characteristic of models in that unit by 1.
+  [1 Deathshroud Champion]: 2-5 Deathshroud Terminators
+Every model is equipped with: plaguespurt gauntlet; manreaper.
+  [3 models]: 160
+
+6 models	
+320
+  [ALLIES OF ENTROPY]: 1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CORROSIVE CURSE
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+SEED OF CORRUPTION
+1CP
+ARCH-CONTAMINATORS – STRATEGIC PLOY
+CLOUD OF FLIES
+1CP
+ARCH-CONTAMINATORS – BATTLE TACTIC
+COMMAND RE-ROLL
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQ
+  [Lord of Contagion]: This unit can be led by the following units:
+
+Lord of Virulence
+Typhus
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Inescapable Corruption
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHAOS, NURGLE, TERMINATOR, DEATHSHROUD TERMINATORS
+
+### Foetid Bloat-drone
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Hovering Death:]: This model is eligible to shoot and declare a charge in a turn in which it Fell Back.
+  [1 Foetid Bloat-drone]: This model is equipped with: fleshmower; plague probe.
+  [1 model]: 100
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, CHAOS, NURGLE, DAEMON, FOETID BLOAT-DRONE
+
+### Foetid Bloat-drone with Heavy Blight Launcher
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Explosive Blight:]: In your Shooting phase, each time this model makes an attack that destroys an enemy unit, before removing the last model in that unit from play, roll a D6, adding 1 to the result if that unit is Afflicted: on a 5+, each enemy unit within 6" of that model is Afflicted until the start of your next turn.
+  [1 Foetid Bloat-drone]: This model is equipped with: heavy blight launcher; plague probe.
+  [1 model]: 120
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, CHAOS, NURGLE, DAEMON, FOETID BLOAT-DRONE WITH HEAVY BLIGHT LAUNCHER
+
+### Helbrute
+Abilities:
+  [Deadly Demise 1]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Diseased Malice:]: Each time this model makes an attack that targets an Afflicted unit, add 1 to the Wound roll.
+Froth-spattered Frenzy: If this model is equipped with two melee weapons in addition to its close combat weapon, add 2 to the Attacks characteristic of those two weapons.
+  [1 Helbrute]: This model is equipped with: multi-melta; Helbrute fist; close combat weapon.
+  [1 model]: 115
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, WALKER, CHAOS, NURGLE, HELBRUTE
+
+### Myphitic Blight-hauler
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Tank Hunters:]: In your Shooting phase, each time a model in this unit makes an attack that targets a MONSTER or VEHICLE unit, add 1 to the Hit roll and add 1 to the Wound roll.
+  [1-2 Myphitic Blight-hulers]: Every model is equipped with: bile spurt; missile launcher; multi-melta; gnashing maw.
+  [1 model]: 100
+
+2 models	
+200
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, SMOKE, CHAOS, NURGLE, DAEMON, MYPHITIC BLIGHT-HAULER
+
+### Plagueburst Crawler
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Spore-laced Shock Waves:]: In your Shooting phase, each time you select a target for this model’s Plagueburst mortar, roll one D6 for the target unit and every other enemy unit within 3" of the target unit, adding 1 to that roll if the unit being rolled for is Afflicted. On a 6+, the unit being rolled for is struck by spores; after resolving all of this model’s attacks against the target unit, each unit struck by spores suffers D3 mortal wounds.
+  [1 Plagueburst Crawler]: This model is equipped with: 2 entropy cannons; heavy slugger; Plagueburst mortar; armoured tracks.
+  [1 model]: 210
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, DAEMON, PLAGUEBURST CRAWLER
+
+### Poxwalkers
+Abilities:
+  [Infiltrators, Feel No Pain 5+]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Curse of the Walking Pox:]: Each time a POXWALKER model in this unit makes an attack that destroys an enemy model (excluding MONSTER and VEHICLE models), after this unit has resolved its attacks, you can return one destroyed POXWALKER model to this unit.
+
+While TYPHUS is leading this unit, enemy models destroyed as a result of TYPHUS’ Eater Plague ability count as enemy models destroyed by an attack made by a POXWALKER model in this unit for the purposes of this ability.
+  [10-20 Poxwalkers]: Every model is equipped with: improvised weapon.
+  [10 models]: 65
+
+20 models	
+130
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Malignant Plaguecaster]: This unit can be led by the following units:
+
+Noxious Blightbringer
+Typhus
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Sevenfold Offerings
+Relentless Spread
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHAOS, NURGLE, POXWALKERS
+
+### Cerberus
+Abilities:
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Atomantic Arc-reactor:]: Each time this unit shoots its Cerberus neutron pulse array in your Shooting phase, provided it Remained Stationary this turn, that weapon has the [LETHAL HITS] ability.
+  [1 Cerberus]: This model is equipped with: Cerberus neutron pulse array; armoured tracks.
+  [1 model]: 270
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, CERBERUS
+
+### Chaos Thunderhawk
+Abilities:
+  [Deadly Demise D6+2, Hover]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Aerial Assault:]: Each time a unit with the Deep Strike ability disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [Thunderhawk Cluster Bombs:]: Each time the bearer ends a Normal move, you can select one enemy unit it moved over during that move and roll six D6: for each 3+, that unit suffers 1 mortal wound.
+  [1 Chaos Thunderhawk]: This model is equipped with: 2 lascannons; Thunderhawk heavy cannon; 4 twin heavy bolters; armoured hull; Thunderhawk cluster bombs.
+  [1 model]: 840
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TITANIC, FLY, AIRCRAFT, TRANSPORT, CHAOS, THUNDERHAWK
+
+### Death Guard Cultists
+Abilities:
+  [Scouts 6"]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [1 Death Guard Cultist Champion]: 9-19 Death Guard Cultists
+Every model is equipped with: Cultist firearm; brutal assault weapon.
+  [10 models]: 50
+
+20 models	
+100
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INSANE BRAVERY
+1CP
+CORE – EPIC DEED
+C
+FIRE OVERWATCH
+1CP
+CORE – STRATEGIC PLOY
+C
+RAPID INGRESS
+1CP
+CORE – STRATEGIC PLOY
+C
+GO TO GROUND
+1CP
+CORE – BATTLE TACTIC
+C
+HEROIC INTERVENTION
+1CP
+CORE – STRATEGIC PLOY
+C
+COUNTER-OFFENSIVE
+2CP
+CORE – STRATEGIC P
+Keywords: INFANTRY, CHAOS, NURGLE, CULTISTS
+
+### Death Guard Possessed
+Abilities:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Infectious Bloodshed:]: Each time this unit makes a Charge move, until the end of the turn, weapons equipped by models in this unit have the [SUSTAINED HITS 1] ability.
+  [Diseased Icon:]: Melee weapons in the bearer’s unit have the [LETHAL HITS] ability.
+  [1 Possessed Champion]: 4-9 Possessed
+Each model is equipped with: hideous mutations.
+  [5 models]: 155
+
+10 models	
+310
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHAOS, DAEMON, POSSESSED
+
+### Deredeo Dreadnought
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Deredeo Strike:]: Each time this model makes a ranged attack that targets a unit that is not Below Half-strength, you can re-roll the Hit roll.
+  [1 Deredeo Dreadnought]: This model is equipped with: anvilus autocannon battery; twin heavy bolter; armoured feet.
+  [1 model]: 160
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, WALKER, CHAOS, NURGLE, SMOKE, DREADNOUGHT, DEREDEO DREADNOUGHT
+
+### Falchion
+Abilities:
+  [Deadly Demise D6+2]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Titan-killer:]: Each time this model makes a ranged attack with its twin Falchion volcano cannon that targets a MONSTER or VEHICLE unit, that attack has the [DEVASTATING WOUNDS] ability.
+  [1 Falchion]: This model is equipped with: 2 quad lascannons; twin heavy bolter; twin Falchion volcano cannon; armoured tracks.
+  [1 model]: 420
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TITANIC, CHAOS, NURGLE, SMOKE, FALCHION
+
+### Fellblade
+Abilities:
+  [Deadly Demise D6+2]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Rolling Fortress:]: Each time a ranged attack is allocated to a model from your army, if that model is not fully visible to every model in the attacking unit because of this Fellblade model, that model has the Benefit of Cover against that attack.
+  [1 Fellblade]: This model is equipped with: demolisher cannon; Fellblade accelerator cannon; 2 quad lascannons; twin heavy bolter; armoured tracks.
+  [1 model]: 480
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TITANIC, CHAOS, NURGLE, SMOKE, FELLBLADE
+
+### Fire Raptor Gunship
+Abilities:
+  [Deadly Demise D6, Hover]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Strafing Run:]: Each time this model makes a ranged attack that targets a unit that cannot Fly, add 1 to the Hit roll.
+  [1 Fire Raptor Gunship]: This model is equipped with: twin avenger bolt cannon; 2 twin autocannons; 2 twin hellstrike launchers; armoured hull
+  [1 model]: 290
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, AIRCRAFT, CHAOS, NURGLE, FIRE RAPTOR GUNSHIP
+
+### Gellerpox Infected
+Abilities:
+  [Feel No Pain 5+]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Fearsome (Aura):]: While an enemy unit is within 6" of this unit, each time that enemy unit takes a Battle-shock or Leadership test, subtract 1 from the result.
+  [4 Nightmare Hulks]: 3 Gellerpox Mutants
+Every Gellerpox Mutant is equipped with: brutal weapons.
+
+One Nightmare Hulk is equipped with: belly-flamer; hideous mutations.
+
+Every other Nightmare Hulk is equipped with: hideous mutations.
+  [7 models]: 125
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Verminous Haze]: Worldblight
+Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+  [Rejuvenating Swarm]: 10
+Droning Chorus
+15
+Insectile Murmuration
+20
+Plagueveil
+25
+Keywords: INFANTRY, CHAOS, DAMNED, NURGLE, GELLERPOX INFECTED
+
+### Greater Blight Drone
+Abilities:
+  [Deadly Demise 1, Deep Strike]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Hovering Death:]: This model is eligible to shoot and declare a charge in a turn in which it Fell Back.
+  [1 Greater Blight Drone]: This model is equipped with: bile maw; blightreaper cannon; greater plague probe.
+  [1 model]: 150
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, CHAOS, NURGLE, DAEMON, GREATER BLIGHT DRONE
+
+### Hell Blade
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Interceptor:]: Each time this model makes a ranged attack that targets a unit that can FLY, add 1 to the Hit roll.
+  [1 Hell Blade]: This model is equipped with: 2 twin autocannons; armoured hull.
+  [1 model]: 115
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, AIRCRAFT, FLY, NURGLE, HELL BLADE
+
+### Hell Talon
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Bomb Rack:]: Each time this model ends a Normal move, you can select one enemy unit it moved across during that move and roll six D6: for each 3+, that unit suffers 1 mortal wound.
+  [1 Hell Talon]: This model is equipped with: autocannon; twin lascannon; armoured hull.
+  [1 model]: 140
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, AIRCRAFT, FLY, NURGLE, HELL TALON
+
+### Kratos
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Line-breaker:]: When making ranged attacks, this model can target enemy units within Engagement Range of it with Blast weapons (provided no other friendly units are also within Engagement Range of that enemy unit). In addition, when making ranged attacks, this model does not suffer the penalty to its Hit rolls for being within Engagement Range of one or more enemy units.
+  [1 Kratos]: This model is equipped with: autocannon; Kratos battle cannon; 4 heavy bolters; armoured tracks.
+  [1 model]: 240
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, KRATOS
+
+### Land Raider Achilles
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Assault Ramp:]: Each time a unit disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [1 Land Raider Achilles]: This model is equipped with: quad launcher; 2 twin volkite culverins; armoured tracks.
+  [1 model]: 230
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TRANSPORT, SMOKE, CHAOS, NURGLE, LAND RAIDER ACHILLES
+
+### Land Raider Proteus
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Assault Ramp:]: Each time a unit disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [Explorator Augury Web:]: Enemy units that are set up on the battlefield as Reinforcements cannot be set up within 12" of this bearer, but the bearer must halve its Transport Capacity.
+  [1 Land Raider Proteus]: This model is equipped with: 2 twin lascannons; armoured tracks.
+  [1 model]: 220
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TRANSPORT, SMOKE, CHAOS, NURGLE, LAND RAIDER PROTEUS
+
+### Leviathan Dreadnought
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Duty Eternal:]: Each time an attack is allocated to this model, subtract 1 from the Damage characteristic of that attack.
+  [1 Leviathan Dreadnought]: This model is equipped with: 2 heavy flamers; 2 grav-flux bombards; armoured feet.
+  [1 model]: 160
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, WALKER, CHAOS, NURGLE, SMOKE, DREADNOUGHT, LEVIATHAN DREADNOUGHT
+
+### Mastodon
+Abilities:
+  [Deadly Demise 2D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Inviolable Transport:]: Once per battle round, when an attack is allocated to this model, you can change the Damage characteristic of that attack to 0.
+  [1 Mastodon]: This model is equipped with: 2 heavy flamers; 2 lascannons; siege melta array; skyreaper battery; armoured tracks.
+  [1 model]: 540
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TITANIC, CHAOS, NURGLE, TRANSPORT, SMOKE, MASTODON
+
+### Mutoid Vermin
+Abilities:
+  [Feel No Pain 6+]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Mischief Makers (Aura):]: While an enemy unit (excluding MONSTERS and VEHICLES) is within 6" of this unit, each time a model in that unit makes a melee attack, subtract 1 from the Hit roll.
+  [16 Mutoid Vermin]: Every model is equipped with: diseased claws and fangs.
+  [16 models]: 85
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: SWARM, CHAOS, DAMNED, NURGLE, MUTOID VERMIN
+
+### Rapier Carrier
+Abilities:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Powerful Volley:]: Each time this model shoots in your Shooting phase, provided it Remained Stationary this turn, all [HEAVY] weapons equipped by models in this unit have the [LETHAL HITS] ability.
+  [1 Rapier Carrier]: This model is equipped with: boltgun; quad heavy bolter; close combat weapon.
+  [1 model]: 90
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: ARTILLERY, VEHICLE, CHAOS, NURGLE, RAPIER CARRIER
+
+### Relic Contemptor Dreadnought
+Abilities:
+  [Conversion:]: Each time an attack made with this weapon targets a unit more than 12" from the bearer, an unmodified successful Hit roll of 4+ scores a Critical Hit.
+  [Deadly Demise 1]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Even In Death I Serve:]: The first time this model is destroyed, remove it from play without resolving its Deadly Demise ability. Then, at the end of the phase, roll one D6: on a 2+, set this model back up on the battlefield as close as possible to where it was destroyed and not within Engagement Range of any enemy units, with D6 wounds remaining.
+  [1 Relic Contemptor Dreadnought]: This model is equipped with: 2 heavy plasma cannons; armoured feet.
+  [1 model]: 140
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, WALKER, CHAOS, NURGLE, DREADNOUGHT, RELIC CONTEMPTOR DREADNOUGHT
+
+### Sicaran Battle Tank
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Armoured Spearhead:]: Each time this model makes an attack that targets an enemy unit, re-roll a Hit roll of 1 and, if that unit is within range of an objective marker you do not control, you can re-roll the Hit roll instead.
+  [1 Sicaran Battle Tank]: This model is equipped with: heavy bolter; Herakles-pattern autocannon; armoured tracks.
+  [1 model]: 160
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, SICARAN BATTLE TANK
+
+### Sicaran Punisher
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Rotating Death:]: This model’s Punisher rotary cannon has the [SUSTAINED HITS 1] ability when targeting INFANTRY units.
+  [1 Sicaran Punisher]: This model is equipped with: heavy bolter; Punisher rotary cannon; armoured tracks.
+  [1 model]: 160
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, SICARAN PUNISHER
+
+### Sicaran Venator
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Ferocious Assault:]: Each time this model makes a ranged attack that targets the closest eligible MONSTER or VEHICLE unit, add 1 to the Hit roll.
+  [1 Sicaran Venator]: This model is equipped with: heavy bolter; Venator neutron laser; armoured tracks.
+  [1 model]: 180
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, SICARAN VENATOR
+
+### Sokar-pattern Stormbird
+Abilities:
+  [Deadly Demise 2D6, Hover]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Aerial Assault:]: Each time a unit with the Deep Strike ability disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [1 Sokar-pattern Stormbird]: This model is equipped with: hellstrike missile battery; 3 twin heavy bolters; 4 twin lascannons; armoured hull.
+  [1 model]: 900
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, TITANIC, FLY, AIRCRAFT, TRANSPORT, CHAOS, NURGLE, SOKAR-PATTERN STORMBIRD
+
+### Spartan
+Abilities:
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Assault Ramp:]: Each time a unit disembarks from this model after it has made a Normal move, that unit is still eligible to declare a charge this turn.
+  [1 Spartan]: This model is equipped with: 2 quad lascannons; twin heavy bolter; armoured tracks.
+  [1 model]: 300
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, TRANSPORT, SMOKE, SPARTAN
+
+### Storm Eagle Gunship
+Abilities:
+  [Deadly Demise D6, Hover]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Armoured Resilience:]: Each time an attack is allocated to this model, subtract 1 from the Damage characteristic of that attack.
+  [1 Storm Eagle Gunship]: This model is equipped with: twin heavy bolter; 2 twin hellstrike launchers; vengeance launcher; armoured hull.
+  [1 model]: 250
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, AIRCRAFT, TRANSPORT, CHAOS, NURGLE, STORM EAGLE GUNSHIP
+
+### Typhon
+Abilities:
+  [Deadly Demise D6]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Sunderer of Fortresses:]: Each time this model makes an attack that targets a VEHICLE, improve the Strength and Damage characteristic of that attack by 1 (if that attack targets a FORTIFICATION unit, improve the Strength and Damage characteristics of that attack by 2 instead).
+  [1 Typhon]: This model is equipped with: dreadhammer siege cannon; armoured tracks.
+  [1 model]: 320
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, CHAOS, NURGLE, SMOKE, TYPHON
+
+### Whirlwind Scorpius
+Abilities:
+  [One Shot:]: The bearer can only shoot with this weapon once per battle.
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Pinning Bombardment:]: In your Shooting phase, after this model has shot, if one or more of those attacks made with its Scorpius multi-launcher scored a hit against an enemy INFANTRY unit, that unit must take a Battle-shock test.
+  [1 Whirlwind Scorpius]: This model is equipped with: Scorpius multi-launcher; armoured tracks.
+  [1 model]: 115
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, SMOKE, CHAOS, NURGLE, WHIRLWIND SCORPIUS
+
+### Xiphon Interceptor
+Abilities:
+  [Deadly Demise D3]: CORE:
+  [Nurgle’s Gift (Aura)]: FACTION:
+  [Interceptor:]: Each time this model makes a ranged attack that targets a unit that can Fly, add 1 to the Hit roll.
+  [1 Xiphon Interceptor]: This model is equipped with: 2 twin lascannons; Xiphon missile battery; armoured hull.
+  [1 model]: 115
+  [COMMAND RE-ROLL]: 1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+INSANE BRAVERY
+1CP
+BOARDING ACTIONS – EPIC DEED
+BA
+EXPLOSIVE CLEARANCE
+1CP
+BOARDING ACTIONS – BATTLE TACTIC
+BA
+COUNTER-OFFENSIVE
+2CP
+BOARDING ACTIONS – STRATEGIC PLOY
+BA
+BLESSINGS OF FILTH
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+GROTESQUE FORTITUDE
+1CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+MALIGNANCE MAGNIFIED
+2CP
+CHAMPIONS OF CONTAGION – BATTLE TACTIC
+RABID INFUSION
+1CP
+CHAMPIONS OF CONTAGION – STRATEGIC PLOY
+COMMAND RE-ROLL
+1CP
+CORE – BATTLE TACTIC
+C
+INS
+  [Worldblight]: Miasmic Bombardment
+Manifold Maladies
+Reverberant Rancidity
+Numberless Horde
+Deadly Vectors
+Keywords: VEHICLE, FLY, AIRCRAFT, CHAOS, NURGLE, XIPHON INTERCEPTOR
