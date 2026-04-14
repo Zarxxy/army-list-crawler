@@ -18,7 +18,7 @@
     "build-site": "node build-site.js",
     "build-all": "node report.js && node optimizer.js && node ai-analysis.js && node build-site.js",
     "lint": "eslint *.js tests/",
-    "test": "node --test tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js"
+    "test": "node --test tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js"
   },
   "keywords": ["warhammer", "40k", "death-guard", "army-lists", "meta-analysis", "crawler", "listhammer"],
   "author": "",

@@ -8,7 +8,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  getArg,
   filterByFaction,
   identifyListSections,
   buildDirectSections,
@@ -16,26 +15,6 @@ const {
   splitConcatenatedText,
   parseFieldsFromTexts,
 } = require('../crawler');
-
-// ---------------------------------------------------------------------------
-// getArg
-// ---------------------------------------------------------------------------
-
-test('getArg returns value for a known flag', () => {
-  const args = ['--game', '40k', '--faction', 'Death Guard'];
-  assert.equal(getArg(args, '--game'), '40k');
-  assert.equal(getArg(args, '--faction'), 'Death Guard');
-});
-
-test('getArg returns null for missing flag', () => {
-  const args = ['--game', '40k'];
-  assert.equal(getArg(args, '--faction'), null);
-});
-
-test('getArg returns null when flag is last with no value', () => {
-  const args = ['--game'];
-  assert.equal(getArg(args, '--game'), null);
-});
 
 // ---------------------------------------------------------------------------
 // filterByFaction

@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
+const { getArg } = require('./utils');
 const BASE_URL = appConfig.crawler.baseUrl;
 const KNOWN_FACTION_PATTERNS = appConfig.crawler.knownFactionPatterns.map((p) => new RegExp(p, 'i'));
 const KNOWN_DETACHMENTS = appConfig.crawler.knownDetachments;
@@ -18,11 +19,6 @@ const factionFilter = getArg(args, '--faction'); // e.g. "Tyranids", "Stormcast"
 const maxPages = parseInt(getArg(args, '--max-pages') || '0', 10); // 0 = unlimited
 const headless = !args.includes('--no-headless');
 const delay = parseInt(getArg(args, '--delay') || String(CONFIG.DEFAULT_DELAY_MS), 10);
-
-function getArg(args, flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
