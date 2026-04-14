@@ -25,6 +25,44 @@ const CONFIG = {
 };
 
 // ---------------------------------------------------------------------------
+// Forge World / Legends / Kill Team unit blocklist
+//
+// These unit slugs appear on the Death Guard faction page but are NOT part of
+// the standard competitive 10th edition army — they are Forge World, Horus
+// Heresy legacy, or Kill Team datasheets.  We skip scraping them entirely.
+// Add new entries here if wahapedia adds more non-competitive units.
+// ---------------------------------------------------------------------------
+const FORGE_WORLD_SLUGS = new Set([
+  'Cerberus',
+  'Chaos-Thunderhawk',
+  'Deredeo-Dreadnought',
+  'Falchion',
+  'Fellblade',
+  'Fire-Raptor-Gunship',
+  'Gellerpox-Infected',
+  'Greater-Blight-Drone',
+  'Hell-Blade',
+  'Hell-Talon',
+  'Kratos',
+  'Land-Raider-Achilles',
+  'Land-Raider-Proteus',
+  'Leviathan-Dreadnought',
+  'Mastodon',
+  'Mutoid-Vermin',
+  'Rapier-Carrier',
+  'Relic-Contemptor-Dreadnought',
+  'Sicaran-Battle-Tank',
+  'Sicaran-Punisher',
+  'Sicaran-Venator',
+  'Sokar-pattern-Stormbird',
+  'Spartan',
+  'Storm-Eagle-Gunship',
+  'Typhon',               // the Chaos tank, not Typhus the character
+  'Whirlwind-Scorpius',
+  'Xiphon-Interceptor',
+]);
+
+// ---------------------------------------------------------------------------
 // CLI args
 // ---------------------------------------------------------------------------
 
@@ -789,6 +827,36 @@ async function scrapeUnitDatasheet(page, unitSlug, factionSlug, ed) {
     return unit;
   }, unitSlug);
 
+  // ── Post-scrape: strip stratagem noise from unit abilities ────────────────
+  // Wahapedia unit pages show ALL faction stratagems that can target the unit
+  // at the bottom of the page.  The ability selector picks them up because they
+  // share class names with real unit abilities.  Filter them out by pattern:
+  //   • description starts with a CP cost  → stratagem
+  //   • description contains stratagem-category markers
+  //   • name starts with a number          → composition/wargear row
+  if (result.abilities) {
+    result.abilities = result.abilities.filter((ab) => {
+      const desc = (ab.description || '').trim();
+      const name = (ab.name || '').trim();
+      // Reject if the description leads with a CP cost (e.g. "1CP", "2 CP")
+      if (/^\d+\s*CP\b/i.test(desc)) return false;
+      // Reject stratagem category labels in description
+      if (/–\s*(BATTLE TACTIC|EPIC DEED|STRATEGIC PLOY|WARGEAR STRATAGEM|BOARDING ACTIONS)/i.test(desc)) return false;
+      // Reject composition rows — "1 Plague Champion", "5 models", "1 model"
+      if (/^\d+\s+/.test(name)) return false;
+      // Reject if description is purely a list of detachment names (no sentence structure)
+      if (/^\w[^\s]+(\n\w[^\s]+){3,}$/.test(desc)) return false;
+      return true;
+    });
+  }
+
+  // ── Post-scrape: strip faction ability noise ──────────────────────────────
+  // The faction ability class selector also matches detachment rules, which
+  // have either no description or a description that is a stratagem/enhancement
+  // list.  Keep only abilities with a substantive description (> 50 chars).
+  // This is applied on the faction page result via scrapeFactionPage callers.
+  // (No action needed here — filtering happens after scrapeFactionPage returns.)
+
   return result;
 }
 
@@ -870,6 +938,16 @@ async function main() {
     // ── Step 1: Faction overview page ─────────────────────────────────────────
     console.log('\n[1/3] Scraping faction overview page…');
     const factionData = await scrapeFactionPage(page, faction, edition);
+
+    // Strip faction ability entries that have no real description (< 50 chars).
+    // Detachment rules, enhancement lists, and stratagem dumps picked up by the
+    // broad class selector all have either empty or very short descriptions.
+    // Genuine army-wide abilities (Nurgle's Gift, Pact of Decay) have full text.
+    factionData.factionAbilities = (factionData.factionAbilities || []).filter(
+      (ab) => ab.description && ab.description.trim().length > 50
+    );
+    console.log(`  After description filter: ${factionData.factionAbilities.length} faction abilities kept`);
+
     await sleep(pageDelay);
 
     // ── Step 2: Unit datasheets ────────────────────────────────────────────────
@@ -879,6 +957,14 @@ async function main() {
     // Filter out non-unit links (e.g. detachment pages, general pages)
     // Unit slugs on wahapedia typically start with an uppercase letter
     let unitLinks = factionData.unitLinks.filter((u) => /^[A-Z]/.test(u.slug) || /^[A-Z]/.test(u.label));
+
+    // Remove known Forge World / Legends / Kill Team units
+    const beforeFwFilter = unitLinks.length;
+    unitLinks = unitLinks.filter((u) => !FORGE_WORLD_SLUGS.has(u.slug));
+    if (unitLinks.length < beforeFwFilter) {
+      console.log(`  Filtered ${beforeFwFilter - unitLinks.length} Forge World/non-competitive units`);
+    }
+
     if (maxUnits > 0 && unitLinks.length > maxUnits) {
       console.log(`  Capping at ${maxUnits} units (--max-units). Skipping ${unitLinks.length - maxUnits} units.`);
       unitLinks = unitLinks.slice(0, maxUnits);
