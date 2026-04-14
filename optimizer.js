@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
+const { normaliseName, findRulesUnit } = require('./enrich-rules');
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -10,6 +11,7 @@ const args = process.argv.slice(2);
 const listsFile = getArg(args, '--lists') || path.join(__dirname, 'output', 'army-lists-latest.json');
 const reportFile = getArg(args, '--report') || path.join(__dirname, 'reports', 'meta-report-latest.json');
 const previousFile = getArg(args, '--previous') || path.join(__dirname, 'output', 'army-lists-previous.json');
+const rulesFile = getArg(args, '--rules') || path.join(__dirname, 'rules', 'death-guard-latest.json');
 const outputDir = getArg(args, '--output') || path.join(__dirname, 'reports');
 const format = getArg(args, '--format') || 'all';
 
@@ -111,6 +113,41 @@ function pct(n, total) {
 // Army list text parsing
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Canonical name normalisation
+// ---------------------------------------------------------------------------
+
+let _canonicalUnits = null;
+let _canonicalNameMap = null;
+
+function loadCanonicalNames() {
+  if (_canonicalUnits !== null) return;
+  try {
+    if (fs.existsSync(rulesFile)) {
+      const rules = JSON.parse(fs.readFileSync(rulesFile, 'utf-8'));
+      _canonicalUnits = (rules.units || []).filter((u) => u.name !== 'Datasheets');
+      _canonicalNameMap = {};
+      for (const unit of _canonicalUnits) {
+        _canonicalNameMap[normaliseName(unit.name)] = unit;
+      }
+      console.log(`Loaded ${_canonicalUnits.length} canonical unit names from rules.`);
+    } else {
+      _canonicalUnits = [];
+      _canonicalNameMap = {};
+    }
+  } catch {
+    _canonicalUnits = [];
+    _canonicalNameMap = {};
+  }
+}
+
+function normaliseUnitName(rawName) {
+  loadCanonicalNames();
+  if (_canonicalUnits.length === 0) return rawName;
+  const match = findRulesUnit(rawName, _canonicalUnits, _canonicalNameMap);
+  return match ? match.name : rawName;
+}
+
 // Module-level regex constants — avoids recompilation on every call.
 // These use the `g` flag so lastIndex must be reset to 0 before each use.
 const UNIT_REGEX = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
@@ -149,20 +186,20 @@ function parseArmyListText(text) {
   UNIT_REGEX.lastIndex = 0;
   let unitMatch;
   while ((unitMatch = UNIT_REGEX.exec(text)) !== null) {
-    const name = unitMatch[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
+    const rawName = unitMatch[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
     const pts = parseInt(unitMatch[2], 10);
-    if (name && pts > 0 && name.length < CONFIG.MAX_UNIT_NAME_LENGTH) {
-      parsed.units.push({ name, points: pts });
+    if (rawName && pts > 0 && rawName.length < CONFIG.MAX_UNIT_NAME_LENGTH) {
+      parsed.units.push({ name: normaliseUnitName(rawName), points: pts });
     }
   }
 
   // Alternate: "Name    Xpts"
   ALT_UNIT_REGEX.lastIndex = 0;
   while ((unitMatch = ALT_UNIT_REGEX.exec(text)) !== null) {
-    const name = unitMatch[1].trim().replace(/\.+$/, '').trim();
+    const rawName = unitMatch[1].trim().replace(/\.+$/, '').trim();
     const pts = parseInt(unitMatch[2], 10);
-    if (name && pts > 0 && name.length < 80 && !parsed.units.find((u) => u.name === name && u.points === pts)) {
-      parsed.units.push({ name, points: pts });
+    if (rawName && pts > 0 && rawName.length < 80 && !parsed.units.find((u) => u.name === rawName && u.points === pts)) {
+      parsed.units.push({ name: normaliseUnitName(rawName), points: pts });
     }
   }
 

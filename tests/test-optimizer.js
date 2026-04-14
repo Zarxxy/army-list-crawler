@@ -122,7 +122,8 @@ test('varianceAnalysis Plague Company includes Cultists at 50%', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
   const pc = opt.varianceAnalysis.find((d) => d.detachment === 'Plague Company');
-  const cultists = pc?.variantChoices.find((c) => c.name === 'Cultists');
+  // After name normalisation, "Cultists" becomes "Death Guard Cultists" (canonical rules name)
+  const cultists = pc?.variantChoices.find((c) => c.name === 'Cultists' || c.name === 'Death Guard Cultists');
   assert.ok(cultists,
     `Cultists not in Plague Company variantChoices: ${JSON.stringify(pc?.variantChoices.map(c => c.name))}`);
   assert.equal(cultists.frequency, 50, `expected 50% for Cultists, got ${cultists.frequency}`);
