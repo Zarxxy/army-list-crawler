@@ -22,6 +22,7 @@ const {
   hasFactionKeyword,
   deduplicateUnit,
   deduplicateDetachments,
+  FORGE_WORLD_SLUGS,
 } = require('../rules-fetcher');
 
 // Temp dir for isFresh file tests
@@ -420,4 +421,29 @@ test('deduplicateDetachments handles detachments without stratagems/enhancements
   assert.doesNotThrow(() => deduplicateDetachments(detachments));
   const result = deduplicateDetachments(detachments);
   assert.equal(result.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// FORGE_WORLD_SLUGS
+// ---------------------------------------------------------------------------
+
+test('FORGE_WORLD_SLUGS is a Set', () => {
+  assert.ok(FORGE_WORLD_SLUGS instanceof Set);
+});
+
+test('FORGE_WORLD_SLUGS is populated from config.json (not empty)', () => {
+  assert.ok(FORGE_WORLD_SLUGS.size > 0);
+});
+
+test('FORGE_WORLD_SLUGS contains known Forge World unit slugs', () => {
+  assert.ok(FORGE_WORLD_SLUGS.has('Spartan'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Typhon'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Leviathan-Dreadnought'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Sokar-pattern-Stormbird'));
+});
+
+test('FORGE_WORLD_SLUGS does not contain standard Death Guard units', () => {
+  assert.ok(!FORGE_WORLD_SLUGS.has('Plague-Marines'));
+  assert.ok(!FORGE_WORLD_SLUGS.has('Mortarion'));
+  assert.ok(!FORGE_WORLD_SLUGS.has('Plagueburst-Crawler'));
 });

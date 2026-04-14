@@ -48,6 +48,35 @@
     "defaultFaction": "death-guard",
     "defaultEdition": "10ed",
     "freshnessDays": 7,
-    "maxTxtChars": 180000
+    "maxTxtChars": 180000,
+    "forgeWorldSlugs": [
+      "Cerberus",
+      "Chaos-Thunderhawk",
+      "Deredeo-Dreadnought",
+      "Falchion",
+      "Fellblade",
+      "Fire-Raptor-Gunship",
+      "Gellerpox-Infected",
+      "Greater-Blight-Drone",
+      "Hell-Blade",
+      "Hell-Talon",
+      "Kratos",
+      "Land-Raider-Achilles",
+      "Land-Raider-Proteus",
+      "Leviathan-Dreadnought",
+      "Mastodon",
+      "Mutoid-Vermin",
+      "Rapier-Carrier",
+      "Relic-Contemptor-Dreadnought",
+      "Sicaran-Battle-Tank",
+      "Sicaran-Punisher",
+      "Sicaran-Venator",
+      "Sokar-pattern-Stormbird",
+      "Spartan",
+      "Storm-Eagle-Gunship",
+      "Typhon",
+      "Whirlwind-Scorpius",
+      "Xiphon-Interceptor"
+    ]
   }
 }

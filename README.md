@@ -5,8 +5,8 @@ Automated pipeline that crawls [listhammer.info](https://listhammer.info) for De
 ## How It Works
 
 ```
-Rules Fetcher ─────────────────────────────────────────┐
-(rules-fetcher.js)                                      │ rules context
+Rules Fetcher  →  Rules Parser ────────────────────────┐
+(rules-fetcher.js) (parse-rules.js)                    │ rules context
                                                         ▼
 Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Deploy
 (crawler.js) (report.js)  (optimizer.js)  (ai-analysis.js)  (build-site.js)
@@ -14,15 +14,17 @@ Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Dep
 
 1. **Rules Fetcher** — Scrapes Death Guard datasheets, detachment rules, stratagems, and enhancements from wahapedia.ru and caches them in `rules/`. Runs on its own weekly schedule (Saturdays) so fresh rules are always available for the Sunday crawl. Skipped automatically if the cached copy is less than 7 days old.
 
-2. **Crawler** — Playwright-based headless browser scrapes tournament results from listhammer.info, extracting player names, detachments, records, events, and full army list text. Before each crawl it copies the existing `army-lists-latest.json` to `army-lists-previous.json` and preserves `firstSeen` timestamps for entries that persist across crawls.
+2. **Rules Parser** — Post-processes the raw JSON from the Rules Fetcher. Applies deterministic filtering (Forge World units, summoned daemon allies), deduplicates units/detachments/stratagems/enhancements by name, validates required fields, and regenerates the plain-text file consumed by AI Analysis. Runs immediately after the fetcher in the same workflow so the two steps are cleanly separated: the fetcher gets the data, the parser makes it correct.
 
-3. **Meta Report** — Analyses detachment popularity, record distributions, and event breakdowns. Computes a `crawlDiff` (new lists, dropped lists, new tech choices) when a previous crawl file is present. Groups lists by detachment for downstream use.
+3. **Crawler** — Playwright-based headless browser scrapes tournament results from listhammer.info, extracting player names, detachments, records, events, and full army list text. Before each crawl it copies the existing `army-lists-latest.json` to `army-lists-previous.json` and preserves `firstSeen` timestamps for entries that persist across crawls.
 
-4. **Army Optimizer** — Produces per-detachment unit/enhancement frequency tables, variance analysis (contested choices at 20–79% inclusion), novelty flags (tech not seen in the previous crawl), unit co-occurrence pairs, and overall unit/enhancement frequency across all lists.
+4. **Meta Report** — Analyses detachment popularity, record distributions, and event breakdowns. Computes a `crawlDiff` (new lists, dropped lists, new tech choices) when a previous crawl file is present. Groups lists by detachment for downstream use.
 
-5. **AI Analysis** — Sends tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. If a rules document is present in `rules/`, it is included in the system prompt via prompt caching for game-context accuracy.
+5. **Army Optimizer** — Produces per-detachment unit/enhancement frequency tables, variance analysis (contested choices at 20–79% inclusion), novelty flags (tech not seen in the previous crawl), unit co-occurrence pairs, and overall unit/enhancement frequency across all lists.
 
-6. **Site Builder** — Inlines all report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
+6. **AI Analysis** — Sends tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. If a rules document is present in `rules/`, it is included in the system prompt via prompt caching for game-context accuracy.
+
+7. **Site Builder** — Inlines all report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
 
 ## Dataset Context
 
@@ -71,6 +73,7 @@ All key settings live in `config.json` at the repo root:
 - `defaultEdition` — edition string (default: `10ed`)
 - `freshnessDays` — how many days before a cached rules file is considered stale (default: `7`)
 - `maxTxtChars` — max characters written to the `.txt` rules file (default: `180000`)
+- `forgeWorldSlugs` — list of wahapedia URL slugs to exclude from the rules output (Forge World, Horus Heresy legacy, Kill Team units). Add new entries here when wahapedia lists new non-competitive units on a faction page. Used by both `rules-fetcher.js` (skip scraping) and `parse-rules.js` (post-processing filter).
 
 ## Prerequisites
 
@@ -120,6 +123,25 @@ npm run fetch-rules:force     # Force re-fetch regardless of age
 | `--dump-html` | Save HTML debug dumps to `rules/` | off |
 
 > **Note:** Rules are automatically fetched by the `fetch-rules.yml` workflow every Saturday at 05:00 UTC — the day before the Sunday army-list crawl — so fresh rules are always available for AI analysis.
+
+### Rules Parser
+
+```bash
+npm run parse-rules           # Post-process rules/death-guard-latest.json in place
+npm run parse-rules:dry       # Log filtering stats without writing any files
+```
+
+| Option | Description | Default |
+|---|---|---|
+| `--input PATH` | JSON file to read | `rules/<faction>-latest.json` |
+| `--output PATH` | JSON file to write (also regenerates `.txt` sidecar) | same as `--input` |
+| `--faction NAME` | Faction slug | `death-guard` |
+| `--edition EDITION` | Edition label | `10ed` |
+| `--dry-run` | Parse and log stats, skip all file writes | off |
+
+The parser reads the Forge World blocklist from `config.json` (`rulesFetcher.forgeWorldSlugs`), filters summoned daemon allies by the `SUMMONED` keyword, deduplicates all arrays by name, and regenerates the `.txt` file. Both the edition-stamped copy (`death-guard-10ed.*`) and the `-latest` copy are kept in sync.
+
+Run `npm run parse-rules:dry` after a manual `fetch-rules` to check what would be filtered before committing.
 
 ### Crawl
 
@@ -248,6 +270,7 @@ Three workflows handle the automation:
 
 **`.github/workflows/fetch-rules.yml`** — runs every **Saturday at 05:00 UTC** or manually:
 - Scrapes Death Guard rules from wahapedia.ru (skipped if already fresh)
+- Runs `parse-rules.js` to filter, deduplicate, and regenerate the rules text
 - Commits updated rules to `rules/` with `[skip ci]` to avoid triggering a deploy
 - Manual trigger accepts a `force` boolean to bypass the freshness check
 - Runs the day before the Sunday army-list crawl so AI analysis always has current rules
@@ -270,7 +293,7 @@ Debug artifacts (raw crawl output) are uploaded on every crawl run and retained 
 npm test
 ```
 
-7 test suites using the built-in `node:test` runner — no extra test dependencies required:
+8 test suites using the built-in `node:test` runner — no extra test dependencies required:
 
 | Suite | What it covers |
 |---|---|
@@ -280,7 +303,8 @@ npm test
 | `test-optimizer` | Unit/enhancement frequency, variance, novelty flags, co-occurrence |
 | `test-ai-analysis` | API key handling, graceful degradation, placeholder generation |
 | `test-build-site` | HTML generation, JSON inlining, LLM file generation |
-| `test-rules-fetcher` | Rules parsing, caching, URL building, text conversion |
+| `test-rules-fetcher` | Rules parsing, caching, URL building, text conversion, FW blocklist |
+| `test-parse-rules` | Post-processing pipeline: FW filtering, daemon filtering, deduplication, validation |
 
 ## Linting
 
@@ -312,6 +336,11 @@ Uses ESLint v9 with Node.js/ES2022 rules. Configuration is in `eslint.config.js`
 **Rules are stale or missing:**
 - Run `npm run fetch-rules:force` to force a fresh fetch regardless of age
 - Or trigger the `fetch-rules.yml` workflow manually from the Actions tab with `force: true`
+
+**Rules contain unexpected units (Forge World, daemon allies):**
+- Run `npm run parse-rules:dry` to see what would be filtered without changing any files
+- Run `npm run parse-rules` to apply filtering and regenerate the `.txt` file in place
+- To permanently exclude a new unit, add its wahapedia URL slug to `forgeWorldSlugs` in `config.json`
 
 ## Disclaimer
 

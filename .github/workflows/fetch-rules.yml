@@ -50,6 +50,11 @@ jobs:
           node rules-fetcher.js $ARGS
         timeout-minutes: 45
 
+
+      - name: Post-process rules (filter, deduplicate, regenerate TXT)
+        run: node parse-rules.js --faction death-guard --edition 10ed
+
+
       - name: Upload rules debug artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,6 +69,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add rules/
-          git diff --cached --quiet && echo "Rules unchanged — nothing to commit." || \
+          if git diff --cached --quiet; then
+            echo "Rules unchanged — nothing to commit."
+          else
             git commit -m "chore: refresh Death Guard rules [skip ci]"
-          git push || true
+            git pull --rebase origin main
+            git push origin main
+          fi

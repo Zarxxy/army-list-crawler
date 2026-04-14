@@ -29,38 +29,12 @@ const CONFIG = {
 //
 // These unit slugs appear on the Death Guard faction page but are NOT part of
 // the standard competitive 10th edition army — they are Forge World, Horus
-// Heresy legacy, or Kill Team datasheets.  We skip scraping them entirely.
-// Add new entries here if wahapedia adds more non-competitive units.
+// Heresy legacy, or Kill Team datasheets.  The list is maintained in
+// config.json (rulesFetcher.forgeWorldSlugs) so parse-rules.js can share it
+// without importing Playwright-adjacent code.  Add new entries there if
+// wahapedia adds more non-competitive units.
 // ---------------------------------------------------------------------------
-const FORGE_WORLD_SLUGS = new Set([
-  'Cerberus',
-  'Chaos-Thunderhawk',
-  'Deredeo-Dreadnought',
-  'Falchion',
-  'Fellblade',
-  'Fire-Raptor-Gunship',
-  'Gellerpox-Infected',
-  'Greater-Blight-Drone',
-  'Hell-Blade',
-  'Hell-Talon',
-  'Kratos',
-  'Land-Raider-Achilles',
-  'Land-Raider-Proteus',
-  'Leviathan-Dreadnought',
-  'Mastodon',
-  'Mutoid-Vermin',
-  'Rapier-Carrier',
-  'Relic-Contemptor-Dreadnought',
-  'Sicaran-Battle-Tank',
-  'Sicaran-Punisher',
-  'Sicaran-Venator',
-  'Sokar-pattern-Stormbird',
-  'Spartan',
-  'Storm-Eagle-Gunship',
-  'Typhon',               // the Chaos tank, not Typhus the character
-  'Whirlwind-Scorpius',
-  'Xiphon-Interceptor',
-]);
+const FORGE_WORLD_SLUGS = new Set(rfConfig.forgeWorldSlugs || []);
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -334,6 +308,89 @@ function deduplicateDetachments(detachments) {
       }
       return d;
     });
+}
+
+// ---------------------------------------------------------------------------
+// Faction / keyword helpers (exported for testing and parse-rules.js)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true if the unit should be kept for this faction.
+ *
+ * Strategy: exclusion-based rather than inclusion-based.
+ *
+ * The problem: wahapedia displays faction keywords (e.g. "DEATH GUARD") and
+ * unit keywords in separate HTML sections. The scraper only reliably captures
+ * one section, so "DEATH GUARD" is often absent from the keywords array even
+ * for genuine Death Guard units (e.g. Plagueburst Crawler, Poxwalkers).
+ *
+ * The reliable signal is the SUMMONED keyword — only summoned Chaos Daemon
+ * allies carry it (Plaguebearers, Plague Drones, Nurglings, Great Unclean One,
+ * etc.). Death Guard units — including Daemon Engines — never have SUMMONED.
+ *
+ * Logic:
+ *   1. No keywords extracted → keep (failsafe for selector misses)
+ *   2. Has faction keyword (e.g. "DEATH GUARD") → keep (best case)
+ *   3. Has SUMMONED keyword → exclude (daemon ally, not a Death Guard unit)
+ *   4. Otherwise → keep (assume valid; faction keyword was just not captured)
+ *
+ * @param {object} unit        — scraped unit object with a `keywords` array
+ * @param {string} factionSlug — e.g. "death-guard"
+ */
+function hasFactionKeyword(unit, factionSlug) {
+  if (!unit.keywords || unit.keywords.length === 0) return true;
+  const kws = unit.keywords.map((kw) => kw.toUpperCase());
+  const needle = factionSlug.replace(/-/g, ' ').toUpperCase(); // "DEATH GUARD"
+  if (kws.some((kw) => kw.includes(needle))) return true;  // explicitly ours
+  if (kws.includes('SUMMONED')) return false;               // daemon ally
+  return true;                                              // faction kw not captured — keep
+}
+
+/**
+ * Removes duplicate weapons (by name) and abilities (by name) within a unit.
+ * Mutates and returns the unit object.
+ */
+function deduplicateUnit(unit) {
+  if (unit.weapons) {
+    unit.weapons = unit.weapons.filter(
+      (w, i, arr) => arr.findIndex((x) => x.name === w.name) === i
+    );
+  }
+  if (unit.abilities) {
+    unit.abilities = unit.abilities.filter(
+      (a, i, arr) => arr.findIndex((x) => x.name === a.name) === i
+    );
+  }
+  return unit;
+}
+
+/**
+ * Removes duplicate detachments by name and deduplicates stratagems +
+ * enhancements within each surviving detachment.
+ *
+ * @param {Array} detachments
+ * @returns {Array}
+ */
+function deduplicateDetachments(detachments) {
+  const seen = new Set();
+  return detachments.filter((d) => {
+    const key = (d.name || '').toLowerCase().trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map((d) => {
+    if (d.stratagems) {
+      d.stratagems = d.stratagems.filter(
+        (s, i, arr) => arr.findIndex((x) => x.name === s.name) === i
+      );
+    }
+    if (d.enhancements) {
+      d.enhancements = d.enhancements.filter(
+        (e, i, arr) => arr.findIndex((x) => x.name === e.name) === i
+      );
+    }
+    return d;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1049,6 +1106,7 @@ if (require.main !== module) {
     hasFactionKeyword,
     deduplicateUnit,
     deduplicateDetachments,
+    FORGE_WORLD_SLUGS,
   };
 } else {
   main().catch((err) => {
