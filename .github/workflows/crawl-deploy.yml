@@ -1,4 +1,4 @@
-name: Crawl, Analyse & Deploy
+name: Crawl & Deploy
 
 on:
   # Weekly crawl: every Sunday at 06:00 UTC
@@ -27,8 +27,8 @@ permissions:
   id-token: write
 
 jobs:
-  crawl-and-deploy:
-    name: Crawl, Analyse & Deploy
+  crawl-deploy:
+    name: Crawl & Deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages

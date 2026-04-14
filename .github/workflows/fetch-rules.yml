@@ -1,4 +1,4 @@
-name: Fetch Death Guard Rules
+name: Fetch Rules
 
 on:
   # Every Saturday at 05:00 UTC — runs the day before the Sunday army-list crawl
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   fetch-rules:
-    name: Fetch & commit Death Guard rules
+    name: Fetch Rules
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
