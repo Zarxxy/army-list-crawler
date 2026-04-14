@@ -106,6 +106,22 @@
   .novelty-section ul { list-style: none; font-size: 0.82rem; }
   .novelty-section li { padding: 0.1rem 0; }
 
+  /* Detachment rules panel */
+  .det-rules-panel { margin: 0.8rem 0 1.2rem; }
+  .det-rules-panel summary { cursor: pointer; color: var(--accent); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0; }
+  .det-rules-panel summary:hover { color: var(--accent2); }
+  .det-rules-panel[open] summary { margin-bottom: 0.5rem; }
+  .det-ability-box { background: var(--bg2); border-left: 3px solid var(--accent); padding: 0.55rem 0.8rem; margin-bottom: 0.75rem; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+  .det-ability-box strong { color: var(--text); }
+  .strat-table { width: 100%; border-collapse: collapse; margin: 0.4rem 0 0.8rem; background: var(--bg2); border-radius: var(--radius); overflow: hidden; font-size: 0.8rem; }
+  .strat-table th, .strat-table td { padding: 0.35rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .strat-table th { background: var(--bg3); color: var(--text2); font-weight: 600; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.04em; }
+  .strat-table tr:last-child td { border-bottom: none; }
+  .strat-table tr:hover { background: var(--bg3); }
+  .strat-cp { color: var(--accent2); font-weight: 700; font-family: monospace; white-space: nowrap; }
+  .strat-type { color: var(--text2); font-size: 0.75rem; }
+  .enh-pts { color: var(--accent2); font-weight: 600; font-family: monospace; }
+
   /* Patterns tab */
   .prose-block { font-size: 0.88rem; line-height: 1.8; color: var(--text); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
   .container section { margin-bottom: 2rem; }
@@ -243,6 +259,75 @@
       });
     });
     return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Detachment rules parser
+  // ---------------------------------------------------------------------------
+  function parseDetachmentRules(rules) {
+    if (!rules || !rules.factionAbilities) return {};
+    var fa = rules.factionAbilities;
+    var detMap = {}; // lowercase detachment name -> { ability, stratagems[], enhancements[] }
+    var i = 0;
+    while (i < fa.length) {
+      var entry = fa[i];
+      // Skip known non-detachment entries
+      if (['NURGLE\'S GIFT (AURA)', 'PACT OF DECAY', 'SPAWNDOM', 'A GRAND PLAGUE',
+           'ALCHEMICAL PATHOGENS', 'BATTLE TRAITS', 'AGENDAS', 'REQUISITIONS',
+           'CRUSADE RELICS', 'ARTIFICER RELICS', 'ANTIQUITY RELICS', 'LEGENDARY RELICS',
+           'CRUSADE BADGES', 'PLAGUE CHAMPION', 'CHOSEN OF NURGLE', 'DISEASED DAEMON LORD',
+           'BOARDING ACTIONS', 'INTRODUCTION', 'FORMING BOARDING SQUADS',
+           'PRIVACY PREFERENCES'].indexOf(entry.name) !== -1) {
+        i++; continue;
+      }
+      // Look for pattern: ability -> ENHANCEMENTS -> STRATAGEMS
+      if (entry.name !== 'ENHANCEMENTS' && entry.name !== 'STRATAGEMS' &&
+          entry.name !== 'DETACHMENT RULE' && entry.name !== 'RULES ADAPTATIONS') {
+        var abilityName = entry.name;
+        var abilityDesc = entry.description;
+        var enhancements = [];
+        var stratagems = [];
+        var detName = null;
+        // Scan ahead for ENHANCEMENTS and STRATAGEMS
+        var j = i + 1;
+        while (j < fa.length && j <= i + 4) {
+          if (fa[j].name === 'ENHANCEMENTS') {
+            var enhText = fa[j].description;
+            var enhMatch = enhText.match(/^(.+)\n(\d+)\s*pts/);
+            if (enhMatch) enhancements.push({ name: enhMatch[1].trim(), pts: enhMatch[2] });
+          } else if (fa[j].name === 'STRATAGEMS') {
+            var stratParts = fa[j].description.split(/\n(?=[A-Z][A-Z '\u2019-]+\n\d+CP\n)/);
+            for (var s = 0; s < stratParts.length; s++) {
+              var lines = stratParts[s].trim().split('\n');
+              if (lines.length >= 3) {
+                var sName = lines[0].trim();
+                var sCp = lines[1].trim();
+                var sTypeLine = lines[2].trim();
+                var typeMatch = sTypeLine.match(/^(.+?)\s+[\u2013\u2014]\s+(.+)$/);
+                if (typeMatch && !detName) detName = typeMatch[1].trim();
+                var sType = typeMatch ? typeMatch[2].replace(/\s*STRATAGEM$/i, '').trim() : '';
+                stratagems.push({ name: sName, cp: sCp, type: sType });
+              }
+            }
+            j++; break;
+          } else if (fa[j].name !== 'DETACHMENT RULE' && fa[j].name !== abilityName) {
+            break; // Hit a different detachment ability
+          }
+          j++;
+        }
+        if (detName && stratagems.length > 0) {
+          detMap[detName.toLowerCase()] = {
+            abilityName: abilityName,
+            abilityDesc: abilityDesc,
+            enhancements: enhancements,
+            stratagems: stratagems
+          };
+        }
+        i = j; continue;
+      }
+      i++;
+    }
+    return detMap;
   }
 
   // ---------------------------------------------------------------------------
@@ -467,12 +552,13 @@
   // ---------------------------------------------------------------------------
   // By Detachment tab
   // ---------------------------------------------------------------------------
-  function renderByDetachment(lists, ai, opt) {
+  function renderByDetachment(lists, ai, opt, rules) {
     var el = document.getElementById('det-sections');
     var detFreq = (opt && opt.detachmentFrequencyAnalysis) || [];
     var varAnal = (opt && opt.varianceAnalysis) || [];
     var novelty = (opt && opt.noveltyFlags) || [];
     var aiSums  = (ai  && ai.detachmentSummaries) || [];
+    var detRulesMap = parseDetachmentRules(rules);
 
     // Group by detachment, sorted by count desc
     var byDet = {};
@@ -495,12 +581,39 @@
       var freq    = detFreq.find(function(f) { return f.detachment === det; });
       var vari    = varAnal.find(function(v) { return v.detachment === det; });
       var novFlags = novelty.filter(function(n) { return n.detachment === det; });
+      var detRules = detRulesMap[det.toLowerCase()] || null;
 
       html += '<section class="det-section">';
       html += '<h2>' + esc(det) + ' <span class="det-count">(' + detLists.length + ' list' + (detLists.length !== 1 ? 's' : '') + ')</span></h2>';
 
       if (aiSum && aiSum.summary) {
         html += '<p class="det-summary">' + esc(aiSum.summary) + '</p>';
+      }
+
+      // Detachment rules panel
+      if (detRules) {
+        html += '<details class="det-rules-panel"><summary>Detachment Rules &amp; Stratagems</summary>';
+        // Detachment ability
+        html += '<div class="det-ability-box"><strong>' + esc(detRules.abilityName) + '</strong><br>' + esc(detRules.abilityDesc) + '</div>';
+        // Stratagems table
+        if (detRules.stratagems.length > 0) {
+          html += '<h3>Stratagems</h3>';
+          html += '<table class="strat-table"><thead><tr><th>Stratagem</th><th>CP</th><th>Type</th></tr></thead><tbody>';
+          detRules.stratagems.forEach(function(s) {
+            html += '<tr><td>' + esc(s.name) + '</td><td class="strat-cp">' + esc(s.cp) + '</td><td class="strat-type">' + esc(s.type) + '</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        // Enhancements
+        if (detRules.enhancements.length > 0) {
+          html += '<h3>Enhancements</h3>';
+          html += '<table class="strat-table"><thead><tr><th>Enhancement</th><th>Pts</th></tr></thead><tbody>';
+          detRules.enhancements.forEach(function(e) {
+            html += '<tr><td>' + esc(e.name) + '</td><td class="enh-pts">' + esc(e.pts) + '</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        html += '</details>';
       }
 
       // Frequency table
@@ -616,7 +729,7 @@
 
     renderDiffBanner(meta, ai);
     renderLists(lists, meta, ai);
-    renderByDetachment(lists, ai, opt);
+    renderByDetachment(lists, ai, opt, rules);
     renderPatterns(ai, opt);
   }
 
