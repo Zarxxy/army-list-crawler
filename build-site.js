@@ -24,6 +24,7 @@ function getArg(flag) {
 const reportsDir = getArg('--reports-dir') || path.join(__dirname, 'reports');
 const docsDir    = getArg('--docs-dir')    || path.join(__dirname, 'docs');
 const listsFile  = getArg('--lists-file')  || path.join(__dirname, 'output', 'army-lists-latest.json');
+const rulesFile  = getArg('--rules-file')  || path.join(__dirname, 'rules', 'death-guard-latest.json');
 const dataDir    = path.join(docsDir, 'data');
 const templatePath = path.join(docsDir, 'template.html');
 const outputPath   = path.join(docsDir, 'index.html');
@@ -93,6 +94,10 @@ function buildLlmsFiles(reportsDir, docsDir, metaData) {
     '',
     '- [Army Lists](data/army-lists.json)',
     '  Raw crawled list data with firstSeen/lastSeen timestamps.',
+    '',
+    '- [Rules Data](data/rules.json)',
+    '  Death Guard rules: faction abilities, detachment abilities, stratagems,',
+    '  enhancements, unit keywords/abilities (scraped from wahapedia.ru).',
     '',
     '## Full Plain-Text Report',
     '',
@@ -214,6 +219,24 @@ function main() {
     console.warn(`  Warning: army lists not found at ${listsFile} — run "npm run crawl:dg" first`);
   }
 
+  // Rules data (unit keywords, abilities, detachment rules, stratagems, enhancements)
+  let rulesJSON = 'null';
+  if (fs.existsSync(rulesFile)) {
+    const rulesData = JSON.parse(fs.readFileSync(rulesFile, 'utf-8'));
+    // Strip _url fields to reduce page weight
+    if (Array.isArray(rulesData.units)) {
+      for (const unit of rulesData.units) {
+        delete unit._url;
+      }
+    }
+    rulesJSON = JSON.stringify(rulesData);
+    fs.writeFileSync(path.join(dataDir, 'rules.json'), JSON.stringify(rulesData, null, 2), 'utf-8');
+    console.log('  Embedded rules data');
+    embedded++;
+  } else {
+    console.warn(`  Warning: rules file not found at ${rulesFile} — run "npm run fetch-rules" first`);
+  }
+
   // Inject data into the template
   // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
   // We need to replace both the comment AND the trailing null to avoid syntax errors
@@ -221,6 +244,7 @@ function main() {
   html = html.replace('/*__OPTIMIZER_DATA__*/null',    escapeForScriptTag(optJSON));
   html = html.replace('/*__AI_ANALYSIS_DATA__*/null',  escapeForScriptTag(aiJSON));
   html = html.replace('/*__LISTS_DATA__*/null',        escapeForScriptTag(listsJSON));
+  html = html.replace('/*__RULES_DATA__*/null',        escapeForScriptTag(rulesJSON));
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 

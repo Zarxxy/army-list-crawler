@@ -179,6 +179,7 @@
   var INLINE_OPT   = /*__OPTIMIZER_DATA__*/null;
   var INLINE_AI    = /*__AI_ANALYSIS_DATA__*/null;
   var INLINE_LISTS = /*__LISTS_DATA__*/null;
+  var INLINE_RULES = /*__RULES_DATA__*/null;
 
   // ---------------------------------------------------------------------------
   // State
@@ -579,9 +580,12 @@
   // ---------------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------------
-  function boot(meta, opt, ai, listsData) {
-    _meta = meta;
-    _ai   = ai;
+  var _rules   = null;
+
+  function boot(meta, opt, ai, listsData, rules) {
+    _meta  = meta;
+    _ai    = ai;
+    _rules = rules || null;
 
     // Header
     var faction = (meta && meta.meta && meta.meta.faction) || '—';
@@ -612,7 +616,7 @@
   // Inline or fetch
   // ---------------------------------------------------------------------------
   if (INLINE_META || INLINE_OPT || INLINE_AI || INLINE_LISTS) {
-    boot(INLINE_META, INLINE_OPT, INLINE_AI, INLINE_LISTS);
+    boot(INLINE_META, INLINE_OPT, INLINE_AI, INLINE_LISTS, INLINE_RULES);
   } else {
     function loadJSON(url) {
       return fetch(url).then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -622,13 +626,15 @@
       loadJSON('data/optimizer.json'),
       loadJSON('data/ai-analysis.json'),
       loadJSON('data/army-lists.json'),
+      loadJSON('data/rules.json'),
     ]).then(function(results) {
       var meta      = results[0].status === 'fulfilled' ? results[0].value : null;
       var opt       = results[1].status === 'fulfilled' ? results[1].value : null;
       var ai        = results[2].status === 'fulfilled' ? results[2].value : null;
       var listsData = results[3].status === 'fulfilled' ? results[3].value : null;
+      var rules     = results[4].status === 'fulfilled' ? results[4].value : null;
       if (meta || opt || ai || listsData) {
-        boot(meta, opt, ai, listsData);
+        boot(meta, opt, ai, listsData, rules);
       } else {
         document.querySelector('.container').innerHTML =
           '<p class="notice">No data available. Run the GitHub Actions workflow to generate data.</p>';
