@@ -1372,59 +1372,6 @@ Numberless Horde
 Deadly Vectors
 Keywords: MONSTER, CHARACTER, PSYKER, FLY, EPIC HERO, GRENADES, CHAOS, NURGLE, DAEMON, PRIMARCH, MORTARION
 
-### Noxious Blightbringer
-Abilities:
-  [Leader]: CORE:
-  [Nurgle’s Gift (Aura)]: FACTION:
-  [Sickening Vitality:]: While this model is leading a unit, add 1" to the Move characteristic of models in that unit and you can re-roll Advance and Charge rolls made for that unit.
-Tocsin of Misery (Aura): In the Battle-shock step of your opponent’s Command phase, if an enemy unit that is below its Starting Strength is within 9" of this model, that enemy unit must take a Battle-shock test, subtracting 1 from that test if it is a PSYKER unit.
-  [Plague Marines]: This model can be attached to the following units:
-
-Poxwalkers
-You can attach this model to a PLAGUE MARINES or POXWALKERS unit, even if one other Leader unit has already been attached to it (you cannot attach more than one of the same Leader to the same unit). If you do, and that Bodyguard unit is destroyed, the Leader units attached to it become separate units, with their original Starting Strengths.
-  [Verminous Haze]: Worldblight
-Miasmic Bombardment
-Manifold Maladies
-Reverberant Rancidity
-Numberless Horde
-Deadly Vectors
-Sevenfold Offerings
-Relentless Spread
-  [Rejuvenating Swarm]: 10
-Droning Chorus
-15
-Insectile Murmuration
-20
-Plagueveil
-25
-Daemon Weapon of Nurgle
-10
-Revolting Regeneration
-20
-Arch Contaminator
-25
-Furnace of Plagues
-25
-Shriekworm Familiar
-15
-Eye of Affliction
-20
-Fell Harvester
-10
-Beckoning Blight
-20
-Lord of the Walking Pox
-15
-Talisman of Burgeoning
-25
-Witherbone Pipes
-25
-Foul Constitution
-Fountaining Filth
-Hand of Nurgle
-Pox-Bearer
-Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, NOXIOUS BLIGHTBRINGER
-
 ### Plague Surgeon
 Abilities:
   [Leader]: CORE:
@@ -1611,24 +1558,6 @@ Abilities:
 Desiccation Conduit (Aura): While an enemy unit is within Contagion Range of this model, at the end of the turn, roll one D6: on a 4+, that enemy unit suffers D3 mortal wounds.
   [Plague Marines]: This model can be attached to the following unit:
 Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, GRENADES, CHAOS LORD
-
-### Death Guard Chaos Lord In Terminator Armour
-Abilities:
-  [Deep Strike, Leader]: CORE:
-  [Nurgle’s Gift (Aura)]: FACTION:
-  [Chaos Lord:]: While this model is leading a unit, each time a model in that unit makes an attack, re-roll a Hit roll of 1.
-Desiccation Conduit (Aura): While an enemy unit is within Contagion Range of this model, at the end of the turn, roll one D6: on a 4+, that enemy unit suffers D3 mortal wounds.
-  [Blightlord Terminators]: This model can be attached to the following units:
-
-Deathshroud Terminators
-  [Face of Death]: 10
-Vile Vigour
-15
-Helm of the Fly King
-20
-Warprot Talisman
-30
-Keywords: INFANTRY, CHARACTER, CHAOS, NURGLE, TERMINATOR, CHAOS LORD
 
 ### Death Guard Sorcerer In Terminator Armour
 Abilities:
