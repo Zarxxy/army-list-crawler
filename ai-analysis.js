@@ -43,7 +43,8 @@ const optimFile  = getArg(args, '--optimizer')  || path.join(__dirname, 'reports
 const outputDir  = getArg(args, '--output')     || path.join(__dirname, 'reports');
 const rulesDir   = getArg(args, '--rules-dir')  || path.join(__dirname, 'rules');
 const modelId    = getArg(args, '--model')      || appConfig.aiAnalysis.defaultModel;
-const maxTokens  = parseInt(getArg(args, '--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
+const _rawMaxTokens = parseInt(getArg(args, '--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
+const maxTokens = Number.isFinite(_rawMaxTokens) && _rawMaxTokens > 0 ? _rawMaxTokens : appConfig.aiAnalysis.maxTokens;
 
 const outputLimits = appConfig.aiAnalysis.outputLimits || {
   wordsPerList: 80,

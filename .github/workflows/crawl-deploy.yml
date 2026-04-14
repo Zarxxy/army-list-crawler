@@ -59,6 +59,16 @@ jobs:
         run: node crawler.js --game 40k --faction "Death Guard" --delay 2000
         timeout-minutes: 30
 
+      - name: Validate crawler output
+        run: |
+          node -e "
+          const fs = require('fs');
+          const data = JSON.parse(fs.readFileSync('output/army-lists-latest.json', 'utf-8'));
+          const total = Object.values(data.sections || {}).reduce((s, a) => s + a.length, 0);
+          console.log('Lists found:', total);
+          if (total === 0) { console.error('ERROR: Crawler returned 0 army lists — aborting deploy to avoid overwriting dashboard with empty data.'); process.exit(1); }
+          "
+
       - name: Upload crawler debug artifacts (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

@@ -31,11 +31,14 @@ const outputPath   = path.join(docsDir, 'index.html');
 // ---------------------------------------------------------------------------
 
 /**
- * Prevent </script> sequences inside JSON from breaking the surrounding HTML
- * script block. This is the only escaping needed for JSON embedded in <script>.
+ * Prevent sequences inside JSON from breaking the surrounding <script> block.
+ * - </script> would close the tag prematurely.
+ * - <!-- can trigger legacy HTML-comment handling inside scripts in some browsers.
  */
 function escapeForScriptTag(jsonStr) {
-  return jsonStr.replace(/<\/script>/gi, '<\\/script>');
+  return jsonStr
+    .replace(/<\/script>/gi, '<\\/script>')
+    .replace(/<!--/g, '<\\!--');
 }
 
 /**

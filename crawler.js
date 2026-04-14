@@ -16,9 +16,11 @@ const CONFIG = appConfig.crawler.timeouts;
 const args = process.argv.slice(2);
 const gameFilter = getArg(args, '--game'); // "40k", "aos", or null for both
 const factionFilter = getArg(args, '--faction'); // e.g. "Tyranids", "Stormcast", case-insensitive substring match
-const maxPages = parseInt(getArg(args, '--max-pages') || '0', 10); // 0 = unlimited
+const _rawMaxPages = parseInt(getArg(args, '--max-pages') || '0', 10);
+const maxPages = Number.isFinite(_rawMaxPages) && _rawMaxPages >= 0 ? _rawMaxPages : 0; // 0 = unlimited
 const headless = !args.includes('--no-headless');
-const delay = parseInt(getArg(args, '--delay') || String(CONFIG.DEFAULT_DELAY_MS), 10);
+const _rawDelay = parseInt(getArg(args, '--delay') || String(CONFIG.DEFAULT_DELAY_MS), 10);
+const delay = Number.isFinite(_rawDelay) && _rawDelay >= 0 ? _rawDelay : CONFIG.DEFAULT_DELAY_MS;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

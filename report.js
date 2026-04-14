@@ -25,7 +25,13 @@ function main() {
     process.exit(1);
   }
 
-  const raw = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
+  let raw;
+  try {
+    raw = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
+  } catch (err) {
+    console.error(`ERROR: Failed to parse input file "${inputFile}": ${err.message}`);
+    process.exit(1);
+  }
   const lists = flattenLists(raw);
 
   if (lists.length === 0) {

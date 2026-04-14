@@ -15,13 +15,13 @@ const DEFAULT_EDITION = rfConfig.defaultEdition  || '10ed';
 const FRESHNESS_DAYS  = rfConfig.freshnessDays   || 7;
 const MAX_TXT_CHARS   = rfConfig.maxTxtChars     || 180000;
 
-const CONFIG = {
-  NAV_TIMEOUT_MS:      60000,
-  JS_RENDER_WAIT_MS:   3000,
+const CONFIG = rfConfig.timeouts || {
+  NAV_TIMEOUT_MS:       60000,
+  JS_RENDER_WAIT_MS:    3000,
   CF_CHALLENGE_WAIT_MS: 10000,
-  PAGE_DELAY_MS:       2000,   // polite delay between page fetches
-  VIEWPORT_WIDTH:      1920,
-  VIEWPORT_HEIGHT:     1080,
+  PAGE_DELAY_MS:        2000,
+  VIEWPORT_WIDTH:       1920,
+  VIEWPORT_HEIGHT:      1080,
 };
 
 // ---------------------------------------------------------------------------
@@ -50,8 +50,10 @@ function getArg(flag) {
 const faction   = getArg('--faction')   || DEFAULT_FACTION;
 const edition   = getArg('--edition')   || DEFAULT_EDITION;
 const outputDir = getArg('--output')    || path.join(__dirname, 'rules');
-const maxUnits  = parseInt(getArg('--max-units') || '0', 10); // 0 = no limit
-const pageDelay = parseInt(getArg('--delay') || String(CONFIG.PAGE_DELAY_MS), 10);
+const _rawMaxUnits  = parseInt(getArg('--max-units') || '0', 10);
+const maxUnits  = Number.isFinite(_rawMaxUnits)  && _rawMaxUnits  >= 0 ? _rawMaxUnits  : 0; // 0 = no limit
+const _rawPageDelay = parseInt(getArg('--delay') || String(CONFIG.PAGE_DELAY_MS), 10);
+const pageDelay = Number.isFinite(_rawPageDelay) && _rawPageDelay >= 0 ? _rawPageDelay : CONFIG.PAGE_DELAY_MS;
 const force     = args.includes('--force');
 const headless  = !args.includes('--no-headless');
 const dumpHtml  = args.includes('--dump-html');

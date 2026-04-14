@@ -17,6 +17,7 @@ const CONFIG = {
   MIN_CO_OCCUR_FREQ: 2,       // minimum pair appearances for co-occurrence output
   MIN_WINNING_LISTS: 3,       // use winning lists only if at least this many exist
   MAX_CO_OCCUR_RESULTS: 15,   // top N co-occurrence pairs included in output
+  MAX_UNIT_NAME_LENGTH: 80,   // sanity cap — longer strings are likely parsing artefacts
 };
 
 // ---------------------------------------------------------------------------
@@ -48,8 +49,21 @@ function main() {
     return;
   }
 
-  const rawLists = JSON.parse(fs.readFileSync(listsFile, 'utf-8'));
-  const metaReport = JSON.parse(fs.readFileSync(reportFile, 'utf-8'));
+  let rawLists, metaReport;
+  try {
+    rawLists = JSON.parse(fs.readFileSync(listsFile, 'utf-8'));
+  } catch (err) {
+    console.warn(`Failed to parse lists file: ${err.message}`);
+    writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
+    return;
+  }
+  try {
+    metaReport = JSON.parse(fs.readFileSync(reportFile, 'utf-8'));
+  } catch (err) {
+    console.warn(`Failed to parse report file: ${err.message}`);
+    writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
+    return;
+  }
   const lists = flattenLists(rawLists);
 
   if (lists.length === 0) {
@@ -137,7 +151,7 @@ function parseArmyListText(text) {
   while ((unitMatch = UNIT_REGEX.exec(text)) !== null) {
     const name = unitMatch[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
     const pts = parseInt(unitMatch[2], 10);
-    if (name && pts > 0 && name.length < 80) {
+    if (name && pts > 0 && name.length < CONFIG.MAX_UNIT_NAME_LENGTH) {
       parsed.units.push({ name, points: pts });
     }
   }

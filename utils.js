@@ -54,4 +54,28 @@ function flattenLists(raw) {
   return lists;
 }
 
-module.exports = { getArg, parseRecord, extractDetachment, flattenLists };
+/**
+ * Minimal structured logger. Outputs ISO-timestamped, level-tagged messages.
+ * Uses stderr for warn/error, stdout for info/debug.
+ *
+ * Usage:
+ *   const { log } = require('./utils');
+ *   log('info', 'Loaded 42 lists');
+ *   log.warn('Something odd happened');
+ *   log.error('Fatal:', err.message);
+ */
+function log(level, ...args) {
+  const ts = new Date().toISOString();
+  const prefix = `[${ts}] [${level.toUpperCase()}]`;
+  if (level === 'error' || level === 'warn') {
+    console.error(prefix, ...args);
+  } else {
+    console.log(prefix, ...args);
+  }
+}
+log.info  = (...a) => log('info',  ...a);
+log.warn  = (...a) => log('warn',  ...a);
+log.error = (...a) => log('error', ...a);
+log.debug = (...a) => log('debug', ...a);
+
+module.exports = { getArg, parseRecord, extractDetachment, flattenLists, log };
