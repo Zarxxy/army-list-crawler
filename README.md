@@ -1,42 +1,79 @@
-# Listhammer — Death Guard Meta Analyser & Army Optimizer
+# Listhammer — Death Guard Meta Analyser
 
-Automated pipeline that crawls [listhammer.info](https://listhammer.info) for Death Guard tournament army lists, analyses the meta, generates an AI-powered meta report using Claude, and deploys a GitHub Pages dashboard.
+Automated pipeline that crawls [listhammer.info](https://listhammer.info) for Death Guard tournament army lists, runs statistical meta analysis, generates AI-powered characterizations using Claude, and deploys a GitHub Pages dashboard.
 
 ## How It Works
 
 ```
-Crawl listhammer.info  →  Meta report  →  Army optimizer  →  AI analysis  →  Build & deploy site
-     (crawler.js)         (report.js)      (optimizer.js)   (ai-analysis.js)   (build-site.js)
+Rules Fetcher  →  Rules Parser ────────────────────────┐
+(rules-fetcher.js) (parse-rules.js)                    │ rules context
+                                                        ▼
+Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Deploy
+(crawler.js) (report.js)  (optimizer.js)  (ai-analysis.js)  (build-site.js)
 ```
 
-1. **Crawler** — Playwright-based headless browser scrapes tournament results, extracting player names, detachments, records, events, and full army list text
-2. **Meta Report** — Analyses detachment popularity, undefeated list counts, player appearances, and record distributions across top-finishing events
-3. **Army Optimizer** — Finds the most meta-representative winning list and recommends a concrete ~2000pt build, with unit synergy analysis
-4. **AI Analysis** — Sends the tournament data to Claude via the Anthropic API and generates a natural-language meta summary, detachment tier list, best list breakdown, strategic advice, and meta trends. The model is configured in `config.json` (default: `claude-opus-4-5`)
-5. **Site Builder** — Inlines all report JSON into a self-contained HTML dashboard for GitHub Pages
+1. **Rules Fetcher** — Scrapes Death Guard datasheets, detachment rules, stratagems, and enhancements from wahapedia.ru and caches them in `rules/`. Runs on its own weekly schedule (Saturdays) so fresh rules are always available for the Sunday crawl. Skipped automatically if the cached copy is less than 7 days old.
+
+2. **Rules Parser** — Post-processes the raw JSON from the Rules Fetcher. Applies deterministic filtering (Forge World units, summoned daemon allies), deduplicates units/detachments/stratagems/enhancements by name, validates required fields, and regenerates the plain-text file consumed by AI Analysis. Runs immediately after the fetcher in the same workflow so the two steps are cleanly separated: the fetcher gets the data, the parser makes it correct.
+
+3. **Crawler** — Playwright-based headless browser scrapes tournament results from listhammer.info, extracting player names, detachments, records, events, and full army list text. Before each crawl it copies the existing `army-lists-latest.json` to `army-lists-previous.json` and preserves `firstSeen` timestamps for entries that persist across crawls.
+
+4. **Meta Report** — Analyses detachment popularity, record distributions, and event breakdowns. Computes a `crawlDiff` (new lists, dropped lists, new tech choices) when a previous crawl file is present. Groups lists by detachment for downstream use.
+
+5. **Army Optimizer** — Produces per-detachment unit/enhancement frequency tables, variance analysis (contested choices at 20–79% inclusion), novelty flags (tech not seen in the previous crawl), unit co-occurrence pairs, and overall unit/enhancement frequency across all lists.
+
+6. **AI Analysis** — Sends tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. If a rules document is present in `rules/`, it is included in the system prompt via prompt caching for game-context accuracy.
+
+7. **Site Builder** — Inlines all report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
 
 ## Dataset Context
 
 > **Important:** This pipeline analyses **top-finishing tournament lists only** (1st and 2nd place results).
-> Win rates in this dataset are elevated vs. the general player field and should **not** be treated as
-> absolute competitive benchmarks. All figures compare detachments *within* this dataset only.
->
-> **Tier ratings** are based on:
-> - **List count** — how many top-finishing players chose this detachment
-> - **Undefeated runs** — number of 0-loss finishes
->
-> Detachments with fewer than 3 lists are labelled **"Insufficient data"** — a single strong result
-> is not a reliable signal.
+> This dataset does **not** represent the general player field and must **not** be used to infer win rates,
+> comparative skill, or matchup probabilities. All frequency figures compare lists *within* this dataset only.
+
+## Dashboard
+
+The GitHub Pages site has three tabs:
+
+- **Lists** — All lists, sortable by date or event size. Expandable cards show the full army list text, an AI archetype label and game-plan summary, novelty badges for tech not seen in the previous crawl, and a checkbox for side-by-side comparison of two lists.
+- **By Detachment** — Lists grouped by detachment. Each group shows the AI detachment summary, a unit/enhancement frequency table, a variance section (contested picks), a novelty section (new tech), and collapsible list cards.
+- **Patterns** — AI cross-detachment analysis prose and a crawl-diff summary (what is new or dropped since the last crawl).
+
+A diff banner at the top shows new/dropped list counts and new tech choices whenever a crawl diff is available.
 
 ## Configuration
 
-Key settings live in `config.json` at the repo root:
+All key settings live in `config.json` at the repo root:
 
-- `crawler.baseUrl` — target site URL
-- `crawler.knownFactionPatterns` — regex strings used to identify faction names
-- `crawler.knownDetachments` — list of known detachment names for field disambiguation
-- `aiAnalysis.defaultModel` — Claude model used for AI analysis (overridable via `--model`)
-- `aiAnalysis.maxTokens` — max tokens for the AI response
+**`crawler`**
+- `baseUrl` — target site URL
+- `knownFactionPatterns` — strings used to identify faction names in list text
+- `knownDetachments` — known detachment names for field disambiguation
+- `timeouts` — Playwright/navigation timeouts (all in ms):
+  - `NAV_TIMEOUT_MS` — max time to wait for page navigation (default: `60000`)
+  - `JS_RENDER_WAIT_MS` — wait for SPA framework to render (default: `3000`)
+  - `CF_CHALLENGE_WAIT_MS` — wait for Cloudflare challenge to resolve (default: `10000`)
+  - `SELECTOR_TIMEOUT_MS` — wait for content selector to appear (default: `10000`)
+  - `SCROLL_SETTLE_MS` — pause between scroll steps (default: `500`)
+  - `DEFAULT_DELAY_MS` — default delay between requests (default: `1500`)
+
+**`aiAnalysis`**
+- `defaultModel` — Claude model (default: `claude-opus-4-6`, overridable via `--model`)
+- `maxTokens` — max tokens for the AI response (default: `8192`)
+- `outputLimits` — per-section word limits injected into the AI prompt:
+  - `wordsPerList` — game plan word cap per list (default: `80`)
+  - `wordsPerDetachmentSummary` — word cap per detachment summary (default: `150`)
+  - `wordsCrossDetachment` — word cap for cross-detachment patterns (default: `200`)
+  - `wordsCrawlDiff` — word cap for crawl diff prose (default: `100`)
+
+**`rulesFetcher`**
+- `wahapediaBase` — base URL for wahapedia.ru (default: `https://wahapedia.ru`)
+- `defaultFaction` — faction slug to fetch (default: `death-guard`)
+- `defaultEdition` — edition string (default: `10ed`)
+- `freshnessDays` — how many days before a cached rules file is considered stale (default: `7`)
+- `maxTxtChars` — max characters written to the `.txt` rules file (default: `180000`)
+- `forgeWorldSlugs` — list of wahapedia URL slugs to exclude from the rules output (Forge World, Horus Heresy legacy, Kill Team units). Add new entries here when wahapedia lists new non-competitive units on a faction page. Used by both `rules-fetcher.js` (skip scraping) and `parse-rules.js` (post-processing filter).
 
 ## Prerequisites
 
@@ -63,9 +100,48 @@ ANTHROPIC_API_KEY=sk-ant-... node ai-analysis.js
 
 For GitHub Actions, add `ANTHROPIC_API_KEY` as a repository secret (Settings → Secrets → Actions).
 
-If the key is not set the step is skipped gracefully and the rest of the pipeline continues normally. The dashboard will show an "AI analysis not available" message in the AI tab.
+If the key is not set the step is skipped gracefully and the rest of the pipeline continues. The dashboard will show an "AI analysis not available" message where AI content would appear.
 
 ## Usage
+
+### Rules Fetcher
+
+```bash
+npm run fetch-rules           # Fetch if stale (>7 days old)
+npm run fetch-rules:force     # Force re-fetch regardless of age
+```
+
+| Option | Description | Default |
+|---|---|---|
+| `--faction NAME` | Faction slug | `death-guard` |
+| `--edition EDITION` | Rules edition | `10ed` |
+| `--output DIR` | Output directory | `rules/` |
+| `--delay N` | Milliseconds between page fetches | `2000` |
+| `--max-units N` | Limit units scraped (0 = all) | `0` |
+| `--force` | Re-fetch even if fresh | off |
+| `--no-headless` | Show browser window | headless |
+| `--dump-html` | Save HTML debug dumps to `rules/` | off |
+
+> **Note:** Rules are automatically fetched by the `fetch-rules.yml` workflow every Saturday at 05:00 UTC — the day before the Sunday army-list crawl — so fresh rules are always available for AI analysis.
+
+### Rules Parser
+
+```bash
+npm run parse-rules           # Post-process rules/death-guard-latest.json in place
+npm run parse-rules:dry       # Log filtering stats without writing any files
+```
+
+| Option | Description | Default |
+|---|---|---|
+| `--input PATH` | JSON file to read | `rules/<faction>-latest.json` |
+| `--output PATH` | JSON file to write (also regenerates `.txt` sidecar) | same as `--input` |
+| `--faction NAME` | Faction slug | `death-guard` |
+| `--edition EDITION` | Edition label | `10ed` |
+| `--dry-run` | Parse and log stats, skip all file writes | off |
+
+The parser reads the Forge World blocklist from `config.json` (`rulesFetcher.forgeWorldSlugs`), filters summoned daemon allies by the `SUMMONED` keyword, deduplicates all arrays by name, and regenerates the `.txt` file. Both the edition-stamped copy (`death-guard-10ed.*`) and the `-latest` copy are kept in sync.
+
+Run `npm run parse-rules:dry` after a manual `fetch-rules` to check what would be filtered before committing.
 
 ### Crawl
 
@@ -101,9 +177,9 @@ npm run report:text     # Text only
 | Option | Description | Default |
 |---|---|---|
 | `--input PATH` | Crawler JSON file | `output/army-lists-latest.json` |
+| `--previous PATH` | Previous crawl file (for crawl diff) | `output/army-lists-previous.json` |
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
-| `--top N` | Number of top players | `20` |
 
 > **Note:** `report.js` exits with code 1 if the input file does not exist. Run `npm run crawl:dg` first.
 
@@ -112,22 +188,23 @@ npm run report:text     # Text only
 ```bash
 npm run optimize        # JSON + text output
 npm run optimize:json   # JSON only
+npm run optimize:text   # Text only
 ```
 
 | Option | Description | Default |
 |---|---|---|
 | `--lists PATH` | Crawler JSON file | `output/army-lists-latest.json` |
 | `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
+| `--previous PATH` | Previous crawl file (for novelty flags) | `output/army-lists-previous.json` |
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
-| `--points N` | Target army points | `2000` |
 
 ### AI Analysis
 
 ```bash
 npm run ai-analysis
 # or with options:
-node ai-analysis.js --model claude-opus-4-5 --max-tokens 8192
+node ai-analysis.js --model claude-opus-4-6 --max-tokens 8192
 ```
 
 | Option | Description | Default |
@@ -135,59 +212,80 @@ node ai-analysis.js --model claude-opus-4-5 --max-tokens 8192
 | `--lists PATH` | Crawler JSON file | `output/army-lists-latest.json` |
 | `--report PATH` | Meta report JSON | `reports/meta-report-latest.json` |
 | `--optimizer PATH` | Optimizer JSON | `reports/optimizer-latest.json` |
+| `--rules-dir PATH` | Directory containing rules `.txt` files | `rules/` |
 | `--output DIR` | Output directory | `reports/` |
-| `--model NAME` | Claude model to use | `claude-opus-4-5` (from `config.json`) |
-| `--max-tokens N` | Max output tokens | `8192` |
+| `--model NAME` | Claude model to use | from `config.json` |
+| `--max-tokens N` | Max output tokens | from `config.json` |
+
+If a rules document is found in `--rules-dir` (e.g. `death-guard-latest.txt`), it is included as a cached system block in the API request to give Claude game-rule context without re-sending it on every retry.
 
 ### Build Site
 
 ```bash
 npm run build-site      # Build docs/index.html
-npm run build-all       # Report + optimizer + site in one step
+npm run build-all       # Report + optimizer + ai-analysis + site in one step
 ```
 
 ## Output Structure
 
 ```
+rules/
+  death-guard-latest.json       # Current rules data (JSON)
+  death-guard-latest.txt        # Current rules (plain text for AI prompt)
+  death-guard-10ed.json         # Edition-stamped copy
+  death-guard-10ed.txt
+
 output/
-  army-lists-latest.json          # Most recent crawl data
-  army-lists-<timestamp>.json     # Archived crawls
+  army-lists-latest.json        # Most recent crawl data (with firstSeen/lastSeen)
+  army-lists-previous.json      # Previous crawl (copied before each new crawl)
+  army-lists-<timestamp>.json   # Archived crawls
+  debug-screenshot.png          # Page screenshot at time of crawl (debug)
+  debug-page.html               # Page source at time of crawl (debug)
 
 reports/
-  meta-report-latest.json         # Detachment stats, player rankings, etc.
-  optimizer-latest.json           # Recommended army list + analysis
-  ai-analysis-latest.json         # Claude AI meta analysis
-  *.txt                           # Text versions of each report
+  meta-report-latest.json       # Detachment stats, record distribution, crawl diff
+  optimizer-latest.json         # Unit/enhancement frequency, variance, novelty flags
+  ai-analysis-latest.json       # Per-list characterizations, detachment summaries, patterns
+  *.txt                         # Text versions of each report
 
 docs/
-  index.html                      # GitHub Pages dashboard (self-contained)
-  template.html                   # Source template
+  index.html                    # GitHub Pages dashboard (self-contained)
+  template.html                 # Source template
+  data/
+    meta-report.json            # Copy of latest meta report (for direct access)
+    optimizer.json              # Copy of latest optimizer report
+    ai-analysis.json            # Copy of latest AI analysis
+    army-lists.json             # Copy of latest army lists
+  llms.txt                      # LLM-readable site overview and data links
+  llms-full.txt                 # Full concatenated plain-text reports for LLMs
 ```
-
-## What the Dashboard Shows
-
-- **Overview** — Detachment popularity chart (list count), summary cards, record distribution
-- **AI Analysis** — Claude-generated meta summary; detachment tier list based on popularity and undefeated runs (not win rate); best list breakdown, strategic tips, meta trends
-- **Detachments** — List count and undefeated runs per detachment, with confidence indicator (n≥3 = Sufficient)
-- **Optimizer** — Concrete recommended army list (~2000pts), unit synergy pairings, enhancement usage
-- **Players** — Top players ranked by win rate with detachment and event info
-- **Events** — Per-event detachment breakdown with W/L stats
 
 ## GitHub Actions
 
-The workflow (`.github/workflows/main.yml`) runs automatically on push to `main`, on a weekly schedule (Sundays at 06:00 UTC), and can be triggered manually from the Actions tab.
+Three workflows handle the automation:
 
-**Jobs:**
+**`.github/workflows/test.yml`** — runs on every push and pull request:
+- Lints with ESLint
+- Runs all tests via `node:test`
 
-1. **Test** — runs on every push to every branch; lints with ESLint and executes all tests via `node:test`
-2. **Crawl & Deploy** — runs on push to `main`, weekly schedule, or manual trigger:
-   - Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
-   - Generate meta report
-   - Run army optimizer
-   - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
-   - Build and deploy to GitHub Pages
+**`.github/workflows/fetch-rules.yml`** — runs every **Saturday at 05:00 UTC** or manually:
+- Scrapes Death Guard rules from wahapedia.ru (skipped if already fresh)
+- Runs `parse-rules.js` to filter, deduplicate, and regenerate the rules text
+- Commits updated rules to `rules/` with `[skip ci]` to avoid triggering a deploy
+- Manual trigger accepts a `force` boolean to bypass the freshness check
+- Runs the day before the Sunday army-list crawl so AI analysis always has current rules
 
-Debug artifacts (raw crawl output) are uploaded on every run and retained for 7 days.
+**`.github/workflows/crawl-deploy.yml`** — runs every **Sunday at 06:00 UTC** or manually:
+- Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
+- Generate meta report (with crawl diff against previous crawl)
+- Run army optimizer (with novelty flags against previous crawl)
+- Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
+- Build and deploy to GitHub Pages
+- Manual trigger accepts a `game` input (`40k`, `aos`, or both)
+
+> **Note:** Pushing code to `main` only triggers the test workflow — it never triggers a crawl or deploy.
+
+Debug artifacts (raw crawl output) are uploaded on every crawl run and retained for 30 days on failure, 7 days on success.
 
 ## Running Tests
 
@@ -195,7 +293,18 @@ Debug artifacts (raw crawl output) are uploaded on every run and retained for 7 
 npm test
 ```
 
-Tests across 5 suites (`test-crawler`, `test-report`, `test-optimizer`, `test-ai-analysis`, `test-build-site`) using the built-in `node:test` runner — no extra dependencies required.
+8 test suites using the built-in `node:test` runner — no extra test dependencies required:
+
+| Suite | What it covers |
+|---|---|
+| `test-utils` | Shared utilities: `getArg`, `parseRecord`, `extractDetachment`, `flattenLists` |
+| `test-crawler` | Pure crawler functions: faction filtering, section discovery, text parsing |
+| `test-report` | Meta report generation, detachment breakdown, crawl diff |
+| `test-optimizer` | Unit/enhancement frequency, variance, novelty flags, co-occurrence |
+| `test-ai-analysis` | API key handling, graceful degradation, placeholder generation |
+| `test-build-site` | HTML generation, JSON inlining, LLM file generation |
+| `test-rules-fetcher` | Rules parsing, caching, URL building, text conversion, FW blocklist |
+| `test-parse-rules` | Post-processing pipeline: FW filtering, daemon filtering, deduplication, validation |
 
 ## Linting
 
@@ -203,24 +312,35 @@ Tests across 5 suites (`test-crawler`, `test-report`, `test-optimizer`, `test-ai
 npm run lint
 ```
 
-Uses ESLint with Node.js/ES2022 rules. Configuration is in `.eslintrc.json`.
+Uses ESLint v9 with Node.js/ES2022 rules. Configuration is in `eslint.config.js`.
 
 ## Troubleshooting
 
 **Crawler finds 0 lists:**
-- Check `output/error-screenshot.png` and `output/error-page.html` for the page state at failure
+- Check `output/debug-screenshot.png` and `output/debug-page.html` for the page state at failure
 - The crawler exits with code 1 when 0 lists are found, which will fail the CI pipeline — this is intentional so the deploy doesn't silently overwrite the dashboard with empty data
 - Try running with `--no-headless` locally to observe the browser behaviour
 
 **Report fails with "Input file not found":**
 - Run `npm run crawl:dg` first to generate `output/army-lists-latest.json`
 
-**AI Analysis tab is empty or shows "not available":**
+**AI content not showing in dashboard:**
 - Ensure `ANTHROPIC_API_KEY` is set (locally or as a GitHub Actions secret)
-- Check the Actions log for the `Generate AI meta analysis` step — it logs the `stop_reason` and start/end of Claude's raw response if parsing fails
+- Check the Actions log for the `Generate AI meta analysis` step
 
-**AI response parsing error ("could not be parsed correctly"):**
-- Check the GitHub Actions log for the `Generate AI meta analysis` step — it will show the `stop_reason` and the first/last characters of Claude's raw response
+**AI response parsing error:**
+- If the response was cut off (`stop_reason: max_tokens`), the script automatically retries once with 1.5× the token limit
+- For other parse failures, the script retries once with the same parameters
+- Check the Actions log — it shows `stop_reason` and the first 500 chars of the raw response
+
+**Rules are stale or missing:**
+- Run `npm run fetch-rules:force` to force a fresh fetch regardless of age
+- Or trigger the `fetch-rules.yml` workflow manually from the Actions tab with `force: true`
+
+**Rules contain unexpected units (Forge World, daemon allies):**
+- Run `npm run parse-rules:dry` to see what would be filtered without changing any files
+- Run `npm run parse-rules` to apply filtering and regenerate the `.txt` file in place
+- To permanently exclude a new unit, add its wahapedia URL slug to `forgeWorldSlugs` in `config.json`
 
 ## Disclaimer
 

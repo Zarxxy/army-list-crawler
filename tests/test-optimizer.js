@@ -61,44 +61,71 @@ test('optimizer produces optimizer-latest.json', () => {
 test('optimizer output has required top-level keys', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
-  for (const key of ['meta', 'recommendation', 'concreteList', 'detachmentAnalysis', 'unitAnalysis', 'coOccurrence']) {
+  for (const key of ['meta', 'unitAnalysis', 'enhancementAnalysis', 'coOccurrence',
+    'detachmentFrequencyAnalysis', 'varianceAnalysis', 'noveltyFlags']) {
     assert.ok(key in opt, `missing key: ${key}`);
   }
 });
 
-test('recommendation faction is Death Guard', () => {
+test('detachmentFrequencyAnalysis contains Plague Company', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
-  assert.equal(opt.recommendation.faction, 'Death Guard');
+  const pc = opt.detachmentFrequencyAnalysis.find((d) => d.detachment === 'Plague Company');
+  assert.ok(pc, 'Plague Company not in detachmentFrequencyAnalysis');
+  assert.ok(pc.listCount >= 1, 'Plague Company listCount should be >= 1');
 });
 
-test('recommendation detachment is from the fixture data', () => {
+test('detachmentFrequencyAnalysis topUnits are sorted by count descending', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
-  const validDetachments = ['Plague Company', 'Inexorable Advance'];
-  assert.ok(
-    validDetachments.includes(opt.recommendation.detachment),
-    `unexpected detachment: ${opt.recommendation.detachment}`
-  );
+  for (const det of opt.detachmentFrequencyAnalysis) {
+    const counts = det.topUnits.map((u) => u.count);
+    for (let i = 1; i < counts.length; i++) {
+      assert.ok(counts[i - 1] >= counts[i],
+        `topUnits not sorted by count for ${det.detachment}`);
+    }
+  }
 });
 
-test('recommendation picks most popular detachment (Plague Company)', () => {
+test('noveltyFlags is an array', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
-  // Fixture has 4 Plague Company vs 1 Inexorable Advance
-  assert.equal(opt.recommendation.detachment, 'Plague Company');
+  assert.ok(Array.isArray(opt.noveltyFlags), 'noveltyFlags should be an array');
 });
 
-test('concreteList has units', () => {
-  runOptimizer();
+test('noveltyFlags contains Blightlord Terminators when previous file is provided', () => {
+  const PREV_FIXTURE = path.join(__dirname, 'fixtures', 'army-lists-previous.json');
+  runOptimizer(['--previous', PREV_FIXTURE]);
   const opt = readJSON('optimizer-latest.json');
-  assert.ok(opt.concreteList.units.length > 0, 'concreteList.units is empty');
+  const blt = opt.noveltyFlags.find((f) => f.name === 'Blightlord Terminators');
+  assert.ok(blt,
+    `Blightlord Terminators not in noveltyFlags: ${JSON.stringify(opt.noveltyFlags)}`);
+  assert.equal(blt.type, 'unit');
+  assert.equal(blt.detachment, 'Inexorable Advance');
 });
 
-test('concreteList detachment matches recommendation', () => {
+test('varianceAnalysis is an array', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
-  assert.equal(opt.concreteList.detachment, opt.recommendation.detachment);
+  assert.ok(Array.isArray(opt.varianceAnalysis), 'varianceAnalysis should be an array');
+});
+
+test('varianceAnalysis has Plague Company entry with contested choices', () => {
+  runOptimizer();
+  const opt = readJSON('optimizer-latest.json');
+  const pc = opt.varianceAnalysis.find((d) => d.detachment === 'Plague Company');
+  assert.ok(pc, `Plague Company not in varianceAnalysis. Entries: ${JSON.stringify(opt.varianceAnalysis.map(d => d.detachment))}`);
+  assert.ok(pc.variantChoices.length > 0, 'Plague Company should have contested choices');
+});
+
+test('varianceAnalysis Plague Company includes Cultists at 50%', () => {
+  runOptimizer();
+  const opt = readJSON('optimizer-latest.json');
+  const pc = opt.varianceAnalysis.find((d) => d.detachment === 'Plague Company');
+  const cultists = pc?.variantChoices.find((c) => c.name === 'Cultists');
+  assert.ok(cultists,
+    `Cultists not in Plague Company variantChoices: ${JSON.stringify(pc?.variantChoices.map(c => c.name))}`);
+  assert.equal(cultists.frequency, 50, `expected 50% for Cultists, got ${cultists.frequency}`);
 });
 
 test('unitAnalysis contains Mortarion (appears in all fixture lists)', () => {
@@ -106,7 +133,6 @@ test('unitAnalysis contains Mortarion (appears in all fixture lists)', () => {
   const opt = readJSON('optimizer-latest.json');
   const mortarion = opt.unitAnalysis.units.find(u => u.name === 'Mortarion');
   assert.ok(mortarion, 'Mortarion not found in unitAnalysis');
-  // Mortarion appears in all 5 lists
   assert.ok(mortarion.frequency > 0, 'Mortarion frequency should be > 0');
 });
 
@@ -115,16 +141,6 @@ test('unitAnalysis contains Plague Marines', () => {
   const opt = readJSON('optimizer-latest.json');
   const pm = opt.unitAnalysis.units.find(u => u.name === 'Plague Marines');
   assert.ok(pm, 'Plague Marines not in unitAnalysis');
-});
-
-test('detachmentAnalysis entries have required fields', () => {
-  runOptimizer();
-  const opt = readJSON('optimizer-latest.json');
-  for (const d of opt.detachmentAnalysis) {
-    for (const field of ['detachment', 'count', 'winRate']) {
-      assert.ok(field in d, `detachmentAnalysis entry missing field: ${field}`);
-    }
-  }
 });
 
 test('optimizer handles missing lists file gracefully (exit 0)', () => {
@@ -182,20 +198,10 @@ test('optimizer exits 0 with empty input and produces valid JSON', () => {
     );
     assert.equal(result.status, 0, `optimizer stderr: ${result.stderr}`);
     const opt = JSON.parse(fs.readFileSync(path.join(emptyTmp, 'optimizer-latest.json'), 'utf-8'));
-    // Empty result uses top-level totalLists (no meta wrapper)
-    assert.equal(opt.totalLists, 0);
+    assert.equal(opt.meta.totalListsAnalysed, 0, 'empty result should have meta.totalListsAnalysed = 0');
+    assert.ok(Array.isArray(opt.unitAnalysis.units), 'empty result should have unitAnalysis.units array');
+    assert.ok(Array.isArray(opt.detachmentFrequencyAnalysis), 'empty result should have detachmentFrequencyAnalysis array');
   } finally {
     fs.rmSync(emptyTmp, { recursive: true, force: true });
-  }
-});
-
-test('optimizer warlord field is null or a string (never crashes on empty warlord list)', () => {
-  const result = runOptimizer();
-  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
-  const opt = readJSON('optimizer-latest.json');
-  // concreteList is only present in a non-empty result
-  if (opt.concreteList) {
-    const warlord = opt.concreteList.warlord;
-    assert.ok(warlord === null || typeof warlord === 'string', `unexpected warlord type: ${typeof warlord}`);
   }
 });

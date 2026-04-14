@@ -1,21 +1,17 @@
 /**
  * ai-analysis.js
  *
- * Generates an AI-powered Death Guard meta analysis using the Anthropic API.
- * The model is configured via config.json (aiAnalysis.defaultModel) or --model flag.
- * Reads the crawled army lists, meta report, and optimizer
- * output, then asks Claude to produce:
+ * Generates per-list and per-detachment AI characterizations using the
+ * Anthropic API with prompt caching. Reads the crawled army lists, meta
+ * report, and optimizer output.
  *
- *   - A meta summary
- *   - A detachment tier list (S / A / B / C) with reasoning
- *   - "Best list" breakdown — key units, synergies, enhancements, full roster
- *   - Strategic advice and meta trends
+ * Output schema:
+ *   detachmentSummaries[]  — ≤150 words each: archetypes, core, new tech
+ *   listCharacterizations[] — per list: archetype, gamePlan (≤80w), synergies, techDiffs
+ *   crossDetachmentPatterns — ≤200 words: model count, indirect, character density
+ *   crawlDiff              — ≤100 words: what changed since last crawl (or null)
  *
- * Output: reports/ai-analysis-latest.json  (+ timestamped copy)
- *         reports/ai-analysis-latest.txt   (+ timestamped copy)
- *
- * The script exits with code 0 even if the API key is missing so the
- * GitHub Actions pipeline is never blocked by this step.
+ * Exits 0 even on API error so the pipeline is never blocked.
  *
  * Usage:
  *   node ai-analysis.js
@@ -24,13 +20,14 @@
  *   node ai-analysis.js --report ./reports/meta-report-latest.json
  *   node ai-analysis.js --optimizer ./reports/optimizer-latest.json
  *   node ai-analysis.js --output ./reports
- *   node ai-analysis.js --model claude-haiku-4-5
+ *   node ai-analysis.js --model claude-opus-4-6
  */
 
 'use strict';
 
 const fs   = require('fs');
 const path = require('path');
+const { flattenLists, getArg } = require('./utils');
 
 const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 
@@ -40,17 +37,21 @@ const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json')
 
 const args = process.argv.slice(2);
 
-function getArg(flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
+const listsFile  = getArg(args, '--lists')      || path.join(__dirname, 'output',  'army-lists-latest.json');
+const reportFile = getArg(args, '--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
+const optimFile  = getArg(args, '--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
+const outputDir  = getArg(args, '--output')     || path.join(__dirname, 'reports');
+const rulesDir   = getArg(args, '--rules-dir')  || path.join(__dirname, 'rules');
+const modelId    = getArg(args, '--model')      || appConfig.aiAnalysis.defaultModel;
+const _rawMaxTokens = parseInt(getArg(args, '--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
+const maxTokens = Number.isFinite(_rawMaxTokens) && _rawMaxTokens > 0 ? _rawMaxTokens : appConfig.aiAnalysis.maxTokens;
 
-const listsFile  = getArg('--lists')      || path.join(__dirname, 'output',  'army-lists-latest.json');
-const reportFile = getArg('--report')     || path.join(__dirname, 'reports', 'meta-report-latest.json');
-const optimFile  = getArg('--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
-const outputDir  = getArg('--output')     || path.join(__dirname, 'reports');
-const modelId    = getArg('--model')      || appConfig.aiAnalysis.defaultModel;
-const maxTokens  = parseInt(getArg('--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
+const outputLimits = appConfig.aiAnalysis.outputLimits || {
+  wordsPerList: 80,
+  wordsPerDetachmentSummary: 150,
+  wordsCrossDetachment: 200,
+  wordsCrawlDiff: 100,
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,190 +80,211 @@ function emptyResult(faction, reason) {
     faction: faction || 'Death Guard',
     skipped: true,
     reason,
-    metaSummary: null,
-    detachmentTierList: [],
-    bestListAnalysis: null,
-    strategicAdvice: null,
-    metaTrends: null,
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheCreationTokens: 0,
+    cacheReadTokens: 0,
+    detachmentSummaries: [],
+    listCharacterizations: [],
+    crossDetachmentPatterns: null,
+    crawlDiff: null,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Build the prompt
+// Rules document loader
 // ---------------------------------------------------------------------------
 
-function buildPrompt(metaReport, optimizerReport) {
-  const faction     = (metaReport.meta && metaReport.meta.faction) || 'Death Guard';
-  const totalLists  = (metaReport.meta && metaReport.meta.totalLists) || 0;
-  const detachments = (metaReport.detachmentBreakdown || []).filter(d => d.detachment !== 'Unknown');
-  const topPlayers  = (metaReport.topPlayers || []).slice(0, 10);
-  const undefeated  = (metaReport.undefeatedLists || []);
+function loadRulesDocument(dir) {
+  const rfConfig = appConfig.rulesFetcher || {};
+  const defaultFaction = rfConfig.defaultFaction || 'death-guard';
+  const defaultEdition = rfConfig.defaultEdition || '10ed';
+  const candidates = [
+    path.join(dir, `${defaultFaction}-latest.txt`),
+    path.join(dir, `${defaultFaction}-${defaultEdition}.txt`),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      const text = fs.readFileSync(p, 'utf-8');
+      console.log(`Loaded rules document: ${p} (${text.length} chars)`);
+      return text;
+    }
+  }
+  console.log('No rules document found — proceeding without rules context.');
+  return null;
+}
 
-  const unitAnalysis = optimizerReport?.unitAnalysis?.units        || [];
-  const enhancements = optimizerReport?.enhancementAnalysis?.enhancements || [];
-  const coOccurrence = optimizerReport?.coOccurrence               || [];
-  const concreteList = optimizerReport?.concreteList               || null;
+// ---------------------------------------------------------------------------
+// Prompt builders
+// ---------------------------------------------------------------------------
+
+function buildSystemPromptBlocks(faction, rulesText) {
+  const wList  = outputLimits.wordsPerList;
+  const wDet   = outputLimits.wordsPerDetachmentSummary;
+  const wCross = outputLimits.wordsCrossDetachment;
+  const wDiff  = outputLimits.wordsCrawlDiff;
+
+  const instructionsText = [
+    `You are an expert Warhammer 40,000 competitive meta analyst specialising in ${faction}.`,
+    '',
+    '=== ANALYSIS RULES — FOLLOW STRICTLY ===',
+    '',
+    'DATASET CONTEXT: This dataset contains ONLY top-finishing tournament lists (1st/2nd place).',
+    'Win rates are inflated vs. general field. Do NOT reference win rate, win %, or wins/losses anywhere.',
+    '',
+    'RULE 1 — NO WIN RATES: All claims must be grounded in list count, unit inclusion rate, or co-occurrence.',
+    '',
+    `RULE 2 — detachmentSummaries: One entry per detachment listed. ≤${wDet} words each.`,
+    'Cover: current archetypes present, which units are core (>60% inclusion), what is new or contested.',
+    '',
+    'RULE 3 — listCharacterizations: One entry per list. listId = "playerName|event|date".',
+    `gamePlan: ≤${wList} words describing how this list intends to play.`,
+    'techDiffs: what this list does differently from others in the same detachment.',
+    'If only 1 list exists for a detachment, techDiffs = "Only list for this detachment."',
+    '',
+    `RULE 4 — crossDetachmentPatterns: ≤${wCross} words. Discuss model count trends, indirect fire`,
+    'prevalence, character density, and board-presence themes across all detachments in the data.',
+    '',
+    `RULE 5 — crawlDiff: ≤${wDiff} words. Summarise what is new since the previous crawl.`,
+    'If crawlDiff data is null, set this field to null in your response.',
+    '',
+    'IMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no trailing text.',
+    'Start your response with { and end with }.',
+  ].join('\n');
+
+  const blocks = [];
+
+  // Rules reference block — cached first (large, rarely changes)
+  if (rulesText) {
+    blocks.push({
+      type: 'text',
+      text: rulesText,
+      cache_control: { type: 'ephemeral' },
+    });
+  }
+
+  // Analysis instructions block — also cached (changes rarely)
+  blocks.push({
+    type: 'text',
+    text: instructionsText,
+    cache_control: { type: 'ephemeral' },
+  });
+
+  return blocks;
+}
+
+function buildUserPrompt(listsData, metaReport, optimizerReport) {
+  const faction    = metaReport.meta?.faction   || 'Death Guard';
+  const totalLists = metaReport.meta?.totalLists || 0;
+  const detFreq    = optimizerReport?.detachmentFrequencyAnalysis || [];
+  const crawlDiff  = metaReport.crawlDiff || null;
+  const lists      = listsData ? flattenLists(listsData) : [];
 
   const lines = [];
 
-  lines.push(`You are an expert Warhammer 40,000 competitive meta analyst specialising in ${faction}.`);
-  lines.push(`You have been given real tournament data. Analyse it and produce an extensive, expert-level meta report.`);
-  lines.push('');
-  lines.push('=== ANALYSIS RULES — FOLLOW STRICTLY ===');
-  lines.push('');
-  lines.push('DATASET CONTEXT: This dataset contains ONLY top-finishing tournament lists (1st and 2nd');
-  lines.push('place results). Win rates are artificially inflated and are NOT representative of general');
-  lines.push('field performance.');
-  lines.push('');
-  lines.push('RULE 1 — MINIMUM SAMPLE THRESHOLD:');
-  lines.push('Any detachment with listCount < 3 → tier = "Insufficient data", insufficientData = true.');
-  lines.push('A single strong result is no signal at all.');
-  lines.push('');
-  lines.push('RULE 2 — TIERS ARE BASED ON POPULARITY AND UNDEFEATED RUNS ONLY:');
-  lines.push('Do NOT use win rate to assign tiers. Tier is determined by:');
-  lines.push('  • list count (how many top players chose this detachment)');
-  lines.push('  • number of undefeated runs');
-  lines.push('A detachment with 1 list and 100% WR is NOT tier-able. A detachment with 16 lists');
-  lines.push('and 4 undefeated runs is S-tier regardless of its win rate.');
-  lines.push('');
-  lines.push('RULE 3 — TIER REASONING FORMAT:');
-  lines.push('State: "<Tier> — <N> top-finishing lists, <U> undefeated runs[, brief tactical note]"');
-  lines.push('NEVER mention win rate in tier reasoning or tier descriptions.');
-  lines.push('Example: "S — 16 top-finishing lists, 4 undefeated runs — dominant presence across events."');
-  lines.push('Example: "Insufficient data — n=1; a single list cannot be evaluated."');
-  lines.push('');
-  lines.push('RULE 4 — META SUMMARY FRAMING:');
-  lines.push('Lead with player choice and undefeated runs, not win rates.');
-  lines.push('Use: "X% of top-finishing lists used this detachment" and "produced Y undefeated runs".');
-  lines.push('NEVER write "X wins Y% of games" or frame win rate as a measure of detachment quality.');
-  lines.push('');
-  lines.push('RULE 5 — KEY UNITS: INCLUSION RATE ONLY:');
-  lines.push('For key units, use frequency (how often a unit appears across top-finishing lists).');
-  lines.push('DO NOT reference win correlation — it is a circular metric in this dataset.');
-  lines.push('Framing: "Appears in X% of top-finishing lists" not "correlated with wins."');
-  lines.push('');
-  lines.push('RULE 6 — META TRENDS: ONLY STATE WHAT THE DATA DIRECTLY SHOWS:');
-  lines.push('ONLY make statements about list count distribution.');
-  lines.push('Example: "Virulent Vectorium accounts for 64% of top-finishing lists, making it the');
-  lines.push('dominant detachment by player choice." — That is all that can honestly be said.');
-  lines.push('Do NOT speculate about "rising/falling" based on win rates or infer optimization trends.');
-  lines.push('');
-  lines.push('RULE 7 — SYNERGY DESCRIPTIONS: TACTICAL, NOT CAUSAL:');
-  lines.push('Describe what paired units do together tactically.');
-  lines.push('Say "top players frequently pair these units" — NOT "this pairing is why they win."');
-  lines.push('');
-  lines.push('=== END ANALYSIS RULES ===');
-  lines.push('');
-  lines.push('=== TOURNAMENT DATA ===');
+  // Faction overview
+  lines.push('=== FACTION DATA ===');
   lines.push(`Faction: ${faction}`);
-  lines.push(`Total tournament lists analysed: ${totalLists}`);
-  lines.push(`Undefeated finishes: ${undefeated.length}`);
-  if (metaReport.meta?.crawledAt) lines.push(`Data crawled: ${metaReport.meta.crawledAt}`);
+  lines.push(`Total lists in dataset: ${totalLists}`);
+  lines.push(`Data crawled: ${metaReport.meta?.crawledAt || 'unknown'}`);
   lines.push('');
 
-  if (detachments.length > 0) {
-    lines.push('--- DETACHMENT BREAKDOWN ---');
-    lines.push('  [NOTE: All lists are top-finishing results — win rates are elevated vs. general field]');
-    for (const d of detachments) {
-      const wr = d.winRate !== null && d.winRate !== undefined ? `${d.winRate}% WR (n=${d.count})` : 'win rate N/A';
-      lines.push(`  ${d.detachment}: ${d.count} lists (${d.percentage}%), ${wr}, ${d.undefeatedCount} undefeated`);
+  // Crawl diff
+  if (crawlDiff) {
+    lines.push('=== CRAWL DIFF ===');
+    lines.push(`New lists since last crawl: ${(crawlDiff.newLists || []).length}`);
+    lines.push(`Dropped lists: ${(crawlDiff.droppedLists || []).length}`);
+    if ((crawlDiff.newTechChoices || []).length > 0) {
+      lines.push(`New tech choices: ${crawlDiff.newTechChoices.slice(0, 10).join(', ')}`);
     }
     lines.push('');
   }
 
-  const topUnits = unitAnalysis.filter(u => u.appearances > 0).slice(0, 20);
-  if (topUnits.length > 0) {
-    lines.push('--- TOP UNITS (by inclusion rate across top-finishing lists) ---');
-    for (const u of topUnits) {
-      lines.push(`  ${u.name}: ${u.frequency}% of top-finishing lists (n=${totalLists}), ~${u.typicalPoints}pts, avg copies: ${u.avgCopies}`);
+  // Detachment frequency
+  if (detFreq.length > 0) {
+    lines.push('=== DETACHMENT FREQUENCY ===');
+    for (const det of detFreq) {
+      lines.push(`${det.detachment} (${det.listCount} lists):`);
+      for (const u of det.topUnits.slice(0, 8)) {
+        lines.push(`  Unit: ${u.name} — ${u.count}x (${u.frequency}%)`);
+      }
+      for (const e of det.topEnhancements.slice(0, 4)) {
+        lines.push(`  Enhancement: ${e.name} — ${e.count}x (${e.frequency}%)`);
+      }
+      lines.push('');
     }
-    lines.push('');
   }
 
-  if (enhancements.length > 0) {
-    lines.push('--- TOP ENHANCEMENTS ---');
-    for (const e of enhancements.slice(0, 8)) {
-      lines.push(`  ${e.name}: ${e.frequency}% usage (${e.appearances} times)`);
+  // List texts (truncated to 400 chars each)
+  if (lists.length > 0) {
+    lines.push('=== LIST TEXTS (truncated to 400 chars) ===');
+    for (const list of lists) {
+      const listId = `${list.playerName || list.player || ''}|${list.event || ''}|${list.date || ''}`;
+      const text = (list.armyListText || '').slice(0, 400);
+      lines.push(`[${listId}]`);
+      lines.push(text || '(no list text)');
+      lines.push('');
     }
-    lines.push('');
   }
 
-  if (coOccurrence.length > 0) {
-    lines.push('--- UNIT SYNERGIES (most common pairings) ---');
-    for (const c of coOccurrence.slice(0, 10)) {
-      lines.push(`  ${c.pair}: appeared together ${c.count}x (${c.frequency}%)`);
-    }
-    lines.push('');
-  }
+  // Output schema
+  const listIds = lists.map((l) =>
+    `${l.playerName || l.player || ''}|${l.event || ''}|${l.date || ''}`
+  );
+  const detachmentNames = detFreq.length > 0
+    ? detFreq.map((d) => d.detachment)
+    : (metaReport.detachmentBreakdown || [])
+        .filter((d) => d.detachment !== 'Unknown')
+        .map((d) => d.detachment);
 
-  if (topPlayers.length > 0) {
-    lines.push('--- TOP PLAYERS ---');
-    for (const p of topPlayers.slice(0, 8)) {
-      lines.push(`  ${p.player}: ${p.wins}W-${p.losses}L (${p.winRate}% WR), detachments: ${(p.detachments || []).join(', ')}`);
-    }
-    lines.push('');
-  }
-
-  if (undefeated.length > 0) {
-    lines.push('--- UNDEFEATED LISTS ---');
-    for (const u of undefeated.slice(0, 10)) {
-      lines.push(`  ${u.player} — ${u.record} — ${u.detachment} — ${u.event}`);
-    }
-    lines.push('');
-  }
-
-  if (concreteList?.units?.length > 0) {
-    lines.push('--- OPTIMIZER RECOMMENDED LIST ---');
-    lines.push(`  Detachment: ${concreteList.detachment}`);
-    lines.push(`  Total points: ${concreteList.totalPoints}pts`);
-    if (concreteList.warlord) lines.push(`  Warlord: ${concreteList.warlord}`);
-    if (concreteList.enhancements?.length) lines.push(`  Enhancements: ${concreteList.enhancements.join(', ')}`);
-    lines.push('  Units:');
-    for (const u of concreteList.units) {
-      lines.push(`    ${u.name} — ${u.points}pts (${u.metaFrequency}% meta, tier: ${u.tier})`);
-    }
-    lines.push('');
-  }
-
-  lines.push('=== END DATA ===');
-  lines.push('');
-  lines.push('Produce a comprehensive Death Guard meta analysis. Be detailed, specific, and reference the actual data.');
-  lines.push('');
-  lines.push('IMPORTANT: Respond with ONLY valid JSON. No markdown fences, no preamble, no text before or after the JSON object. Start your response with { and end with }.');
-  lines.push('');
-  lines.push('Use this exact JSON structure (keep all string values concise — aim for the whole response to stay under 3000 tokens):');
+  const wList  = outputLimits.wordsPerList;
+  const wDet   = outputLimits.wordsPerDetachmentSummary;
+  const wCross = outputLimits.wordsCrossDetachment;
+  const wDiff  = outputLimits.wordsCrawlDiff;
+  lines.push('=== REQUIRED OUTPUT SCHEMA ===');
   lines.push(JSON.stringify({
-    generatedAt: '<ISO timestamp>',
-    model: '<model name>',
-    faction,
-    metaSummary: '<2-3 paragraphs. Lead with player choice: "X% of top-finishing lists used this detachment" and "produced Y undefeated runs". Do NOT lead with win rates.>',
-    detachmentTierList: [
-      {
-        tier: 'S|A|B|C|Insufficient data',
-        detachment: '<name>',
-        reasoning: '<tier based on list count and undefeated runs ONLY — NO win rate. Format: "S — 16 top-finishing lists, 4 undefeated runs — dominant presence across events.">',
-        listCount: 0,
-        undefeated: 0,
-        insufficientData: false,
-        sampleNote: '<required when listCount < 3: explain why this cannot be evaluated, null otherwise>',
-      },
-    ],
-    bestListAnalysis: {
-      detachment: '<name>',
-      overview: '<1-2 paragraphs on why top players gravitate to this archetype — do NOT frame around win rate>',
-      keyUnits: [{ name: '<unit>', role: '<tactical role — do NOT reference win correlation>', frequency: '<X% of top-finishing lists include this unit>' }],
-      keySynergies: [{ units: '<unit1 + unit2>', explanation: '<what they do together tactically; note top players frequently pair them — do NOT say "this is why they win">' }],
-      enhancements: '<key enhancements and why, 1-2 sentences>',
-    },
-    strategicAdvice: {
-      overview: '<1-2 paragraphs on how to play Death Guard>',
-      tips: ['<tip 1>', '<tip 2>', '<tip 3>', '<tip 4>', '<tip 5>'],
-      matchupAdvice: '<1-2 sentences on favourable/unfavourable matchups>',
-    },
-    metaTrends: '<1-2 sentences on list count distribution ONLY — e.g. "Virulent Vectorium accounts for X% of top-finishing lists." No speculation about win rate trends or optimization.>',
+    detachmentSummaries: detachmentNames.map((d) => ({
+      detachment: d,
+      summary: `<≤${wDet} words: archetypes present, core units (>60%), new or contested picks>`,
+    })),
+    listCharacterizations: listIds.map((id) => ({
+      listId: id,
+      archetype: '<short label e.g. "Daemon Prince spam">',
+      gamePlan: `<≤${wList} words: how this list plays>`,
+      keySynergies: '<brief: 1-2 key unit interactions>',
+      techDiffs: '<what differs from other lists in same detachment>',
+    })),
+    crossDetachmentPatterns: `<≤${wCross} words: model count, indirect fire, character density trends>`,
+    crawlDiff: crawlDiff ? `<≤${wDiff} words: what changed since last crawl>` : null,
   }, null, 2));
 
   return lines.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// JSON extractor (unchanged — battle-tested)
+// ---------------------------------------------------------------------------
+
+function extractJSON(raw) {
+  const trimmed = raw.trim();
+
+  // 1. Bare parse (ideal)
+  try { return JSON.parse(trimmed); } catch {}
+
+  // 2. Markdown fence
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    try { return JSON.parse(fenceMatch[1].trim()); } catch {}
+  }
+
+  // 3. Outermost { … }
+  const firstBrace = trimmed.indexOf('{');
+  const lastBrace  = trimmed.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    try { return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)); } catch {}
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -275,73 +297,62 @@ function renderText(result) {
   const lines = [];
 
   lines.push(hr);
-  lines.push(`  ${result.faction || 'DEATH GUARD'} — AI META ANALYSIS`);
+  lines.push(`  ${result.faction || 'ARMY'} — AI META ANALYSIS`);
   lines.push(hr);
   lines.push(`  Generated by: ${result.model || 'Claude AI'}`);
   lines.push(`  Timestamp:    ${result.generatedAt || new Date().toISOString()}`);
+  if (result.inputTokens !== undefined) {
+    lines.push(`  Tokens — input: ${result.inputTokens}, output: ${result.outputTokens}, ` +
+      `cache_creation: ${result.cacheCreationTokens}, cache_read: ${result.cacheReadTokens}`);
+  }
   lines.push('');
 
-  if (result.metaSummary) {
-    lines.push(hr2); lines.push('  META SUMMARY'); lines.push(hr2); lines.push('');
-    for (const p of result.metaSummary.split('\n')) lines.push(`  ${p}`);
+  // Detachment summaries
+  if (result.detachmentSummaries?.length > 0) {
+    lines.push(hr2);
+    lines.push('  DETACHMENT SUMMARIES');
+    lines.push(hr2);
+    for (const ds of result.detachmentSummaries) {
+      lines.push('');
+      lines.push(`  [${ds.detachment}]`);
+      for (const p of (ds.summary || '').split('\n')) lines.push(`  ${p}`);
+    }
     lines.push('');
   }
 
-  if (result.detachmentTierList?.length) {
-    lines.push(hr2); lines.push('  DETACHMENT TIER LIST'); lines.push(hr2);
-    lines.push('  NOTE: Dataset contains top-finishing lists only — WR figures are elevated vs. general field.');
+  // Cross-detachment patterns
+  if (result.crossDetachmentPatterns) {
+    lines.push(hr2);
+    lines.push('  CROSS-DETACHMENT PATTERNS');
+    lines.push(hr2);
     lines.push('');
-    for (const d of result.detachmentTierList) {
-      const tierLabel = d.insufficientData ? 'INSUFF' : (d.tier || '?');
-      lines.push(`  [${tierLabel}] ${d.detachment}  —  Lists: ${d.listCount}  |  Undefeated: ${d.undefeated}`);
-      if (d.reasoning) lines.push(`      ${d.reasoning}`);
-      if (d.sampleNote) lines.push(`      ⚠ ${d.sampleNote}`);
-      lines.push('');
-    }
-  }
-
-  if (result.bestListAnalysis) {
-    const bla = result.bestListAnalysis;
-    lines.push(hr2); lines.push(`  BEST LIST ANALYSIS — ${bla.detachment || ''}`); lines.push(hr2); lines.push('');
-    for (const p of (bla.overview || '').split('\n')) lines.push(`  ${p}`);
+    for (const p of result.crossDetachmentPatterns.split('\n')) lines.push(`  ${p}`);
     lines.push('');
-    if (bla.keyUnits?.length) {
-      lines.push('  Key Units:');
-      for (const u of bla.keyUnits) lines.push(`    ${(u.name || '').padEnd(35)} [${u.frequency}] — ${u.role}`);
-      lines.push('');
-    }
-    if (bla.keySynergies?.length) {
-      lines.push('  Key Synergies:');
-      for (const s of bla.keySynergies) { lines.push(`    ${s.units}`); lines.push(`      ${s.explanation}`); }
-      lines.push('');
-    }
-    if (bla.enhancements) { lines.push(`  Enhancements: ${bla.enhancements}`); lines.push(''); }
-    if (bla.fullRecommendedList) {
-      lines.push('  Recommended Army List:');
-      for (const l of bla.fullRecommendedList.split('\n')) lines.push(`    ${l}`);
-      lines.push('');
-    }
   }
 
-  if (result.strategicAdvice) {
-    const sa = result.strategicAdvice;
-    lines.push(hr2); lines.push('  STRATEGIC ADVICE'); lines.push(hr2); lines.push('');
-    if (sa.overview) { for (const p of sa.overview.split('\n')) lines.push(`  ${p}`); lines.push(''); }
-    if (sa.tips?.length) {
-      lines.push('  Tips:');
-      for (const tip of sa.tips) lines.push(`    • ${tip}`);
-      lines.push('');
-    }
-    if (sa.matchupAdvice) {
-      lines.push('  Matchup Advice:');
-      for (const p of sa.matchupAdvice.split('\n')) lines.push(`    ${p}`);
-      lines.push('');
-    }
+  // Crawl diff summary
+  if (result.crawlDiff) {
+    lines.push(hr2);
+    lines.push('  SINCE LAST CRAWL');
+    lines.push(hr2);
+    lines.push('');
+    for (const p of result.crawlDiff.split('\n')) lines.push(`  ${p}`);
+    lines.push('');
   }
 
-  if (result.metaTrends) {
-    lines.push(hr2); lines.push('  META TRENDS'); lines.push(hr2); lines.push('');
-    for (const p of result.metaTrends.split('\n')) lines.push(`  ${p}`);
+  // List characterizations (first 5 shown)
+  if (result.listCharacterizations?.length > 0) {
+    lines.push(hr2);
+    lines.push('  LIST CHARACTERIZATIONS (sample)');
+    lines.push(hr2);
+    for (const lc of result.listCharacterizations.slice(0, 5)) {
+      lines.push('');
+      lines.push(`  [${lc.listId}]`);
+      lines.push(`  Archetype:  ${lc.archetype}`);
+      if (lc.gamePlan)     lines.push(`  Game Plan:  ${lc.gamePlan}`);
+      if (lc.keySynergies) lines.push(`  Synergies:  ${lc.keySynergies}`);
+      if (lc.techDiffs)    lines.push(`  Tech diffs: ${lc.techDiffs}`);
+    }
     lines.push('');
   }
 
@@ -364,6 +375,7 @@ async function main() {
 
   const metaReport      = readJSON(reportFile);
   const optimizerReport = readJSON(optimFile);
+  const listsData       = readJSON(listsFile);
 
   if (!metaReport) {
     console.warn(`Meta report not found at ${reportFile}.`);
@@ -388,92 +400,127 @@ async function main() {
     process.exit(0);
   }
 
-  // SDK handles retries automatically (default max_retries=2); bump to 4 for robustness
-  const client = new Anthropic({ apiKey, maxRetries: 4 });
+  const client  = new Anthropic({ apiKey, maxRetries: 4 });
   const faction = metaReport.meta?.faction || 'Death Guard';
-  const prompt  = buildPrompt(metaReport, optimizerReport);
 
-  console.log(`Sending prompt to ${modelId} (max_tokens: ${maxTokens})…`);
+  const rulesText      = loadRulesDocument(rulesDir);
+  const systemBlocks   = buildSystemPromptBlocks(faction, rulesText);
+  const userPrompt     = buildUserPrompt(listsData || { sections: {} }, metaReport, optimizerReport);
+
+  console.log(`Sending request to ${modelId} (max_tokens: ${maxTokens})…`);
   console.log(`Data: ${metaReport.meta?.totalLists || 0} lists, ${(metaReport.detachmentBreakdown || []).length} detachments`);
+  console.log(`System prompt blocks: ${systemBlocks.length} (rules: ${rulesText ? 'yes' : 'no'})`);
 
-  let rawContent;
-  try {
-    // Use streaming — safe for long prompts and large outputs, avoids HTTP timeouts
-    const stream = client.messages.stream({
+  // Helper to make one API call
+  async function callAPI() {
+    return client.messages.create({
       model: modelId,
       max_tokens: maxTokens,
-      messages: [{ role: 'user', content: prompt }],
+      system: systemBlocks,
+      messages: [{ role: 'user', content: userPrompt }],
     });
+  }
 
-    // Stream progress to console so CI logs show activity
-    stream.on('text', text => process.stdout.write(text));
-
-    const message = await stream.finalMessage();
-    rawContent = message.content.find(b => b.type === 'text')?.text || '';
-    const stopReason = message.stop_reason;
-    console.log(`\nClaude responded (${rawContent.length} chars, ${message.usage.output_tokens} output tokens, stop_reason: ${stopReason}).`);
-    if (stopReason === 'max_tokens') {
-      console.warn('WARNING: Response was cut off at max_tokens limit — JSON may be truncated.');
-    }
+  let message;
+  try {
+    message = await callAPI();
   } catch (err) {
     console.error('Anthropic API call failed:', err.message);
     writeOutput(emptyResult(faction, `API error: ${err.message}`), `AI analysis failed: ${err.message}\n`);
     process.exit(0);
   }
 
-  // Extract the JSON object from Claude's response.
-  // Claude sometimes wraps it in markdown fences or adds preamble text.
-  function extractJSON(raw) {
-    const trimmed = raw.trim();
+  const rawContent = message.content.find((b) => b.type === 'text')?.text || '';
+  const usage = { ...message.usage };
 
-    // 1. Try bare parse first (ideal case)
-    try { return JSON.parse(trimmed); } catch {}
+  console.log(`Response: ${rawContent.length} chars, stop_reason: ${message.stop_reason}`);
+  console.log(`Tokens — input: ${usage.input_tokens}, output: ${usage.output_tokens}, ` +
+    `cache_creation: ${usage.cache_creation_input_tokens || 0}, cache_read: ${usage.cache_read_input_tokens || 0}`);
 
-    // 2. Markdown fence: ```json ... ``` or ``` ... ```
-    const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) {
-      try { return JSON.parse(fenceMatch[1].trim()); } catch {}
-    }
-
-    // 3. Extract the outermost { … } block (handles preamble/postamble text)
-    const firstBrace = trimmed.indexOf('{');
-    const lastBrace  = trimmed.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace > firstBrace) {
-      try { return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)); } catch {}
-    }
-
-    return null;
+  if (message.stop_reason === 'max_tokens') {
+    console.warn('WARNING: Response was cut off at max_tokens limit — JSON may be truncated.');
   }
 
   let result = extractJSON(rawContent);
+
+  // Retry with a higher token limit when the response was truncated
+  if (!result && message.stop_reason === 'max_tokens') {
+    const bumpedTokens = Math.ceil(maxTokens * 1.5);
+    console.warn(`Response truncated — retrying with max_tokens=${bumpedTokens}…`);
+    try {
+      const retry = await client.messages.create({
+        model: modelId,
+        max_tokens: bumpedTokens,
+        system: systemBlocks,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+      const retryContent = retry.content.find((b) => b.type === 'text')?.text || '';
+      result = extractJSON(retryContent);
+      if (retry.usage) {
+        usage.input_tokens                = (usage.input_tokens                || 0) + (retry.usage.input_tokens                || 0);
+        usage.output_tokens               = (usage.output_tokens               || 0) + (retry.usage.output_tokens               || 0);
+        usage.cache_creation_input_tokens = (usage.cache_creation_input_tokens || 0) + (retry.usage.cache_creation_input_tokens || 0);
+        usage.cache_read_input_tokens     = (usage.cache_read_input_tokens     || 0) + (retry.usage.cache_read_input_tokens     || 0);
+      }
+    } catch (retryErr) {
+      console.error('Truncation retry failed:', retryErr.message);
+    }
+  }
+
+  // Retry once on parse failure (non-truncation cases)
   if (!result) {
-    console.error('Failed to parse Claude response as JSON.');
-    console.error('Raw response — first 500 chars:', rawContent.slice(0, 500));
-    console.error('Raw response — last  300 chars:', rawContent.slice(-300));
+    console.warn('Failed to parse response as JSON. Retrying once…');
+    try {
+      const retry = await callAPI();
+      const retryContent = retry.content.find((b) => b.type === 'text')?.text || '';
+      result = extractJSON(retryContent);
+      // Accumulate token usage across both calls
+      if (retry.usage) {
+        usage.input_tokens             = (usage.input_tokens             || 0) + (retry.usage.input_tokens             || 0);
+        usage.output_tokens            = (usage.output_tokens            || 0) + (retry.usage.output_tokens            || 0);
+        usage.cache_creation_input_tokens = (usage.cache_creation_input_tokens || 0) + (retry.usage.cache_creation_input_tokens || 0);
+        usage.cache_read_input_tokens  = (usage.cache_read_input_tokens  || 0) + (retry.usage.cache_read_input_tokens  || 0);
+      }
+    } catch (retryErr) {
+      console.error('Retry failed:', retryErr.message);
+    }
+  }
+
+  if (!result) {
+    console.error('Failed to parse AI response as JSON after retry.');
+    console.error('Raw — first 500 chars:', rawContent.slice(0, 500));
     result = {
       generatedAt: new Date().toISOString(),
       model: modelId,
       faction,
       parseError: true,
-      rawResponse: rawContent.slice(0, 2000), // truncated for diagnostics only
-      metaSummary: null,
-      detachmentTierList: [],
-      bestListAnalysis: null,
-      strategicAdvice: null,
-      metaTrends: null,
+      rawResponse: rawContent.slice(0, 2000),
+      detachmentSummaries: [],
+      listCharacterizations: [],
+      crossDetachmentPatterns: null,
+      crawlDiff: null,
     };
   }
 
-  result.generatedAt = result.generatedAt || new Date().toISOString();
-  result.model       = result.model       || modelId;
+  // Ensure required top-level fields
+  result.generatedAt         = result.generatedAt || new Date().toISOString();
+  result.model               = result.model       || modelId;
+  result.faction             = result.faction     || faction;
+  result.inputTokens         = usage.input_tokens                    || 0;
+  result.outputTokens        = usage.output_tokens                   || 0;
+  result.cacheCreationTokens = usage.cache_creation_input_tokens     || 0;
+  result.cacheReadTokens     = usage.cache_read_input_tokens         || 0;
 
   const textOutput = renderText(result);
   console.log('\n' + textOutput);
   writeOutput(result, textOutput);
-  console.log(`\nAI analysis saved to ${path.join(outputDir, 'ai-analysis-latest.json')}`);
+
+  console.log(`\nToken usage — input: ${result.inputTokens}, output: ${result.outputTokens}, ` +
+    `cache_creation: ${result.cacheCreationTokens}, cache_read: ${result.cacheReadTokens}`);
+  console.log(`AI analysis saved to ${path.join(outputDir, 'ai-analysis-latest.json')}`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Unhandled error in ai-analysis.js:', err);
   process.exit(0); // Always exit 0 so the pipeline continues
 });

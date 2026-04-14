@@ -1,6 +1,16 @@
 {
   "crawler": {
     "baseUrl": "https://listhammer.info",
+    "timeouts": {
+      "VIEWPORT_WIDTH": 1920,
+      "VIEWPORT_HEIGHT": 1080,
+      "NAV_TIMEOUT_MS": 60000,
+      "JS_RENDER_WAIT_MS": 3000,
+      "CF_CHALLENGE_WAIT_MS": 10000,
+      "SELECTOR_TIMEOUT_MS": 10000,
+      "SCROLL_SETTLE_MS": 500,
+      "DEFAULT_DELAY_MS": 1500
+    },
     "knownFactionPatterns": [
       "death guard", "space marine", "tyranid", "ork", "eldar", "aeldari",
       "necron", "tau", "t'au", "chaos", "imperial", "adeptus", "astra",
@@ -24,7 +34,57 @@
     ]
   },
   "aiAnalysis": {
-    "defaultModel": "claude-opus-4-5",
-    "maxTokens": 8192
+    "defaultModel": "claude-opus-4-6",
+    "maxTokens": 8192,
+    "outputLimits": {
+      "wordsPerList": 80,
+      "wordsPerDetachmentSummary": 150,
+      "wordsCrossDetachment": 200,
+      "wordsCrawlDiff": 100
+    }
+  },
+  "rulesFetcher": {
+    "wahapediaBase": "https://wahapedia.ru",
+    "defaultFaction": "death-guard",
+    "defaultEdition": "10ed",
+    "freshnessDays": 7,
+    "maxTxtChars": 180000,
+    "timeouts": {
+      "NAV_TIMEOUT_MS": 60000,
+      "JS_RENDER_WAIT_MS": 3000,
+      "CF_CHALLENGE_WAIT_MS": 10000,
+      "PAGE_DELAY_MS": 2000,
+      "VIEWPORT_WIDTH": 1920,
+      "VIEWPORT_HEIGHT": 1080
+    },
+    "forgeWorldSlugs": [
+      "Cerberus",
+      "Chaos-Thunderhawk",
+      "Deredeo-Dreadnought",
+      "Falchion",
+      "Fellblade",
+      "Fire-Raptor-Gunship",
+      "Gellerpox-Infected",
+      "Greater-Blight-Drone",
+      "Hell-Blade",
+      "Hell-Talon",
+      "Kratos",
+      "Land-Raider-Achilles",
+      "Land-Raider-Proteus",
+      "Leviathan-Dreadnought",
+      "Mastodon",
+      "Mutoid-Vermin",
+      "Rapier-Carrier",
+      "Relic-Contemptor-Dreadnought",
+      "Sicaran-Battle-Tank",
+      "Sicaran-Punisher",
+      "Sicaran-Venator",
+      "Sokar-pattern-Stormbird",
+      "Spartan",
+      "Storm-Eagle-Gunship",
+      "Typhon",
+      "Whirlwind-Scorpius",
+      "Xiphon-Interceptor"
+    ]
   }
 }
