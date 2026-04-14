@@ -24,7 +24,8 @@ function getArg(flag) {
 const reportsDir = getArg('--reports-dir') || path.join(__dirname, 'reports');
 const docsDir    = getArg('--docs-dir')    || path.join(__dirname, 'docs');
 const listsFile  = getArg('--lists-file')  || path.join(__dirname, 'output', 'army-lists-latest.json');
-const rulesFile  = getArg('--rules-file')  || path.join(__dirname, 'rules', 'death-guard-latest.json');
+const rulesFile    = getArg('--rules-file')    || path.join(__dirname, 'rules', 'death-guard-latest.json');
+const enrichedFile = getArg('--enriched-file') || path.join(__dirname, 'reports', 'enriched-rules-latest.json');
 const dataDir    = path.join(docsDir, 'data');
 const templatePath = path.join(docsDir, 'template.html');
 const outputPath   = path.join(docsDir, 'index.html');
@@ -237,6 +238,17 @@ function main() {
     console.warn(`  Warning: rules file not found at ${rulesFile} — run "npm run fetch-rules" first`);
   }
 
+  // Enriched rules (cross-referenced rules + optimizer data)
+  let enrichedJSON = 'null';
+  if (fs.existsSync(enrichedFile)) {
+    enrichedJSON = fs.readFileSync(enrichedFile, 'utf-8');
+    fs.copyFileSync(enrichedFile, path.join(dataDir, 'enriched-rules.json'));
+    console.log('  Embedded enriched rules');
+    embedded++;
+  } else {
+    console.warn(`  Warning: enriched rules not found at ${enrichedFile} — run "npm run enrich" first`);
+  }
+
   // Inject data into the template
   // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
   // We need to replace both the comment AND the trailing null to avoid syntax errors
@@ -245,6 +257,7 @@ function main() {
   html = html.replace('/*__AI_ANALYSIS_DATA__*/null',  escapeForScriptTag(aiJSON));
   html = html.replace('/*__LISTS_DATA__*/null',        escapeForScriptTag(listsJSON));
   html = html.replace('/*__RULES_DATA__*/null',        escapeForScriptTag(rulesJSON));
+  html = html.replace('/*__ENRICHED_DATA__*/null',     escapeForScriptTag(enrichedJSON));
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 

@@ -17,11 +17,13 @@
     "optimize:json": "node optimizer.js --format json",
     "optimize:text": "node optimizer.js --format text",
     "ai-analysis": "node ai-analysis.js",
+    "enrich": "node enrich-rules.js",
+    "enrich:dry": "node enrich-rules.js --dry-run",
     "build-site": "node build-site.js",
-    "build-all": "node report.js && node optimizer.js && node ai-analysis.js && node build-site.js",
+    "build-all": "node report.js && node optimizer.js && node enrich-rules.js && node ai-analysis.js && node build-site.js",
     "lint": "eslint *.js tests/",
-    "test": "node --test tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js tests/test-parse-rules.js",
-    "test:coverage": "node --test --experimental-test-coverage tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js tests/test-parse-rules.js"
+    "test": "node --test tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js tests/test-parse-rules.js tests/test-enrich-rules.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js tests/test-parse-rules.js tests/test-enrich-rules.js"
   },
   "engines": { "node": ">=20.0.0" },
   "keywords": ["warhammer", "40k", "death-guard", "army-lists", "meta-analysis", "crawler", "listhammer"],
