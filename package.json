@@ -8,6 +8,8 @@
     "crawl:dg": "node crawler.js --game 40k --faction \"Death Guard\"",
     "fetch-rules": "node rules-fetcher.js",
     "fetch-rules:force": "node rules-fetcher.js --force",
+    "parse-rules": "node parse-rules.js",
+    "parse-rules:dry": "node parse-rules.js --dry-run",
     "report": "node report.js",
     "report:json": "node report.js --format json",
     "report:text": "node report.js --format text",
@@ -18,7 +20,7 @@
     "build-site": "node build-site.js",
     "build-all": "node report.js && node optimizer.js && node ai-analysis.js && node build-site.js",
     "lint": "eslint *.js tests/",
-    "test": "node --test tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js"
+    "test": "node --test tests/test-utils.js tests/test-crawler.js tests/test-report.js tests/test-optimizer.js tests/test-ai-analysis.js tests/test-build-site.js tests/test-rules-fetcher.js tests/test-parse-rules.js"
   },
   "keywords": ["warhammer", "40k", "death-guard", "army-lists", "meta-analysis", "crawler", "listhammer"],
   "author": "",

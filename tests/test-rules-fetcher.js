@@ -19,6 +19,10 @@ const {
   estimateTokens,
   truncateToTokenBudget,
   parseDetachmentsFromRaw,
+  hasFactionKeyword,
+  deduplicateUnit,
+  deduplicateDetachments,
+  FORGE_WORLD_SLUGS,
 } = require('../rules-fetcher');
 
 // Temp dir for isFresh file tests
@@ -252,4 +256,194 @@ test('parseDetachmentsFromRaw preserves detachment name', () => {
   const sections = [{ name: "Mortarion's Hammer", rawText: 'Some text here.' }];
   const result = parseDetachmentsFromRaw(sections);
   assert.equal(result[0].name, "Mortarion's Hammer");
+});
+
+// ---------------------------------------------------------------------------
+// hasFactionKeyword
+// ---------------------------------------------------------------------------
+
+test('hasFactionKeyword returns true when keyword matches faction slug', () => {
+  const unit = { keywords: ['Infantry', 'Chaos', 'Death Guard', 'Nurgle'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword returns true when no keywords extracted (failsafe)', () => {
+  const unit = { keywords: [] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword returns true when keywords field is missing', () => {
+  const unit = { name: 'Unknown Unit' };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword returns false for summoned daemon ally (has SUMMONED keyword)', () => {
+  // Plaguebearers, Nurglings, Plague Drones all carry SUMMONED
+  const unit = { keywords: ['Infantry', 'Chaos', 'Daemon', 'Nurgle', 'SUMMONED', 'Plaguebearers'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), false);
+});
+
+test('hasFactionKeyword returns true for daemon engine without SUMMONED (e.g. Plagueburst Crawler)', () => {
+  // Daemon engines are Death Guard units — they have DAEMON but not SUMMONED
+  const unit = { keywords: ['VEHICLE', 'CHAOS', 'NURGLE', 'DAEMON', 'PLAGUEBURST CRAWLER'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword returns true for unit missing faction keyword but not SUMMONED (e.g. Poxwalkers)', () => {
+  const unit = { keywords: ['INFANTRY', 'CHAOS', 'NURGLE', 'POXWALKERS'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword is case-insensitive', () => {
+  const unit = { keywords: ['DEATH GUARD', 'NURGLE'] };
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+test('hasFactionKeyword works for other faction slugs', () => {
+  const unit = { keywords: ['Infantry', 'Tyranids', 'Synapse'] };
+  assert.equal(hasFactionKeyword(unit, 'tyranids'), true);
+  // Exclusion-based logic: a Tyranids unit has no SUMMONED keyword, so it passes
+  // (in practice, Tyranids units never appear on the Death Guard faction page)
+  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+});
+
+// ---------------------------------------------------------------------------
+// deduplicateUnit
+// ---------------------------------------------------------------------------
+
+test('deduplicateUnit removes duplicate weapons by name', () => {
+  const unit = {
+    weapons: [
+      { name: 'Plague boltgun', a: '2' },
+      { name: 'Plague boltgun', a: '2' }, // duplicate
+      { name: 'Blight grenades', a: 'D6' },
+    ],
+    abilities: [],
+  };
+  deduplicateUnit(unit);
+  assert.equal(unit.weapons.length, 2);
+  assert.equal(unit.weapons[0].name, 'Plague boltgun');
+  assert.equal(unit.weapons[1].name, 'Blight grenades');
+});
+
+test('deduplicateUnit removes duplicate abilities by name', () => {
+  const unit = {
+    weapons: [],
+    abilities: [
+      { name: 'Contagion of Nurgle', description: 'desc' },
+      { name: 'Contagion of Nurgle', description: 'desc' }, // duplicate
+      { name: 'Disgustingly Resilient', description: 'desc2' },
+    ],
+  };
+  deduplicateUnit(unit);
+  assert.equal(unit.abilities.length, 2);
+});
+
+test('deduplicateUnit is a no-op when no duplicates', () => {
+  const unit = {
+    weapons: [{ name: 'Weapon A' }, { name: 'Weapon B' }],
+    abilities: [{ name: 'Ability A' }],
+  };
+  deduplicateUnit(unit);
+  assert.equal(unit.weapons.length, 2);
+  assert.equal(unit.abilities.length, 1);
+});
+
+test('deduplicateUnit handles missing weapons array gracefully', () => {
+  const unit = { abilities: [{ name: 'A' }] };
+  assert.doesNotThrow(() => deduplicateUnit(unit));
+});
+
+test('deduplicateUnit handles missing abilities array gracefully', () => {
+  const unit = { weapons: [{ name: 'W' }] };
+  assert.doesNotThrow(() => deduplicateUnit(unit));
+});
+
+test('deduplicateUnit returns the unit object', () => {
+  const unit = { weapons: [], abilities: [] };
+  assert.strictEqual(deduplicateUnit(unit), unit);
+});
+
+// ---------------------------------------------------------------------------
+// deduplicateDetachments
+// ---------------------------------------------------------------------------
+
+test('deduplicateDetachments removes detachment with same name', () => {
+  const detachments = [
+    { name: 'Virulent Vectorium', stratagems: [], enhancements: [] },
+    { name: 'Virulent Vectorium', stratagems: [], enhancements: [] }, // duplicate
+    { name: "Mortarion's Hammer", stratagems: [], enhancements: [] },
+  ];
+  const result = deduplicateDetachments(detachments);
+  assert.equal(result.length, 2);
+  assert.equal(result[0].name, 'Virulent Vectorium');
+  assert.equal(result[1].name, "Mortarion's Hammer");
+});
+
+test('deduplicateDetachments deduplicates stratagems within a detachment', () => {
+  const detachments = [
+    {
+      name: 'Virulent Vectorium',
+      stratagems: [
+        { name: 'Cloud of Flies', cp: '1 CP' },
+        { name: 'Cloud of Flies', cp: '1 CP' }, // duplicate
+        { name: 'Plague of Attrition', cp: '2 CP' },
+      ],
+      enhancements: [],
+    },
+  ];
+  const result = deduplicateDetachments(detachments);
+  assert.equal(result[0].stratagems.length, 2);
+});
+
+test('deduplicateDetachments deduplicates enhancements within a detachment', () => {
+  const detachments = [
+    {
+      name: 'Virulent Vectorium',
+      stratagems: [],
+      enhancements: [
+        { name: 'Suppurating Plate' },
+        { name: 'Suppurating Plate' }, // duplicate
+        { name: 'Droning Halo' },
+      ],
+    },
+  ];
+  const result = deduplicateDetachments(detachments);
+  assert.equal(result[0].enhancements.length, 2);
+});
+
+test('deduplicateDetachments handles empty array', () => {
+  assert.deepEqual(deduplicateDetachments([]), []);
+});
+
+test('deduplicateDetachments handles detachments without stratagems/enhancements', () => {
+  const detachments = [{ name: 'Test Detachment', ability: 'Some ability' }];
+  assert.doesNotThrow(() => deduplicateDetachments(detachments));
+  const result = deduplicateDetachments(detachments);
+  assert.equal(result.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// FORGE_WORLD_SLUGS
+// ---------------------------------------------------------------------------
+
+test('FORGE_WORLD_SLUGS is a Set', () => {
+  assert.ok(FORGE_WORLD_SLUGS instanceof Set);
+});
+
+test('FORGE_WORLD_SLUGS is populated from config.json (not empty)', () => {
+  assert.ok(FORGE_WORLD_SLUGS.size > 0);
+});
+
+test('FORGE_WORLD_SLUGS contains known Forge World unit slugs', () => {
+  assert.ok(FORGE_WORLD_SLUGS.has('Spartan'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Typhon'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Leviathan-Dreadnought'));
+  assert.ok(FORGE_WORLD_SLUGS.has('Sokar-pattern-Stormbird'));
+});
+
+test('FORGE_WORLD_SLUGS does not contain standard Death Guard units', () => {
+  assert.ok(!FORGE_WORLD_SLUGS.has('Plague-Marines'));
+  assert.ok(!FORGE_WORLD_SLUGS.has('Mortarion'));
+  assert.ok(!FORGE_WORLD_SLUGS.has('Plagueburst-Crawler'));
 });
