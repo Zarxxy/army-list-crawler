@@ -38,6 +38,13 @@ Key settings live in `config.json` at the repo root:
 - `crawler.baseUrl` — target site URL
 - `crawler.knownFactionPatterns` — strings used to identify faction names
 - `crawler.knownDetachments` — known detachment names for field disambiguation
+- `crawler.timeouts` — Playwright/navigation timeouts and delays (all in ms):
+  - `NAV_TIMEOUT_MS` — max time to wait for page navigation (default: 60000)
+  - `JS_RENDER_WAIT_MS` — wait for SPA framework to render (default: 3000)
+  - `CF_CHALLENGE_WAIT_MS` — wait for Cloudflare challenge to resolve (default: 10000)
+  - `SELECTOR_TIMEOUT_MS` — wait for content selector to appear (default: 10000)
+  - `SCROLL_SETTLE_MS` — pause between scroll steps (default: 500)
+  - `DEFAULT_DELAY_MS` — default delay between requests (default: 1500)
 - `aiAnalysis.defaultModel` — Claude model for AI analysis (overridable via `--model`)
 - `aiAnalysis.maxTokens` — max tokens for the AI response
 - `aiAnalysis.outputLimits` — per-section word limits injected into the AI prompt:
@@ -181,19 +188,22 @@ docs/
 
 ## GitHub Actions
 
-The workflow (`.github/workflows/main.yml`) runs automatically on push to `main`, on a weekly schedule (Sundays at 06:00 UTC), and can be triggered manually from the Actions tab.
+Two separate workflows handle CI and deployment:
 
-**Jobs:**
+**`.github/workflows/test.yml`** — runs on every push to every branch and on pull requests:
+- Lints with ESLint
+- Runs all tests via `node:test`
 
-1. **Test** — runs on every push to every branch; lints with ESLint and executes all tests via `node:test`
-2. **Crawl & Deploy** — runs on push to `main`, weekly schedule, or manual trigger:
-   - Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
-   - Generate meta report (with crawl diff against previous crawl)
-   - Run army optimizer (with novelty flags against previous crawl)
-   - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
-   - Build and deploy to GitHub Pages
+**`.github/workflows/crawl-deploy.yml`** — runs on the weekly schedule (Sundays at 06:00 UTC) or when triggered manually from the Actions tab. It does **not** run on push, so committing code changes never triggers a crawl or deploy.
 
-Debug artifacts (raw crawl output) are uploaded on every run and retained for 7 days.
+Steps:
+1. Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
+2. Generate meta report (with crawl diff against previous crawl)
+3. Run army optimizer (with novelty flags against previous crawl)
+4. Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
+5. Build and deploy to GitHub Pages
+
+Debug artifacts (raw crawl output) are uploaded on every run and retained for 30 days on failure, 7 days on success.
 
 ## Running Tests
 
@@ -201,7 +211,7 @@ Debug artifacts (raw crawl output) are uploaded on every run and retained for 7 
 npm test
 ```
 
-Tests across 5 suites (`test-crawler`, `test-report`, `test-optimizer`, `test-ai-analysis`, `test-build-site`) using the built-in `node:test` runner — no extra dependencies required.
+Tests across 6 suites (`test-utils`, `test-crawler`, `test-report`, `test-optimizer`, `test-ai-analysis`, `test-build-site`, `test-rules-fetcher`) using the built-in `node:test` runner — no extra dependencies required.
 
 ## Linting
 
@@ -226,7 +236,8 @@ Uses ESLint with Node.js/ES2022 rules. Configuration is in `.eslintrc.json`.
 - Check the Actions log for the `Generate AI meta analysis` step — it logs the `stop_reason` and start of the raw response if parsing fails
 
 **AI response parsing error:**
-- The script retries once automatically on parse failure
+- If the response was cut off (`stop_reason: max_tokens`), the script automatically retries once with 1.5× the token limit
+- For other parse failures, the script retries once with the same parameters
 - Check the Actions log — it shows `stop_reason` and the first 500 chars of the raw response
 
 ## Disclaimer
