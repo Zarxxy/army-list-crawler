@@ -106,6 +106,18 @@
   .novelty-section ul { list-style: none; font-size: 0.82rem; }
   .novelty-section li { padding: 0.1rem 0; }
 
+  /* Unit keyword badges */
+  .kw-badge { display: inline-block; font-size: 0.62rem; font-weight: 600; padding: 0.05rem 0.35rem; border-radius: 3px; margin-left: 0.3rem; vertical-align: middle; text-transform: uppercase; letter-spacing: 0.03em; }
+  .kw-character { background: #2d333b; color: #d2a8ff; border: 1px solid #3b3050; }
+  .kw-infantry { background: #2d333b; color: #79c0ff; border: 1px solid #1f3a5f; }
+  .kw-monster { background: #2d333b; color: #f97583; border: 1px solid #5f1f2d; }
+  .kw-vehicle { background: #2d333b; color: #f0c674; border: 1px solid #5f4a1f; }
+  .kw-terminator { background: #2d333b; color: #85e89d; border: 1px solid #1f5f2d; }
+  .kw-fly { background: #2d333b; color: #b392f0; border: 1px solid #3b2d5f; }
+  .kw-daemon { background: #2d333b; color: #ffab70; border: 1px solid #5f3a1f; }
+  .kw-psyker { background: #2d333b; color: #79e8e8; border: 1px solid #1f4f5f; }
+  .kw-other { background: #2d333b; color: var(--text2); border: 1px solid var(--border); }
+
   /* Detachment rules panel */
   .det-rules-panel { margin: 0.8rem 0 1.2rem; }
   .det-rules-panel summary { cursor: pointer; color: var(--accent); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0; }
@@ -259,6 +271,34 @@
       });
     });
     return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Unit keyword lookup
+  // ---------------------------------------------------------------------------
+  var _kwShowList = ['CHARACTER','INFANTRY','MONSTER','VEHICLE','TERMINATOR','FLY','DAEMON','PSYKER','BEAST','BATTLELINE','EPIC HERO','FORTIFICATION'];
+  var _kwClassMap = { CHARACTER:'kw-character', INFANTRY:'kw-infantry', MONSTER:'kw-monster', VEHICLE:'kw-vehicle', TERMINATOR:'kw-terminator', FLY:'kw-fly', DAEMON:'kw-daemon', PSYKER:'kw-psyker' };
+
+  function buildKeywordLookup(rules) {
+    var map = {}; // lowercase unit name -> keyword[]
+    if (!rules || !rules.units) return map;
+    rules.units.forEach(function(u) {
+      if (u.name && u.keywords && u.keywords.length > 0) {
+        map[u.name.toLowerCase()] = u.keywords.filter(function(k) { return _kwShowList.indexOf(k) !== -1; });
+      }
+    });
+    return map;
+  }
+
+  function kwBadgesHTML(unitName, kwMap) {
+    var kws = kwMap[unitName.toLowerCase()];
+    if (!kws || kws.length === 0) return '';
+    var html = '';
+    kws.forEach(function(k) {
+      var cls = _kwClassMap[k] || 'kw-other';
+      html += '<span class="kw-badge ' + cls + '">' + esc(k) + '</span>';
+    });
+    return html;
   }
 
   // ---------------------------------------------------------------------------
@@ -559,6 +599,7 @@
     var novelty = (opt && opt.noveltyFlags) || [];
     var aiSums  = (ai  && ai.detachmentSummaries) || [];
     var detRulesMap = parseDetachmentRules(rules);
+    var kwMap = buildKeywordLookup(rules);
 
     // Group by detachment, sorted by count desc
     var byDet = {};
@@ -621,7 +662,7 @@
         html += '<h3>Unit Frequency</h3>';
         html += '<table class="freq-table"><thead><tr><th>Unit</th><th class="num">Lists</th><th class="num">%</th></tr></thead><tbody>';
         freq.topUnits.slice(0, 15).forEach(function(u) {
-          html += '<tr><td>' + esc(u.name) + '</td><td class="num">' + u.count + '</td><td class="num">' + u.frequency + '%</td></tr>';
+          html += '<tr><td>' + esc(u.name) + kwBadgesHTML(u.name, kwMap) + '</td><td class="num">' + u.count + '</td><td class="num">' + u.frequency + '%</td></tr>';
         });
         html += '</tbody></table>';
         if (freq.topEnhancements && freq.topEnhancements.length > 0) {
