@@ -830,6 +830,21 @@
       html += '</tbody></table></section>';
     }
 
+    // Validation warnings from optimizer
+    var valWarnings = (opt && opt.validationWarnings) || [];
+    if (valWarnings.length > 0) {
+      html += '<section><h2>Data Quality Warnings</h2>' +
+        '<p style="color:var(--text2);font-size:0.83rem;margin-bottom:0.6rem">Potential mismatches between list enhancements and declared detachments.</p>' +
+        '<table class="freq-table"><thead><tr><th>Player</th><th>Enhancement</th><th>Declared</th><th>Expected</th></tr></thead><tbody>';
+      valWarnings.forEach(function(w) {
+        if (w.type === 'enhancement-detachment-mismatch') {
+          html += '<tr><td>' + esc(w.player) + '</td><td>' + esc(w.enhancement) + '</td>' +
+            '<td>' + esc(w.declaredDetachment) + '</td><td>' + esc(w.expectedDetachment) + '</td></tr>';
+        }
+      });
+      html += '</tbody></table></section>';
+    }
+
     if (!html) {
       html = '<p class="notice">No pattern data available yet.</p>';
     }

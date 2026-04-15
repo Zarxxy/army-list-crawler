@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
-const { normaliseName, findRulesUnit } = require('./enrich-rules');
+const { normaliseName, findRulesUnit, parseDetachments } = require('./enrich-rules');
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -41,6 +41,7 @@ function emptyOutput(dataSource) {
     detachmentFrequencyAnalysis: [],
     varianceAnalysis: [],
     noveltyFlags: [],
+    validationWarnings: [],
   };
 }
 
@@ -243,6 +244,7 @@ function optimize(lists, metaReport) {
     detachmentFrequencyAnalysis: buildDetachmentFrequency(parsedLists),
     varianceAnalysis: buildVarianceAnalysis(parsedLists),
     noveltyFlags: buildNoveltyFlags(parsedLists, previousFile),
+    validationWarnings: validateEnhancements(parsedLists),
   };
 }
 
@@ -503,6 +505,55 @@ function buildNoveltyFlags(parsedLists, prevFile) {
 }
 
 // ---------------------------------------------------------------------------
+// Enhancement-to-detachment validation
+// ---------------------------------------------------------------------------
+
+function buildEnhancementDetachmentMap() {
+  loadCanonicalNames();
+  if (!_canonicalUnits) return {};
+
+  try {
+    if (!fs.existsSync(rulesFile)) return {};
+    const rules = JSON.parse(fs.readFileSync(rulesFile, 'utf-8'));
+    const detachments = parseDetachments(rules.factionAbilities || []);
+    const map = {};
+    for (const det of detachments) {
+      for (const enh of det.enhancements) {
+        map[normaliseName(enh.name)] = det.name;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+function validateEnhancements(parsedLists) {
+  const enhDetMap = buildEnhancementDetachmentMap();
+  if (Object.keys(enhDetMap).length === 0) return [];
+
+  const warnings = [];
+  for (const list of parsedLists) {
+    const listDet = list.parsed.detachment || list.detachment || extractDetachment(list.armyListText) || 'Unknown';
+    for (const enh of list.parsed.enhancements) {
+      const enhNorm = normaliseName(enh);
+      const expectedDet = enhDetMap[enhNorm];
+      if (expectedDet && normaliseName(expectedDet) !== normaliseName(listDet)) {
+        warnings.push({
+          type: 'enhancement-detachment-mismatch',
+          enhancement: enh,
+          declaredDetachment: listDet,
+          expectedDetachment: expectedDet,
+          player: list.playerName || list.player || 'Unknown',
+          event: list.event || 'Unknown',
+        });
+      }
+    }
+  }
+  return warnings;
+}
+
+// ---------------------------------------------------------------------------
 // Text renderer
 // ---------------------------------------------------------------------------
 
@@ -570,6 +621,19 @@ function renderText(result) {
     lines.push('');
   }
 
+  // Validation Warnings
+  if (result.validationWarnings && result.validationWarnings.length > 0) {
+    lines.push(hr2);
+    lines.push('  DATA QUALITY WARNINGS');
+    lines.push(hr2);
+    for (const w of result.validationWarnings) {
+      if (w.type === 'enhancement-detachment-mismatch') {
+        lines.push(`  ⚠ ${w.player} (${w.event}): "${w.enhancement}" belongs to ${w.expectedDetachment}, but list declares ${w.declaredDetachment}`);
+      }
+    }
+    lines.push('');
+  }
+
   lines.push(hr);
   return lines.join('\n');
 }
@@ -589,5 +653,6 @@ if (require.main === module) {
     buildDetachmentFrequency,
     buildVarianceAnalysis,
     buildNoveltyFlags,
+    validateEnhancements,
   };
 }

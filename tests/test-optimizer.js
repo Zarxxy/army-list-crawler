@@ -62,7 +62,7 @@ test('optimizer output has required top-level keys', () => {
   runOptimizer();
   const opt = readJSON('optimizer-latest.json');
   for (const key of ['meta', 'unitAnalysis', 'enhancementAnalysis', 'coOccurrence',
-    'detachmentFrequencyAnalysis', 'varianceAnalysis', 'noveltyFlags']) {
+    'detachmentFrequencyAnalysis', 'varianceAnalysis', 'noveltyFlags', 'validationWarnings']) {
     assert.ok(key in opt, `missing key: ${key}`);
   }
 });
@@ -171,6 +171,12 @@ test('unit frequency values are between 0 and 100', () => {
   }
 });
 
+test('optimizer output has validationWarnings array', () => {
+  runOptimizer();
+  const opt = readJSON('optimizer-latest.json');
+  assert.ok(Array.isArray(opt.validationWarnings), 'validationWarnings should be an array');
+});
+
 // ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
@@ -202,6 +208,7 @@ test('optimizer exits 0 with empty input and produces valid JSON', () => {
     assert.equal(opt.meta.totalListsAnalysed, 0, 'empty result should have meta.totalListsAnalysed = 0');
     assert.ok(Array.isArray(opt.unitAnalysis.units), 'empty result should have unitAnalysis.units array');
     assert.ok(Array.isArray(opt.detachmentFrequencyAnalysis), 'empty result should have detachmentFrequencyAnalysis array');
+    assert.ok(Array.isArray(opt.validationWarnings), 'empty result should have validationWarnings array');
   } finally {
     fs.rmSync(emptyTmp, { recursive: true, force: true });
   }
