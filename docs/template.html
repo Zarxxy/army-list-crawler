@@ -551,6 +551,64 @@
     return html;
   }
 
+  function buildStratagemRelevance(text, det, kwMap) {
+    // Get detachment rules — try enriched first, then parsed rules
+    var detRules = null;
+    if (_enriched && _enriched.detachments) {
+      for (var i = 0; i < _enriched.detachments.length; i++) {
+        if (_enriched.detachments[i].name.toLowerCase() === det.toLowerCase()) {
+          detRules = _enriched.detachments[i];
+          break;
+        }
+      }
+    }
+    if (!detRules && _rules) {
+      var parsed = parseDetachmentRules(_rules);
+      var p = parsed[det.toLowerCase()];
+      if (p) {
+        detRules = {
+          stratagems: p.stratagems.map(function(s) { return { name: s.name, cp: s.cp, type: s.type, target: null, targetKeywords: [] }; }),
+        };
+      }
+    }
+    if (!detRules || !detRules.stratagems || detRules.stratagems.length === 0) return '';
+
+    // Collect all keywords present in this list's units
+    var units = parseListUnits(text);
+    if (units.length === 0) return '';
+    var listKws = {};
+    units.forEach(function(u) {
+      var kws = kwMap[u.name.toLowerCase()] || [];
+      kws.forEach(function(k) { listKws[k] = true; });
+    });
+
+    // Find stratagems whose target keywords overlap with list keywords
+    var targeted = [];
+    var generic = [];
+    detRules.stratagems.forEach(function(s) {
+      var tks = s.targetKeywords || [];
+      if (tks.length === 0) {
+        generic.push(s);
+      } else {
+        for (var k = 0; k < tks.length; k++) {
+          if (listKws[tks[k]]) { targeted.push(s); return; }
+        }
+      }
+    });
+
+    // Only show if there's meaningful filtering (not all stratagems match)
+    var relevant = targeted.concat(generic);
+    if (relevant.length === 0 || relevant.length === detRules.stratagems.length) return '';
+
+    var html = '<div style="margin:0.5rem 0"><span style="color:var(--accent2);font-size:0.75rem;font-weight:600">KEY STRATAGEMS:</span> ';
+    html += '<span style="font-size:0.78rem;color:var(--text2)">';
+    html += targeted.map(function(s) {
+      return '<span style="color:var(--text)">' + esc(s.name) + '</span> <span style="color:var(--accent2);font-family:monospace;font-size:0.72rem">' + esc(s.cp) + '</span>';
+    }).join(' &middot; ');
+    html += '</span></div>';
+    return html;
+  }
+
   // ---------------------------------------------------------------------------
   // List card builder
   // ---------------------------------------------------------------------------
@@ -582,6 +640,10 @@
       var kwMap = _rules ? buildKeywordLookup(_rules) : {};
       var anatomy = buildAnatomyHTML(l.armyListText, det, kwMap, INLINE_OPT || null);
       if (anatomy) body += anatomy;
+
+      // Stratagem relevance
+      body += buildStratagemRelevance(l.armyListText, det, kwMap);
+
       body += '<details style="margin-top:0.5rem"><summary style="cursor:pointer;color:var(--text2);font-size:0.78rem">Full roster text</summary>' +
         '<pre class="roster-block">' + esc(l.armyListText) + '</pre></details>';
     } else {
