@@ -144,3 +144,13 @@ test('zero-lists placeholder has skipped:true', () => {
   const result = readLatest();
   assert.equal(result.skipped, true);
 });
+
+test('accepts --enriched arg without error', () => {
+  // The script exits before reaching focused rules when API key is absent,
+  // but the arg should be accepted without parse errors
+  const enrichedPath = path.join(TMP, 'enriched-rules-latest.json');
+  fs.writeFileSync(enrichedPath, JSON.stringify({ detachments: [], units: [] }), 'utf-8');
+
+  const result = runAI({ ANTHROPIC_API_KEY: '' }, ['--enriched', enrichedPath]);
+  assert.equal(result.status, 0, `stderr: ${result.stderr}`);
+});

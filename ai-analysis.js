@@ -20,6 +20,7 @@
  *   node ai-analysis.js --report ./reports/meta-report-latest.json
  *   node ai-analysis.js --optimizer ./reports/optimizer-latest.json
  *   node ai-analysis.js --output ./reports
+ *   node ai-analysis.js --enriched ./reports/enriched-rules-latest.json
  *   node ai-analysis.js --model claude-opus-4-6
  */
 
@@ -42,6 +43,7 @@ const reportFile = getArg(args, '--report')     || path.join(__dirname, 'reports
 const optimFile  = getArg(args, '--optimizer')  || path.join(__dirname, 'reports', 'optimizer-latest.json');
 const outputDir  = getArg(args, '--output')     || path.join(__dirname, 'reports');
 const rulesDir   = getArg(args, '--rules-dir')  || path.join(__dirname, 'rules');
+const enrichedFile = getArg(args, '--enriched') || path.join(__dirname, 'reports', 'enriched-rules-latest.json');
 const modelId    = getArg(args, '--model')      || appConfig.aiAnalysis.defaultModel;
 const _rawMaxTokens = parseInt(getArg(args, '--max-tokens') || String(appConfig.aiAnalysis.maxTokens), 10);
 const maxTokens = Number.isFinite(_rawMaxTokens) && _rawMaxTokens > 0 ? _rawMaxTokens : appConfig.aiAnalysis.maxTokens;
@@ -112,6 +114,77 @@ function loadRulesDocument(dir) {
   }
   console.log('No rules document found — proceeding without rules context.');
   return null;
+}
+
+/**
+ * Build a focused rules context from the enriched-rules JSON, targeting
+ * only detachments and units that appear in the current tournament data.
+ * Falls back to the full TXT if enriched data is unavailable.
+ */
+function buildFocusedRulesContext(enrichedPath, detachmentNames, unitNames) {
+  const enriched = readJSON(enrichedPath);
+  if (!enriched || !enriched.detachments || enriched.detachments.length === 0) return null;
+
+  const detSet = new Set(detachmentNames.map((d) => d.toLowerCase()));
+  const unitSet = new Set(unitNames.map((u) => u.toLowerCase()));
+
+  const lines = [];
+  lines.push('=== FACTION RULES REFERENCE (relevant to current tournament data) ===');
+  lines.push('');
+
+  // Detachment rules for detachments in the data
+  for (const det of enriched.detachments) {
+    if (detSet.size > 0 && !detSet.has(det.name.toLowerCase())) continue;
+
+    lines.push(`--- DETACHMENT: ${det.name} ---`);
+    lines.push(`Ability: ${det.abilityName} — ${det.abilityDescription.slice(0, 200)}`);
+    lines.push('');
+
+    if (det.stratagems.length > 0) {
+      lines.push('Stratagems:');
+      for (const s of det.stratagems) {
+        lines.push(`  ${s.name} (${s.cp}, ${s.type})`);
+        if (s.when) lines.push(`    When: ${s.when}`);
+        if (s.target) lines.push(`    Target: ${s.target}`);
+      }
+      lines.push('');
+    }
+
+    if (det.enhancements.length > 0) {
+      lines.push('Enhancements:');
+      for (const e of det.enhancements) {
+        lines.push(`  ${e.name} (${e.pts}pts)`);
+      }
+      lines.push('');
+    }
+  }
+
+  // Unit keywords for units in the data
+  if (enriched.units && enriched.units.length > 0) {
+    const relevantUnits = enriched.units.filter((u) => unitSet.has(u.name.toLowerCase()));
+    if (relevantUnits.length > 0) {
+      lines.push('--- UNIT KEYWORDS (tournament units) ---');
+      for (const u of relevantUnits) {
+        if (u.keywords.length > 0) {
+          lines.push(`  ${u.canonicalName || u.name}: ${u.keywords.join(', ')}`);
+        }
+      }
+      lines.push('');
+    }
+  }
+
+  // Unseen units (units in rules but never in tournaments)
+  if (enriched.unseenUnits && enriched.unseenUnits.length > 0) {
+    lines.push('--- UNITS NEVER SEEN IN TOURNAMENTS ---');
+    for (const u of enriched.unseenUnits.slice(0, 10)) {
+      lines.push(`  ${u.name}: ${u.keywords.join(', ')}`);
+    }
+    lines.push('');
+  }
+
+  const text = lines.join('\n');
+  console.log(`Built focused rules context: ${text.length} chars (vs full TXT)`);
+  return text;
 }
 
 // ---------------------------------------------------------------------------
@@ -403,13 +476,28 @@ async function main() {
   const client  = new Anthropic({ apiKey, maxRetries: 4 });
   const faction = metaReport.meta?.faction || 'Death Guard';
 
-  const rulesText      = loadRulesDocument(rulesDir);
+  // Try focused rules context from enriched data first, fall back to full TXT
+  const detFreq = optimizerReport?.detachmentFrequencyAnalysis || [];
+  const detachmentNames = detFreq.length > 0
+    ? detFreq.map((d) => d.detachment)
+    : (metaReport.detachmentBreakdown || [])
+        .filter((d) => d.detachment !== 'Unknown')
+        .map((d) => d.detachment);
+  const unitNames = (optimizerReport?.unitAnalysis?.units || []).map((u) => u.name);
+
+  const enrichedPath = enrichedFile;
+  let rulesText = buildFocusedRulesContext(enrichedPath, detachmentNames, unitNames);
+  if (!rulesText) {
+    console.log('Enriched rules not available — falling back to full rules TXT.');
+    rulesText = loadRulesDocument(rulesDir);
+  }
+
   const systemBlocks   = buildSystemPromptBlocks(faction, rulesText);
   const userPrompt     = buildUserPrompt(listsData || { sections: {} }, metaReport, optimizerReport);
 
   console.log(`Sending request to ${modelId} (max_tokens: ${maxTokens})…`);
   console.log(`Data: ${metaReport.meta?.totalLists || 0} lists, ${(metaReport.detachmentBreakdown || []).length} detachments`);
-  console.log(`System prompt blocks: ${systemBlocks.length} (rules: ${rulesText ? 'yes' : 'no'})`);
+  console.log(`System prompt blocks: ${systemBlocks.length} (rules: ${rulesText ? 'yes' : 'no'}, source: ${rulesText && rulesText.startsWith('=== FACTION RULES') ? 'enriched' : 'txt'})`);
 
   // Helper to make one API call
   async function callAPI() {
