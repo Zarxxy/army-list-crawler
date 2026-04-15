@@ -194,11 +194,11 @@
 <div class="topbar">
   <h1>&#9876; Listhammer</h1>
   <span class="faction-badge" id="faction-badge">Loading&hellip;</span>
-  <nav>
-    <a class="active" onclick="switchTab('lists',this)">Lists</a>
-    <a onclick="switchTab('by-detachment',this)">By Detachment</a>
-    <a onclick="switchTab('patterns',this)">Patterns</a>
-    <a onclick="switchTab('advisor',this)">Build Advisor</a>
+  <nav role="tablist">
+    <a role="tab" aria-selected="true" class="active" onclick="switchTab('lists',this)">Lists</a>
+    <a role="tab" aria-selected="false" onclick="switchTab('by-detachment',this)">By Detachment</a>
+    <a role="tab" aria-selected="false" onclick="switchTab('patterns',this)">Patterns</a>
+    <a role="tab" aria-selected="false" onclick="switchTab('advisor',this)">Build Advisor</a>
   </nav>
   <span class="ts-badge" id="ts-badge"></span>
 </div>
@@ -206,7 +206,7 @@
 <div id="diff-banner" class="diff-banner" style="display:none"></div>
 
 <div class="container">
-  <div id="tab-lists" class="tab-content active">
+  <div id="tab-lists" class="tab-content active" role="tabpanel">
     <div class="lists-layout">
       <div class="lists-main">
         <div class="list-controls" id="list-controls"></div>
@@ -218,23 +218,23 @@
     </div>
   </div>
 
-  <div id="tab-by-detachment" class="tab-content">
+  <div id="tab-by-detachment" class="tab-content" role="tabpanel">
     <div id="det-sections"><p class="notice">Loading&hellip;</p></div>
   </div>
 
-  <div id="tab-patterns" class="tab-content">
+  <div id="tab-patterns" class="tab-content" role="tabpanel">
     <div id="patterns-content"><p class="notice">Loading&hellip;</p></div>
   </div>
 
-  <div id="tab-advisor" class="tab-content">
+  <div id="tab-advisor" class="tab-content" role="tabpanel">
     <div id="advisor-content"><p class="notice">Loading&hellip;</p></div>
   </div>
 </div>
 
-<div id="comparison-modal" class="comparison-modal" style="display:none">
+<div id="comparison-modal" class="comparison-modal" style="display:none" role="dialog" aria-modal="true" aria-label="List Comparison">
   <div class="modal-overlay" onclick="closeComparison()"></div>
   <div class="modal-body">
-    <button class="modal-close" onclick="closeComparison()">&#10005; Close</button>
+    <button class="modal-close" onclick="closeComparison()" aria-label="Close comparison">&#10005; Close</button>
     <div id="comparison-content" class="comparison-content"></div>
   </div>
 </div>
@@ -267,10 +267,10 @@
   // ---------------------------------------------------------------------------
   function switchTab(name, el) {
     document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelectorAll('.topbar nav a').forEach(function(a) { a.classList.remove('active'); });
+    document.querySelectorAll('.topbar nav a').forEach(function(a) { a.classList.remove('active'); a.setAttribute('aria-selected', 'false'); });
     var tab = document.getElementById('tab-' + name);
     if (tab) tab.classList.add('active');
-    if (el) el.classList.add('active');
+    if (el) { el.classList.add('active'); el.setAttribute('aria-selected', 'true'); }
   }
 
   // ---------------------------------------------------------------------------
@@ -1277,7 +1277,11 @@
     boot(INLINE_META, INLINE_OPT, INLINE_AI, INLINE_LISTS, INLINE_RULES, INLINE_ENRICHED);
   } else {
     function loadJSON(url) {
-      return fetch(url).then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+      var ctrl = new AbortController();
+      var timer = setTimeout(function() { ctrl.abort(); }, 15000);
+      return fetch(url, { signal: ctrl.signal })
+        .then(function(r) { clearTimeout(timer); if (!r.ok) throw new Error(r.status); return r.json(); })
+        .catch(function(err) { clearTimeout(timer); throw err; });
     }
     Promise.allSettled([
       loadJSON('data/meta-report.json'),
