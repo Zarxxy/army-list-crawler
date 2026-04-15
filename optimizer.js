@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
+const { getArg, parseRecord, extractDetachment, flattenLists, UNIT_REGEX, ALT_UNIT_REGEX } = require('./utils');
 const { normaliseName, findRulesUnit, parseDetachments } = require('./enrich-rules');
 
 // ---------------------------------------------------------------------------
@@ -136,7 +136,8 @@ function loadCanonicalNames() {
       _canonicalUnits = [];
       _canonicalNameMap = {};
     }
-  } catch {
+  } catch (err) {
+    console.warn(`Failed to load canonical names: ${err.message}`);
     _canonicalUnits = [];
     _canonicalNameMap = {};
   }
@@ -149,10 +150,7 @@ function normaliseUnitName(rawName) {
   return match ? match.name : rawName;
 }
 
-// Module-level regex constants — avoids recompilation on every call.
-// These use the `g` flag so lastIndex must be reset to 0 before each use.
-const UNIT_REGEX = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
-const ALT_UNIT_REGEX = /^[•·\-\s]*(.+?)\s{2,}\.{0,}?\s*(\d{2,4})\s*pts?\s*$/gim;
+// UNIT_REGEX and ALT_UNIT_REGEX imported from utils.js
 
 function parseArmyListText(text) {
   if (!text) return null;
@@ -523,7 +521,8 @@ function buildEnhancementDetachmentMap() {
       }
     }
     return map;
-  } catch {
+  } catch (err) {
+    console.warn(`Failed to build enhancement-detachment map: ${err.message}`);
     return {};
   }
 }

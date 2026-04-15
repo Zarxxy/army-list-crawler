@@ -78,4 +78,64 @@ log.warn  = (...a) => log('warn',  ...a);
 log.error = (...a) => log('error', ...a);
 log.debug = (...a) => log('debug', ...a);
 
-module.exports = { getArg, parseRecord, extractDetachment, flattenLists, log };
+// ---------------------------------------------------------------------------
+// Shared unit-parsing regex constants — avoids recompilation and keeps the
+// pattern in one place. Uses the `g` flag so callers MUST reset lastIndex = 0
+// before each use.
+//
+// IMPORTANT: If you change these, update the mirrored copy in
+// docs/template.html (_unitRegex) which cannot use require().
+// ---------------------------------------------------------------------------
+
+/** Matches: "Unit Name [Xpts]" or "Unit Name (Xpts)" */
+const UNIT_REGEX = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
+
+/** Matches: "Unit Name    Xpts" (whitespace-separated) */
+const ALT_UNIT_REGEX = /^[•·\-\s]*(.+?)\s{2,}\.{0,}?\s*(\d{2,4})\s*pts?\s*$/gim;
+
+/**
+ * Extract raw unit names + points from army-list text.
+ * Returns an array of { name, points } with basic cleanup applied.
+ * Does NOT apply canonical-name normalisation (caller decides).
+ *
+ * @param {string} text - Raw army list text
+ * @param {number} [maxNameLength=80] - Reject names longer than this
+ * @returns {{ name: string, points: number }[]}
+ */
+function parseUnitsFromText(text, maxNameLength) {
+  if (!text) return [];
+  const cap = maxNameLength || 80;
+  const units = [];
+  const seen = new Set();
+
+  UNIT_REGEX.lastIndex = 0;
+  let m;
+  while ((m = UNIT_REGEX.exec(text)) !== null) {
+    const rawName = m[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
+    const pts = parseInt(m[2], 10);
+    if (rawName && pts > 0 && rawName.length < cap) {
+      const key = rawName + '|' + pts;
+      if (!seen.has(key)) {
+        seen.add(key);
+        units.push({ name: rawName, points: pts });
+      }
+    }
+  }
+
+  ALT_UNIT_REGEX.lastIndex = 0;
+  while ((m = ALT_UNIT_REGEX.exec(text)) !== null) {
+    const rawName = m[1].trim().replace(/\.+$/, '').trim();
+    const pts = parseInt(m[2], 10);
+    if (rawName && pts > 0 && rawName.length < cap) {
+      const key = rawName + '|' + pts;
+      if (!seen.has(key)) {
+        seen.add(key);
+        units.push({ name: rawName, points: pts });
+      }
+    }
+  }
+
+  return units;
+}
+
+module.exports = { getArg, parseRecord, extractDetachment, flattenLists, log, UNIT_REGEX, ALT_UNIT_REGEX, parseUnitsFromText };

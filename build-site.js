@@ -193,7 +193,13 @@ function main() {
   const aiSrc = path.join(reportsDir, 'ai-analysis-latest.json');
   let aiJSON = 'null';
   if (fs.existsSync(aiSrc)) {
-    const aiData = JSON.parse(fs.readFileSync(aiSrc, 'utf-8'));
+    let aiData;
+    try {
+      aiData = JSON.parse(fs.readFileSync(aiSrc, 'utf-8'));
+    } catch (err) {
+      console.warn(`  Warning: failed to parse AI analysis JSON: ${err.message}`);
+      aiData = { skipped: true, reason: `Parse error: ${err.message}` };
+    }
     // Only embed if the analysis was not skipped / is not an empty placeholder
     if (!aiData.skipped) {
       aiJSON = JSON.stringify(aiData);
@@ -252,12 +258,23 @@ function main() {
   // Inject data into the template
   // The template uses the pattern: var X = /*__PLACEHOLDER__*/null;
   // We need to replace both the comment AND the trailing null to avoid syntax errors
-  html = html.replace('/*__META_REPORT_DATA__*/null',  escapeForScriptTag(metaJSON));
-  html = html.replace('/*__OPTIMIZER_DATA__*/null',    escapeForScriptTag(optJSON));
-  html = html.replace('/*__AI_ANALYSIS_DATA__*/null',  escapeForScriptTag(aiJSON));
-  html = html.replace('/*__LISTS_DATA__*/null',        escapeForScriptTag(listsJSON));
-  html = html.replace('/*__RULES_DATA__*/null',        escapeForScriptTag(rulesJSON));
-  html = html.replace('/*__ENRICHED_DATA__*/null',     escapeForScriptTag(enrichedJSON));
+  const placeholders = [
+    '/*__META_REPORT_DATA__*/null',
+    '/*__OPTIMIZER_DATA__*/null',
+    '/*__AI_ANALYSIS_DATA__*/null',
+    '/*__LISTS_DATA__*/null',
+    '/*__RULES_DATA__*/null',
+    '/*__ENRICHED_DATA__*/null',
+  ];
+  const replacements = [metaJSON, optJSON, aiJSON, listsJSON, rulesJSON, enrichedJSON];
+
+  for (let i = 0; i < placeholders.length; i++) {
+    const before = html.length;
+    html = html.replace(placeholders[i], escapeForScriptTag(replacements[i]));
+    if (html.length === before) {
+      console.warn(`  WARNING: Placeholder ${placeholders[i].slice(2, placeholders[i].indexOf('*/'))} not found in template`);
+    }
+  }
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 
@@ -269,7 +286,16 @@ function main() {
   console.log('Deploy docs/ to GitHub Pages, or open index.html in a browser.');
 
   // Generate LLM-readable files
-  buildLlmsFiles(reportsDir, docsDir, metaJSON !== 'null' ? JSON.parse(metaJSON).meta || JSON.parse(metaJSON) : null);
+  let llmsMetaData = null;
+  if (metaJSON !== 'null') {
+    try {
+      const parsed = JSON.parse(metaJSON);
+      llmsMetaData = parsed.meta || parsed;
+    } catch (err) {
+      console.warn(`  Warning: failed to parse meta JSON for llms files: ${err.message}`);
+    }
+  }
+  buildLlmsFiles(reportsDir, docsDir, llmsMetaData);
 }
 
 main();

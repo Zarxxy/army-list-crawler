@@ -343,7 +343,9 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Detachment rules parser
+  // Detachment rules parser — FALLBACK only.
+  // Mirrors enrich-rules.js:parseDetachments(). Prefer _enriched.detachments
+  // when available. Keep in sync if the backend parser changes.
   // ---------------------------------------------------------------------------
   function parseDetachmentRules(rules) {
     if (!rules || !rules.factionAbilities) return {};
@@ -475,6 +477,7 @@
   // ---------------------------------------------------------------------------
   // Client-side army list parser + anatomy builder
   // ---------------------------------------------------------------------------
+  // Mirror of UNIT_REGEX in utils.js — keep in sync when updating.
   var _unitRegex = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
 
   function parseListUnits(text) {
@@ -881,7 +884,20 @@
     var varAnal = (opt && opt.varianceAnalysis) || [];
     var novelty = (opt && opt.noveltyFlags) || [];
     var aiSums  = (ai  && ai.detachmentSummaries) || [];
-    var detRulesMap = parseDetachmentRules(rules);
+    // Prefer enriched detachment data; fall back to parseDetachmentRules()
+    var detRulesMap = {};
+    if (_enriched && _enriched.detachments) {
+      _enriched.detachments.forEach(function(d) {
+        detRulesMap[d.name.toLowerCase()] = {
+          abilityName: d.abilityName,
+          abilityDesc: d.abilityDescription,
+          enhancements: d.enhancements,
+          stratagems: d.stratagems
+        };
+      });
+    } else if (rules) {
+      detRulesMap = parseDetachmentRules(rules);
+    }
     var kwMap = buildKeywordLookup(rules);
 
     // Group by detachment, sorted by count desc

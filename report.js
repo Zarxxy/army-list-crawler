@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getArg, parseRecord, extractDetachment, flattenLists } = require('./utils');
+const { getArg, parseRecord, extractDetachment, flattenLists, parseUnitsFromText } = require('./utils');
 
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
@@ -278,12 +278,9 @@ function extractTechNames(armyListText) {
     if (enh && enh.toLowerCase() !== 'none') names.push(enh);
   }
 
-  // Units with points
-  const unitRegex = /^[•·\-\s]*(.+?)\s*[\[(]\s*(\d+)\s*pts?\s*[\])]/gim;
-  unitRegex.lastIndex = 0;
-  while ((m = unitRegex.exec(armyListText)) !== null) {
-    const name = m[1].trim().replace(/^[x×]\d+\s+/i, '').replace(/\s*[-–:]\s*$/, '');
-    if (name && name.length < 80) names.push(name);
+  // Units with points (uses shared regex from utils.js)
+  for (const u of parseUnitsFromText(armyListText)) {
+    names.push(u.name);
   }
 
   return names;

@@ -35,7 +35,7 @@ const dryRun    = args.includes('--dry-run');
 function readJSON(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); }
-  catch { return null; }
+  catch (err) { console.warn(`Failed to parse JSON ${filePath}: ${err.message}`); return null; }
 }
 
 /**
@@ -258,7 +258,7 @@ function enrich(rules, optimizer) {
       name: ou.name,
       canonicalName: rulesUnit ? rulesUnit.name : null,
       keywords: rulesUnit ? (rulesUnit.keywords || []) : [],
-      count: ou.count,
+      count: ou.appearances,
       frequency: ou.frequency,
       detachments,
       coOccurrencePartners: partners.slice(0, 5),

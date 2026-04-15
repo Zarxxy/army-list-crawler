@@ -32,9 +32,9 @@ const MOCK_RULES = {
 const MOCK_OPTIMIZER = {
   unitAnalysis: {
     units: [
-      { name: 'Plague Marines', count: 10, frequency: 83.3 },
-      { name: 'Blightlord Terminators', count: 8, frequency: 66.7 },
-      { name: 'Mortarion', count: 5, frequency: 41.7 },
+      { name: 'Plague Marines', appearances: 10, frequency: 83.3 },
+      { name: 'Blightlord Terminators', appearances: 8, frequency: 66.7 },
+      { name: 'Mortarion', appearances: 5, frequency: 41.7 },
     ],
   },
   detachmentFrequencyAnalysis: [

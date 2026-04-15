@@ -62,7 +62,7 @@ const outputLimits = appConfig.aiAnalysis.outputLimits || {
 function readJSON(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); }
-  catch { return null; }
+  catch (err) { console.warn(`Failed to parse JSON ${filePath}: ${err.message}`); return null; }
 }
 
 function writeOutput(result, text) {
