@@ -260,6 +260,7 @@
   var _filterDet   = '';
   var _meta        = null;
   var _ai          = null;
+  var _advisorData = null;
 
   // ---------------------------------------------------------------------------
   // Tab switching
@@ -1067,13 +1068,13 @@
     el.innerHTML = html;
 
     // Store data for use by advisorSelectDet
-    window._advisorData = { detFreq: detFreq, detRulesMap: detRulesMap, kwMap: kwMap, unseenUnits: unseenUnits, aiSummaries: aiSummaries };
+    _advisorData = { detFreq: detFreq, detRulesMap: detRulesMap, kwMap: kwMap, unseenUnits: unseenUnits, aiSummaries: aiSummaries };
   }
 
   function advisorSelectDet(detName) {
     var detail = document.getElementById('advisor-detail');
     if (!detName) { detail.innerHTML = ''; return; }
-    var data = window._advisorData;
+    var data = _advisorData;
     var df = null;
     for (var i = 0; i < data.detFreq.length; i++) {
       if (data.detFreq[i].detachment === detName) { df = data.detFreq[i]; break; }

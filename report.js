@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getArg, parseRecord, extractDetachment, flattenLists, log, parseUnitsFromText } = require('./utils');
+const { normaliseName } = require('./enrich-rules');
 
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
@@ -275,12 +276,12 @@ function extractTechNames(armyListText) {
   let m;
   while ((m = enhRegex.exec(armyListText)) !== null) {
     const enh = m[1].trim();
-    if (enh && enh.toLowerCase() !== 'none') names.push(enh);
+    if (enh && enh.toLowerCase() !== 'none') names.push(normaliseName(enh));
   }
 
   // Units with points (uses shared regex from utils.js)
   for (const u of parseUnitsFromText(armyListText)) {
-    names.push(u.name);
+    names.push(normaliseName(u.name));
   }
 
   return names;

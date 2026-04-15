@@ -222,34 +222,32 @@ function enrich(rules, optimizer) {
   const coOcc = (optimizer && optimizer.coOccurrence) || [];
   const seenNames = new Set();
 
+  // Pre-build unit → detachments index (avoids O(units × detachments × topUnits))
+  const unitDetIndex = {};
+  for (const df of detFreq) {
+    for (const u of (df.topUnits || [])) {
+      const key = normaliseName(u.name);
+      if (!unitDetIndex[key]) unitDetIndex[key] = [];
+      unitDetIndex[key].push({ detachment: df.detachment, count: u.count, frequency: u.frequency });
+    }
+  }
+
   // 4. Enrich each optimizer unit with rules data
   for (const ou of optimUnits) {
     const rulesUnit = findRulesUnit(ou.name, rulesUnits, nameMap);
-    seenNames.add(normaliseName(ou.name));
+    const normalised = normaliseName(ou.name);
+    seenNames.add(normalised);
 
-    // Find which detachments use this unit
-    const detachments = [];
-    for (const df of detFreq) {
-      const inDet = (df.topUnits || []).find((u) =>
-        normaliseName(u.name) === normaliseName(ou.name)
-      );
-      if (inDet) {
-        detachments.push({
-          detachment: df.detachment,
-          count: inDet.count,
-          frequency: inDet.frequency,
-        });
-      }
-    }
+    // Detachments from pre-built index (O(1) lookup)
+    const detachments = unitDetIndex[normalised] || [];
 
     // Find co-occurrence partners
     const partners = [];
     for (const c of coOcc) {
       const pair = (c.pair || '').toLowerCase();
-      if (pair.includes(normaliseName(ou.name))) {
-        // Extract the other unit from the pair
+      if (pair.includes(normalised)) {
         const parts = (c.pair || '').split(/\s*\+\s*/);
-        const other = parts.find((p) => normaliseName(p) !== normaliseName(ou.name));
+        const other = parts.find((p) => normaliseName(p) !== normalised);
         if (other) partners.push({ unit: other.trim(), count: c.count });
       }
     }
@@ -266,14 +264,16 @@ function enrich(rules, optimizer) {
   }
 
   // 5. Find units in rules that never appeared in tournament data
+  // Use exact-match Set first, fall back to substring only for misses
   for (const unit of rulesUnits) {
     const nn = normaliseName(unit.name);
-    // Check if any seen name matches
-    let seen = false;
-    for (const sn of seenNames) {
-      if (sn === nn || sn.includes(nn) || nn.includes(sn)) {
-        seen = true;
-        break;
+    let seen = seenNames.has(nn);
+    if (!seen) {
+      for (const sn of seenNames) {
+        if (sn.includes(nn) || nn.includes(sn)) {
+          seen = true;
+          break;
+        }
       }
     }
     if (!seen) {

@@ -135,8 +135,9 @@ test('crawlDiff.droppedLists contains Fred Green from previous', () => {
 test('crawlDiff.newTechChoices includes Blightlord Terminators', () => {
   runReport(['--previous', PREV_FIXTURE]);
   const report = readJSON('meta-report-latest.json');
+  // Names are normalised (lowercased) by extractTechNames
   assert.ok(
-    report.crawlDiff.newTechChoices.includes('Blightlord Terminators'),
+    report.crawlDiff.newTechChoices.includes('blightlord terminators'),
     `newTechChoices: ${JSON.stringify(report.crawlDiff.newTechChoices)}`
   );
 });

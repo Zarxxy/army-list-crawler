@@ -20,6 +20,8 @@ const CONFIG = {
   MIN_WINNING_LISTS: 3,       // use winning lists only if at least this many exist
   MAX_CO_OCCUR_RESULTS: 15,   // top N co-occurrence pairs included in output
   MAX_UNIT_NAME_LENGTH: 80,   // sanity cap — longer strings are likely parsing artefacts
+  VARIANCE_LOW_PCT: 20,       // lower bound for "contested" unit choices
+  VARIANCE_HIGH_PCT: 80,      // upper bound for "contested" unit choices
 };
 
 // ---------------------------------------------------------------------------
@@ -197,7 +199,7 @@ function parseArmyListText(text) {
   while ((unitMatch = ALT_UNIT_REGEX.exec(text)) !== null) {
     const rawName = unitMatch[1].trim().replace(/\.+$/, '').trim();
     const pts = parseInt(unitMatch[2], 10);
-    if (rawName && pts > 0 && rawName.length < 80 && !parsed.units.find((u) => u.name === rawName && u.points === pts)) {
+    if (rawName && pts > 0 && rawName.length < CONFIG.MAX_UNIT_NAME_LENGTH && !parsed.units.find((u) => u.name === rawName && u.points === pts)) {
       parsed.units.push({ name: normaliseUnitName(rawName), points: pts });
     }
   }
@@ -441,7 +443,7 @@ function buildVarianceAnalysis(parsedLists) {
       const variantChoices = Object.entries(unitCounts)
         .filter(([, count]) => {
           const freq = (count / listCount) * 100;
-          return freq >= 20 && freq < 80;
+          return freq >= CONFIG.VARIANCE_LOW_PCT && freq < CONFIG.VARIANCE_HIGH_PCT;
         })
         .sort((a, b) => b[1] - a[1])
         .map(([name, count]) => ({ name, count, frequency: pct(count, listCount) }));
