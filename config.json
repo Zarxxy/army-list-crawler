@@ -35,7 +35,7 @@
   },
   "aiAnalysis": {
     "defaultModel": "claude-opus-4-6",
-    "maxTokens": 8192,
+    "maxTokens": 10000,
     "outputLimits": {
       "wordsPerList": 80,
       "wordsPerDetachmentSummary": 150,

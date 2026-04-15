@@ -209,9 +209,13 @@ function buildSystemPromptBlocks(faction, rulesText) {
     '',
     `RULE 2 — detachmentSummaries: One entry per detachment listed. ≤${wDet} words each.`,
     'Cover: current archetypes present, which units are core (>60% inclusion), what is new or contested.',
+    'Also include keyStrength (≤15 words) and keyWeakness (≤15 words) for each detachment.',
     '',
     'RULE 3 — listCharacterizations: One entry per list. listId = "playerName|event|date".',
     `gamePlan: ≤${wList} words describing how this list intends to play.`,
+    'primaryThreat: one of "melee", "ranged", "attrition", "mixed".',
+    'boardControl: one of "aggressive", "balanced", "defensive".',
+    'keyRulesInteraction: ≤20 words naming the most important rule/stratagem synergy in this list.',
     'techDiffs: what this list does differently from others in the same detachment.',
     'If only 1 list exists for a detachment, techDiffs = "Only list for this detachment."',
     '',
@@ -319,11 +323,16 @@ function buildUserPrompt(listsData, metaReport, optimizerReport) {
     detachmentSummaries: detachmentNames.map((d) => ({
       detachment: d,
       summary: `<≤${wDet} words: archetypes present, core units (>60%), new or contested picks>`,
+      keyStrength: '<≤15 words: primary competitive strength>',
+      keyWeakness: '<≤15 words: primary competitive weakness>',
     })),
     listCharacterizations: listIds.map((id) => ({
       listId: id,
       archetype: '<short label e.g. "Daemon Prince spam">',
       gamePlan: `<≤${wList} words: how this list plays>`,
+      primaryThreat: '<melee|ranged|attrition|mixed>',
+      boardControl: '<aggressive|balanced|defensive>',
+      keyRulesInteraction: '<≤20 words: most important rule/stratagem synergy>',
       keySynergies: '<brief: 1-2 key unit interactions>',
       techDiffs: '<what differs from other lists in same detachment>',
     })),
@@ -389,6 +398,8 @@ function renderText(result) {
       lines.push('');
       lines.push(`  [${ds.detachment}]`);
       for (const p of (ds.summary || '').split('\n')) lines.push(`  ${p}`);
+      if (ds.keyStrength)  lines.push(`  + Strength: ${ds.keyStrength}`);
+      if (ds.keyWeakness)  lines.push(`  - Weakness: ${ds.keyWeakness}`);
     }
     lines.push('');
   }
@@ -422,9 +433,12 @@ function renderText(result) {
       lines.push('');
       lines.push(`  [${lc.listId}]`);
       lines.push(`  Archetype:  ${lc.archetype}`);
-      if (lc.gamePlan)     lines.push(`  Game Plan:  ${lc.gamePlan}`);
-      if (lc.keySynergies) lines.push(`  Synergies:  ${lc.keySynergies}`);
-      if (lc.techDiffs)    lines.push(`  Tech diffs: ${lc.techDiffs}`);
+      if (lc.gamePlan)            lines.push(`  Game Plan:  ${lc.gamePlan}`);
+      if (lc.primaryThreat)       lines.push(`  Threat:     ${lc.primaryThreat}`);
+      if (lc.boardControl)        lines.push(`  Board:      ${lc.boardControl}`);
+      if (lc.keyRulesInteraction) lines.push(`  Key Rule:   ${lc.keyRulesInteraction}`);
+      if (lc.keySynergies)        lines.push(`  Synergies:  ${lc.keySynergies}`);
+      if (lc.techDiffs)           lines.push(`  Tech diffs: ${lc.techDiffs}`);
     }
     lines.push('');
   }

@@ -63,6 +63,7 @@
   .ai-char-box { background: var(--bg3); border-left: 3px solid var(--accent); padding: 0.55rem 0.8rem; margin-bottom: 0.75rem; border-radius: 0 var(--radius) var(--radius) 0; }
   .ai-archetype { font-weight: 700; color: var(--accent2); font-size: 0.82rem; display: block; margin-bottom: 0.15rem; }
   .ai-gameplan { font-size: 0.83rem; color: var(--text2); margin: 0; }
+  .ai-tag { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 0.08rem 0.4rem; border-radius: 3px; background: var(--bg); border: 1px solid var(--border); color: var(--accent2); text-transform: uppercase; letter-spacing: 0.03em; margin-right: 0.3rem; }
   .roster-block { background: var(--bg3); border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: var(--radius); font-size: 0.76rem; font-family: 'Courier New', monospace; white-space: pre-wrap; overflow-x: auto; color: var(--text); line-height: 1.55; margin: 0.5rem 0; }
   .card-footer { margin-top: 0.5rem; }
   .det-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
@@ -633,8 +634,13 @@
     if (aiChar) {
       body += '<div class="ai-char-box">' +
         '<span class="ai-archetype">' + esc(aiChar.archetype || '') + '</span>' +
-        (aiChar.gamePlan ? '<p class="ai-gameplan">' + esc(aiChar.gamePlan) + '</p>' : '') +
-        '</div>';
+        (aiChar.gamePlan ? '<p class="ai-gameplan">' + esc(aiChar.gamePlan) + '</p>' : '');
+      var tags = [];
+      if (aiChar.primaryThreat) tags.push('<span class="ai-tag">' + esc(aiChar.primaryThreat) + '</span>');
+      if (aiChar.boardControl) tags.push('<span class="ai-tag">' + esc(aiChar.boardControl) + '</span>');
+      if (tags.length > 0) body += '<div style="margin-top:0.25rem">' + tags.join(' ') + '</div>';
+      if (aiChar.keyRulesInteraction) body += '<p style="font-size:0.78rem;color:var(--text2);margin-top:0.2rem"><strong style="color:var(--accent2)">Key Rule:</strong> ' + esc(aiChar.keyRulesInteraction) + '</p>';
+      body += '</div>';
     }
     if (l.armyListText) {
       var kwMap = _rules ? buildKeywordLookup(_rules) : {};
@@ -906,6 +912,12 @@
 
       if (aiSum && aiSum.summary) {
         html += '<p class="det-summary">' + esc(aiSum.summary) + '</p>';
+        if (aiSum.keyStrength || aiSum.keyWeakness) {
+          html += '<div style="display:flex;gap:1rem;margin-bottom:0.75rem;flex-wrap:wrap">';
+          if (aiSum.keyStrength) html += '<span style="font-size:0.82rem"><span style="color:var(--green);font-weight:600">+ Strength:</span> ' + esc(aiSum.keyStrength) + '</span>';
+          if (aiSum.keyWeakness) html += '<span style="font-size:0.82rem"><span style="color:var(--red);font-weight:600">- Weakness:</span> ' + esc(aiSum.keyWeakness) + '</span>';
+          html += '</div>';
+        }
       }
 
       // Detachment rules panel
