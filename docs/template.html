@@ -696,14 +696,105 @@
     var b = _listMap[_selected[1]];
     if (!a || !b) return;
 
-    function colHTML(l) {
-      return '<div class="compare-col">' +
-        '<h3>' + esc(l.playerName || l.player || 'Unknown') + '</h3>' +
-        '<p class="compare-meta">' + esc(l.detachment || '') + ' &middot; ' + esc(l.event || '') + (l.date ? ' &middot; ' + esc(l.date) : '') + '</p>' +
-        '<pre class="roster-block">' + esc(l.armyListText || '(no list text)') + '</pre>' +
-        '</div>';
+    var kwMap = buildKeywordLookup(_rules);
+    var unitsA = parseListUnits(a.armyListText);
+    var unitsB = parseListUnits(b.armyListText);
+    var namesA = {};
+    var namesB = {};
+    unitsA.forEach(function(u) { namesA[u.name.toLowerCase()] = u; });
+    unitsB.forEach(function(u) { namesB[u.name.toLowerCase()] = u; });
+
+    var shared = [], onlyA = [], onlyB = [];
+    unitsA.forEach(function(u) {
+      if (namesB[u.name.toLowerCase()]) {
+        shared.push({ name: u.name, ptsA: u.points, ptsB: namesB[u.name.toLowerCase()].points });
+      } else {
+        onlyA.push(u);
+      }
+    });
+    unitsB.forEach(function(u) {
+      if (!namesA[u.name.toLowerCase()]) onlyB.push(u);
+    });
+
+    // AI characterizations
+    var aiA = findAiChar(_ai, makeListId(a));
+    var aiB = findAiChar(_ai, makeListId(b));
+
+    function headerHTML(l, label) {
+      return '<div class="compare-col"><h3>' + esc(l.playerName || l.player || 'Unknown') + '</h3>' +
+        '<p class="compare-meta">' + esc(l.detachment || '') + ' &middot; ' + esc(l.event || '') +
+        (l.date ? ' &middot; ' + esc(l.date) : '') + (l.record ? ' &middot; ' + esc(l.record) : '') + '</p>';
     }
-    document.getElementById('comparison-content').innerHTML = colHTML(a) + colHTML(b);
+
+    function aiHTML(aiChar) {
+      if (!aiChar) return '';
+      var h = '<div class="ai-char-box" style="margin-top:0.5rem">';
+      if (aiChar.archetype) h += '<span class="ai-archetype">' + esc(aiChar.archetype) + '</span>';
+      if (aiChar.gamePlan) h += '<p class="ai-gameplan">' + esc(aiChar.gamePlan) + '</p>';
+      h += '</div>';
+      return h;
+    }
+
+    var html = '';
+
+    // Side-by-side AI + header
+    html += headerHTML(a) + aiHTML(aiA) + '</div>';
+    html += headerHTML(b) + aiHTML(aiB) + '</div>';
+
+    // Diff sections (span both columns)
+    html += '<div style="grid-column:1/-1;margin-top:0.5rem">';
+
+    // Shared units
+    if (shared.length > 0) {
+      html += '<h3 style="color:var(--text2);font-size:0.78rem;text-transform:uppercase;margin-bottom:0.4rem">Shared Units (' + shared.length + ')</h3>';
+      html += '<table class="freq-table"><thead><tr><th>Unit</th><th></th><th class="num">Pts (A)</th><th class="num">Pts (B)</th></tr></thead><tbody>';
+      shared.forEach(function(u) {
+        var diff = u.ptsA !== u.ptsB ? '<span style="color:var(--yellow);font-size:0.72rem">&Delta;</span>' : '';
+        html += '<tr><td>' + esc(u.name) + kwBadgesHTML(u.name, kwMap) + '</td><td>' + diff + '</td>' +
+          '<td class="num">' + u.ptsA + '</td><td class="num">' + u.ptsB + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+
+    // Only in A / Only in B side by side
+    if (onlyA.length > 0 || onlyB.length > 0) {
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.75rem">';
+
+      html += '<div>';
+      html += '<h3 style="color:var(--green);font-size:0.78rem;text-transform:uppercase;margin-bottom:0.4rem">Only in ' + esc(a.playerName || a.player || 'List A') + ' (' + onlyA.length + ')</h3>';
+      if (onlyA.length > 0) {
+        onlyA.forEach(function(u) {
+          html += '<div class="advisor-unit-card" style="margin:0.2rem 0"><span class="advisor-unit-name">' + esc(u.name) + '</span>' + kwBadgesHTML(u.name, kwMap) +
+            '<span class="advisor-unit-meta" style="margin-left:auto">' + u.points + 'pts</span></div>';
+        });
+      } else {
+        html += '<p class="advisor-empty">None</p>';
+      }
+      html += '</div>';
+
+      html += '<div>';
+      html += '<h3 style="color:var(--green);font-size:0.78rem;text-transform:uppercase;margin-bottom:0.4rem">Only in ' + esc(b.playerName || b.player || 'List B') + ' (' + onlyB.length + ')</h3>';
+      if (onlyB.length > 0) {
+        onlyB.forEach(function(u) {
+          html += '<div class="advisor-unit-card" style="margin:0.2rem 0"><span class="advisor-unit-name">' + esc(u.name) + '</span>' + kwBadgesHTML(u.name, kwMap) +
+            '<span class="advisor-unit-meta" style="margin-left:auto">' + u.points + 'pts</span></div>';
+        });
+      } else {
+        html += '<p class="advisor-empty">None</p>';
+      }
+      html += '</div></div>';
+    }
+
+    // Collapsible raw text
+    html += '<details style="margin-top:1rem"><summary style="cursor:pointer;color:var(--accent);font-size:0.82rem">Show raw list text</summary>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.5rem">';
+    html += '<pre class="roster-block">' + esc(a.armyListText || '(no text)') + '</pre>';
+    html += '<pre class="roster-block">' + esc(b.armyListText || '(no text)') + '</pre>';
+    html += '</div></details>';
+
+    html += '</div>';
+
+    document.getElementById('comparison-content').innerHTML = html;
     document.getElementById('comparison-modal').style.display = 'flex';
   }
 
