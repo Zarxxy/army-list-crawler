@@ -146,6 +146,28 @@
   .strat-type { color: var(--text2); font-size: 0.75rem; }
   .enh-pts { color: var(--accent2); font-weight: 600; font-family: monospace; }
 
+  /* Build Advisor tab */
+  .advisor-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .advisor-controls label { color: var(--text2); font-size: 0.82rem; font-weight: 600; }
+  .advisor-controls select { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.7rem; border-radius: var(--radius); font-size: 0.85rem; }
+  .advisor-tier { margin-bottom: 1.5rem; }
+  .advisor-tier > h3 { font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .tier-badge { font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 3px; }
+  .tier-core { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+  .tier-strong { background: rgba(88,166,255,0.15); color: #58a6ff; border: 1px solid rgba(88,166,255,0.3); }
+  .tier-tech { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+  .tier-unseen { background: rgba(139,148,158,0.15); color: #8b949e; border: 1px solid rgba(139,148,158,0.3); }
+  .advisor-unit-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.55rem 0.8rem; margin: 0.35rem 0; display: flex; align-items: flex-start; gap: 0.7rem; flex-wrap: wrap; }
+  .advisor-unit-name { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+  .advisor-unit-meta { font-size: 0.78rem; color: var(--text2); }
+  .advisor-unit-strats { font-size: 0.75rem; color: var(--text2); margin-top: 0.2rem; }
+  .advisor-unit-strats strong { color: var(--accent2); font-weight: 600; }
+  .advisor-det-ability { background: var(--bg2); border-left: 3px solid var(--accent); padding: 0.55rem 0.8rem; margin-bottom: 1rem; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+  .advisor-det-ability strong { color: var(--text); }
+  .advisor-empty { color: var(--text2); font-size: 0.85rem; font-style: italic; padding: 0.5rem 0; }
+  .advisor-ai-summary { background: var(--bg2); border-left: 3px solid var(--accent); padding: 0.55rem 0.8rem; margin-bottom: 1.2rem; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+  .advisor-ai-summary strong { color: var(--accent2); }
+
   /* Patterns tab */
   .prose-block { font-size: 0.88rem; line-height: 1.8; color: var(--text); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
   .container section { margin-bottom: 2rem; }
@@ -175,6 +197,7 @@
     <a class="active" onclick="switchTab('lists',this)">Lists</a>
     <a onclick="switchTab('by-detachment',this)">By Detachment</a>
     <a onclick="switchTab('patterns',this)">Patterns</a>
+    <a onclick="switchTab('advisor',this)">Build Advisor</a>
   </nav>
   <span class="ts-badge" id="ts-badge"></span>
 </div>
@@ -200,6 +223,10 @@
 
   <div id="tab-patterns" class="tab-content">
     <div id="patterns-content"><p class="notice">Loading&hellip;</p></div>
+  </div>
+
+  <div id="tab-advisor" class="tab-content">
+    <div id="advisor-content"><p class="notice">Loading&hellip;</p></div>
   </div>
 </div>
 
@@ -802,6 +829,177 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Build Advisor tab
+  // ---------------------------------------------------------------------------
+  function renderAdvisor(opt, ai, rules, enriched) {
+    var el = document.getElementById('advisor-content');
+    var detFreq = (opt && opt.detachmentFrequencyAnalysis) || [];
+    if (detFreq.length === 0) {
+      el.innerHTML = '<p class="notice">No detachment data available. Run the pipeline to generate data.</p>';
+      return;
+    }
+
+    // Build detachment rules map from either enriched or raw rules
+    var detRulesMap = {};
+    if (enriched && enriched.detachments) {
+      enriched.detachments.forEach(function(d) {
+        detRulesMap[d.name.toLowerCase()] = d;
+      });
+    } else if (rules) {
+      var parsed = parseDetachmentRules(rules);
+      Object.keys(parsed).forEach(function(k) {
+        detRulesMap[k] = {
+          name: parsed[k].abilityName,
+          abilityName: parsed[k].abilityName,
+          abilityDescription: parsed[k].abilityDesc,
+          stratagems: parsed[k].stratagems.map(function(s) { return { name: s.name, cp: s.cp, type: s.type, target: null, targetKeywords: [] }; }),
+          enhancements: parsed[k].enhancements,
+        };
+      });
+    }
+
+    // Build keyword lookup
+    var kwMap = buildKeywordLookup(rules);
+
+    // Enriched units for unseen data
+    var unseenUnits = (enriched && enriched.unseenUnits) || [];
+
+    // AI detachment summaries
+    var aiSummaries = {};
+    if (ai && ai.detachmentSummaries) {
+      ai.detachmentSummaries.forEach(function(ds) {
+        aiSummaries[ds.detachment.toLowerCase()] = ds.summary;
+      });
+    }
+
+    // Build selector
+    var html = '<div class="advisor-controls">';
+    html += '<label for="advisor-det-select">Select Detachment:</label>';
+    html += '<select id="advisor-det-select" onchange="advisorSelectDet(this.value)">';
+    html += '<option value="">— Choose a detachment —</option>';
+    detFreq.forEach(function(df) {
+      html += '<option value="' + esc(df.detachment) + '">' + esc(df.detachment) + ' (' + df.listCount + ' lists)</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '<div id="advisor-detail"></div>';
+    el.innerHTML = html;
+
+    // Store data for use by advisorSelectDet
+    window._advisorData = { detFreq: detFreq, detRulesMap: detRulesMap, kwMap: kwMap, unseenUnits: unseenUnits, aiSummaries: aiSummaries };
+  }
+
+  function advisorSelectDet(detName) {
+    var detail = document.getElementById('advisor-detail');
+    if (!detName) { detail.innerHTML = ''; return; }
+    var data = window._advisorData;
+    var df = null;
+    for (var i = 0; i < data.detFreq.length; i++) {
+      if (data.detFreq[i].detachment === detName) { df = data.detFreq[i]; break; }
+    }
+    if (!df) { detail.innerHTML = '<p class="advisor-empty">No data for this detachment.</p>'; return; }
+
+    var html = '';
+
+    // AI summary for this detachment
+    var aiSum = data.aiSummaries[detName.toLowerCase()];
+    if (aiSum) {
+      html += '<div class="advisor-ai-summary"><strong>AI Summary:</strong> ' + esc(aiSum) + '</div>';
+    }
+
+    // Detachment ability
+    var detRules = data.detRulesMap[detName.toLowerCase()];
+    if (detRules) {
+      html += '<div class="advisor-det-ability"><strong>' + esc(detRules.abilityName) + ':</strong> ' +
+        esc((detRules.abilityDescription || '').substring(0, 300)) +
+        ((detRules.abilityDescription || '').length > 300 ? '&hellip;' : '') + '</div>';
+    }
+
+    // Tier the units
+    var core = [], strong = [], tech = [];
+    df.topUnits.forEach(function(u) {
+      if (u.frequency >= 80) core.push(u);
+      else if (u.frequency >= 40) strong.push(u);
+      else tech.push(u);
+    });
+
+    // Find unseen units relevant to this detachment (units in rules never in any tournament list)
+    var seenNames = {};
+    df.topUnits.forEach(function(u) { seenNames[u.name.toLowerCase()] = true; });
+    var unseen = data.unseenUnits.filter(function(u) { return !seenNames[u.name.toLowerCase()]; });
+
+    // Render helper
+    function renderTier(title, badgeClass, units, isUnseen) {
+      if (units.length === 0) return '';
+      var h = '<div class="advisor-tier"><h3><span class="tier-badge ' + badgeClass + '">' + title + '</span>';
+      h += ' <span style="color:var(--text2);font-size:0.78rem">' + units.length + ' unit' + (units.length !== 1 ? 's' : '') + '</span></h3>';
+      units.forEach(function(u) {
+        h += '<div class="advisor-unit-card">';
+        h += '<div><span class="advisor-unit-name">' + esc(u.name) + '</span>';
+        h += kwBadgesHTML(u.name, data.kwMap);
+        if (!isUnseen) {
+          h += '<div class="advisor-unit-meta">' + u.count + 'x appearances &middot; ' + u.frequency + '% inclusion</div>';
+        } else if (u.keywords && u.keywords.length > 0) {
+          h += '<div class="advisor-unit-meta">Keywords: ' + u.keywords.join(', ') + '</div>';
+        }
+        // Show relevant stratagems (match unit keywords to stratagem target keywords)
+        if (detRules && detRules.stratagems && !isUnseen) {
+          var unitKws = data.kwMap[u.name.toLowerCase()] || [];
+          var relevantStrats = [];
+          detRules.stratagems.forEach(function(s) {
+            if (!s.targetKeywords || s.targetKeywords.length === 0) {
+              // Generic stratagem — always relevant
+              relevantStrats.push(s);
+            } else {
+              for (var k = 0; k < s.targetKeywords.length; k++) {
+                if (unitKws.indexOf(s.targetKeywords[k]) !== -1) {
+                  relevantStrats.push(s);
+                  break;
+                }
+              }
+            }
+          });
+          if (relevantStrats.length > 0 && relevantStrats.length < detRules.stratagems.length) {
+            h += '<div class="advisor-unit-strats"><strong>Key Stratagems:</strong> ';
+            h += relevantStrats.map(function(s) { return esc(s.name) + ' (' + esc(s.cp) + ')'; }).join(', ');
+            h += '</div>';
+          }
+        }
+        h += '</div></div>';
+      });
+      h += '</div>';
+      return h;
+    }
+
+    html += renderTier('CORE (&ge;80%)', 'tier-core', core, false);
+    html += renderTier('STRONG (40\u201379%)', 'tier-strong', strong, false);
+    html += renderTier('TECH (&lt;40%)', 'tier-tech', tech, false);
+    html += renderTier('UNEXPLORED', 'tier-unseen', unseen.slice(0, 15), true);
+
+    // Enhancements for this detachment
+    if (detRules && detRules.enhancements && detRules.enhancements.length > 0) {
+      html += '<div class="advisor-tier"><h3><span class="tier-badge tier-strong">ENHANCEMENTS</span></h3>';
+      detRules.enhancements.forEach(function(e) {
+        html += '<div class="advisor-unit-card"><span class="advisor-unit-name">' + esc(e.name) + '</span>';
+        html += '<span class="enh-pts">' + e.pts + 'pts</span></div>';
+      });
+      html += '</div>';
+    }
+
+    // Stratagems table
+    if (detRules && detRules.stratagems && detRules.stratagems.length > 0) {
+      html += '<div class="advisor-tier"><h3><span class="tier-badge tier-strong">STRATAGEMS</span></h3>';
+      html += '<table class="strat-table"><thead><tr><th>Stratagem</th><th>CP</th><th>Type</th></tr></thead><tbody>';
+      detRules.stratagems.forEach(function(s) {
+        html += '<tr><td>' + esc(s.name) + '</td><td class="strat-cp">' + esc(s.cp) + '</td><td class="strat-type">' + esc(s.type) + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    detail.innerHTML = html;
+  }
+
+  // ---------------------------------------------------------------------------
   // Patterns tab
   // ---------------------------------------------------------------------------
   function renderPatterns(ai, opt) {
@@ -887,6 +1085,7 @@
     renderLists(lists, meta, ai);
     renderByDetachment(lists, ai, opt, rules);
     renderPatterns(ai, opt);
+    renderAdvisor(opt, ai, rules, enriched);
   }
 
   // ---------------------------------------------------------------------------
