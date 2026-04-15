@@ -5,11 +5,11 @@ Automated pipeline that crawls [listhammer.info](https://listhammer.info) for De
 ## How It Works
 
 ```
-Rules Fetcher  →  Rules Parser ────────────────────────┐
-(rules-fetcher.js) (parse-rules.js)                    │ rules context
-                                                        ▼
-Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Deploy
-(crawler.js) (report.js)  (optimizer.js)  (ai-analysis.js)  (build-site.js)
+Rules Fetcher  →  Rules Parser ─────────────────────────────────────┐
+(rules-fetcher.js) (parse-rules.js)                                 │ rules context
+                                                                     ▼
+Crawl  →  Meta Report  →  Army Optimizer  →  Enrich Rules  →  AI Analysis  →  Build & Deploy
+(crawler.js) (report.js)  (optimizer.js)  (enrich-rules.js) (ai-analysis.js) (build-site.js)
 ```
 
 1. **Rules Fetcher** — Scrapes Death Guard datasheets, detachment rules, stratagems, and enhancements from wahapedia.ru and caches them in `rules/`. Runs on its own weekly schedule (Saturdays) so fresh rules are always available for the Sunday crawl. Skipped automatically if the cached copy is less than 7 days old.
@@ -22,9 +22,11 @@ Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Dep
 
 5. **Army Optimizer** — Produces per-detachment unit/enhancement frequency tables, variance analysis (contested choices at 20–79% inclusion), novelty flags (tech not seen in the previous crawl), unit co-occurrence pairs, and overall unit/enhancement frequency across all lists.
 
-6. **AI Analysis** — Sends tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. If a rules document is present in `rules/`, it is included in the system prompt via prompt caching for game-context accuracy.
+6. **Enrich Rules** — Cross-references the parsed rules JSON with optimizer output to produce a unified enriched dataset. Merges unit keywords, stats, and points from rules with tournament frequency and co-occurrence data from the optimizer. Structures detachments with parsed stratagems (including target keywords) and enhancements. Identifies "unseen" units that exist in the rules but never appeared in tournament data. The enriched output powers the Build Advisor tab in the dashboard.
 
-7. **Site Builder** — Inlines all report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
+7. **AI Analysis** — Sends tournament data to Claude via the Anthropic API and generates: per-list characterizations (archetype, game plan, tech diffs), per-detachment summaries (archetypes, core units, contested picks), cross-detachment patterns, and a crawl diff summary. If a rules document is present in `rules/`, it is included in the system prompt via prompt caching for game-context accuracy.
+
+8. **Site Builder** — Inlines all report JSON payloads into a self-contained HTML dashboard for GitHub Pages. Also copies raw JSON to `docs/data/` and generates `llms.txt` / `llms-full.txt` for LLM-readable access.
 
 ## Dataset Context
 
@@ -34,11 +36,12 @@ Crawl  →  Meta Report  →  Army Optimizer  →  AI Analysis  →  Build & Dep
 
 ## Dashboard
 
-The GitHub Pages site has three tabs:
+The GitHub Pages site has four tabs:
 
 - **Lists** — All lists, sortable by date or event size. Expandable cards show the full army list text, an AI archetype label and game-plan summary, novelty badges for tech not seen in the previous crawl, and a checkbox for side-by-side comparison of two lists.
 - **By Detachment** — Lists grouped by detachment. Each group shows the AI detachment summary, a unit/enhancement frequency table, a variance section (contested picks), a novelty section (new tech), and collapsible list cards.
 - **Patterns** — AI cross-detachment analysis prose and a crawl-diff summary (what is new or dropped since the last crawl).
+- **Build Advisor** — Interactive tool for exploring the meta by detachment. Shows per-detachment unit frequency, stratagem relevance (which stratagems apply to which units based on target keywords), enhancement options, and units that exist in the rules but have never appeared in tournament data ("unseen units"). Powered by enriched rules data.
 
 A diff banner at the top shows new/dropped list counts and new tech choices whenever a crawl diff is available.
 
@@ -199,6 +202,21 @@ npm run optimize:text   # Text only
 | `--output DIR` | Output directory | `reports/` |
 | `--format FORMAT` | `json`, `text`, or `all` | `all` |
 
+### Enrich Rules
+
+```bash
+npm run enrich
+```
+
+| Option | Description | Default |
+|---|---|---|
+| `--rules PATH` | Parsed rules JSON | `rules/death-guard-latest.json` |
+| `--optimizer PATH` | Optimizer JSON | `reports/optimizer-latest.json` |
+| `--output DIR` | Output directory | `reports/` |
+| `--dry-run` | Parse and log stats, skip all file writes | off |
+
+Requires both a parsed rules file and an optimizer report. Produces `enriched-rules-latest.json` which is consumed by the Build Advisor tab and optionally passed to AI Analysis for game-context enrichment.
+
 ### AI Analysis
 
 ```bash
@@ -215,6 +233,7 @@ node ai-analysis.js --model claude-opus-4-6 --max-tokens 8192
 | `--rules-dir PATH` | Directory containing rules `.txt` files | `rules/` |
 | `--output DIR` | Output directory | `reports/` |
 | `--model NAME` | Claude model to use | from `config.json` |
+| `--enriched PATH` | Enriched rules JSON | `reports/enriched-rules-latest.json` |
 | `--max-tokens N` | Max output tokens | from `config.json` |
 
 If a rules document is found in `--rules-dir` (e.g. `death-guard-latest.txt`), it is included as a cached system block in the API request to give Claude game-rule context without re-sending it on every retry.
@@ -245,6 +264,7 @@ output/
 reports/
   meta-report-latest.json       # Detachment stats, record distribution, crawl diff
   optimizer-latest.json         # Unit/enhancement frequency, variance, novelty flags
+  enriched-rules-latest.json    # Rules + optimizer data merged for Build Advisor
   ai-analysis-latest.json       # Per-list characterizations, detachment summaries, patterns
   *.txt                         # Text versions of each report
 
@@ -276,9 +296,10 @@ Three workflows handle the automation:
 - Runs the day before the Sunday army-list crawl so AI analysis always has current rules
 
 **`.github/workflows/crawl-deploy.yml`** — runs every **Sunday at 06:00 UTC** or manually:
-- Crawl listhammer.info for Death Guard lists (exits with error if 0 lists found)
+- Crawl listhammer.info for Death Guard lists (exits with error if fewer than 5 lists found)
 - Generate meta report (with crawl diff against previous crawl)
 - Run army optimizer (with novelty flags against previous crawl)
+- Enrich rules data (merge rules with optimizer output for Build Advisor)
 - Generate AI analysis (requires `ANTHROPIC_API_KEY` secret; skipped gracefully if missing)
 - Build and deploy to GitHub Pages
 - Manual trigger accepts a `game` input (`40k`, `aos`, or both)
@@ -293,7 +314,7 @@ Debug artifacts (raw crawl output) are uploaded on every crawl run and retained 
 npm test
 ```
 
-8 test suites using the built-in `node:test` runner — no extra test dependencies required:
+9 test suites (114 tests) using the built-in `node:test` runner — no extra test dependencies required:
 
 | Suite | What it covers |
 |---|---|
@@ -301,6 +322,7 @@ npm test
 | `test-crawler` | Pure crawler functions: faction filtering, section discovery, text parsing |
 | `test-report` | Meta report generation, detachment breakdown, crawl diff |
 | `test-optimizer` | Unit/enhancement frequency, variance, novelty flags, co-occurrence |
+| `test-enrich-rules` | Rules enrichment: detachment parsing, unit matching, keyword extraction |
 | `test-ai-analysis` | API key handling, graceful degradation, placeholder generation |
 | `test-build-site` | HTML generation, JSON inlining, LLM file generation |
 | `test-rules-fetcher` | Rules parsing, caching, URL building, text conversion, FW blocklist |
