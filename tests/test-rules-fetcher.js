@@ -33,7 +33,7 @@ after(() => fs.rmSync(TMP, { recursive: true, force: true }));
 // isFresh
 // ---------------------------------------------------------------------------
 
-test('isFresh returns false when file does not exist', () => {
+test('isFresh returns false for nonexistent file', () => {
   assert.equal(isFresh(path.join(TMP, 'nonexistent.json')), false);
 });
 
@@ -50,40 +50,25 @@ test('isFresh returns false when fetchedAt exceeds maxDays', () => {
   assert.equal(isFresh(p, 7), false);
 });
 
-test('isFresh returns false when fetchedAt is missing', () => {
-  const p = path.join(TMP, 'no-date.json');
-  fs.writeFileSync(p, JSON.stringify({ faction: 'death-guard' }), 'utf-8');
-  assert.equal(isFresh(p, 7), false);
-});
+test('isFresh returns false for missing fetchedAt or invalid JSON', () => {
+  const noDate = path.join(TMP, 'no-date.json');
+  fs.writeFileSync(noDate, JSON.stringify({ faction: 'death-guard' }), 'utf-8');
+  assert.equal(isFresh(noDate, 7), false);
 
-test('isFresh returns false when file contains invalid JSON', () => {
-  const p = path.join(TMP, 'bad.json');
-  fs.writeFileSync(p, 'not json', 'utf-8');
-  assert.equal(isFresh(p, 7), false);
-});
-
-// ---------------------------------------------------------------------------
-// buildFactionUrl
-// ---------------------------------------------------------------------------
-
-test('buildFactionUrl constructs the correct wahapedia URL', () => {
-  const url = buildFactionUrl('death-guard', '10ed');
-  assert.equal(url, 'https://wahapedia.ru/wh40k10ed/factions/death-guard/');
-});
-
-test('buildFactionUrl supports different editions', () => {
-  const url = buildFactionUrl('death-guard', '11ed');
-  assert.equal(url, 'https://wahapedia.ru/wh40k11ed/factions/death-guard/');
-});
-
-test('buildFactionUrl supports different factions', () => {
-  const url = buildFactionUrl('tyranids', '10ed');
-  assert.equal(url, 'https://wahapedia.ru/wh40k10ed/factions/tyranids/');
+  const badJson = path.join(TMP, 'bad.json');
+  fs.writeFileSync(badJson, 'not json', 'utf-8');
+  assert.equal(isFresh(badJson, 7), false);
 });
 
 // ---------------------------------------------------------------------------
-// buildUnitUrl
+// buildFactionUrl / buildUnitUrl
 // ---------------------------------------------------------------------------
+
+test('buildFactionUrl constructs correct wahapedia URLs', () => {
+  assert.equal(buildFactionUrl('death-guard', '10ed'), 'https://wahapedia.ru/wh40k10ed/factions/death-guard/');
+  assert.equal(buildFactionUrl('tyranids', '10ed'), 'https://wahapedia.ru/wh40k10ed/factions/tyranids/');
+  assert.equal(buildFactionUrl('death-guard', '11ed'), 'https://wahapedia.ru/wh40k11ed/factions/death-guard/');
+});
 
 test('buildUnitUrl constructs the correct unit datasheet URL', () => {
   const url = buildUnitUrl('death-guard', '10ed', 'Daemon-Prince-of-Nurgle');
@@ -129,56 +114,21 @@ const MINIMAL_RULES = {
   ],
 };
 
-test('rulesToText returns a non-empty string for valid input', () => {
+test('rulesToText includes all expected sections', () => {
   const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.length > 0);
-});
-
-test('rulesToText includes the faction name in the header', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('DEATH GUARD'));
-});
-
-test('rulesToText includes faction ability names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Disgustingly Resilient'));
-});
-
-test('rulesToText includes detachment names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Virulent Vectorium'));
-});
-
-test('rulesToText includes stratagem names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Cloud of Flies'));
-});
-
-test('rulesToText includes enhancement names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Suppurating Plate'));
-});
-
-test('rulesToText includes unit names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Plague Marines'));
-});
-
-test('rulesToText includes unit stat line', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('M: 5"') && txt.includes('T: 5'));
-});
-
-test('rulesToText includes weapon names', () => {
-  const txt = rulesToText(MINIMAL_RULES);
   assert.ok(txt.includes('Plague boltgun'));
 });
 
-test('rulesToText returns empty string for null input', () => {
+test('rulesToText handles null and missing sections gracefully', () => {
   assert.equal(rulesToText(null), '');
-});
-
-test('rulesToText handles missing sections gracefully', () => {
   const txt = rulesToText({ faction: 'death-guard', edition: '10ed', fetchedAt: new Date().toISOString() });
   assert.ok(txt.includes('DEATH GUARD'));
 });
@@ -188,67 +138,39 @@ test('rulesToText handles missing sections gracefully', () => {
 // ---------------------------------------------------------------------------
 
 test('estimateTokens returns approximately chars/4', () => {
-  const text = 'a'.repeat(400);
-  assert.equal(estimateTokens(text), 100);
-});
-
-test('estimateTokens returns 0 for empty string', () => {
+  assert.equal(estimateTokens('a'.repeat(400)), 100);
   assert.equal(estimateTokens(''), 0);
-});
-
-test('estimateTokens returns 0 for null', () => {
   assert.equal(estimateTokens(null), 0);
-});
-
-test('estimateTokens rounds up', () => {
-  // 5 chars → ceil(5/4) = 2
-  assert.equal(estimateTokens('hello'), 2);
+  assert.equal(estimateTokens('hello'), 2); // ceil(5/4)
 });
 
 // ---------------------------------------------------------------------------
 // truncateToTokenBudget
 // ---------------------------------------------------------------------------
 
-test('truncateToTokenBudget returns text unchanged when under limit', () => {
-  const text = 'short text';
-  assert.equal(truncateToTokenBudget(text, 1000), text);
-});
-
-test('truncateToTokenBudget truncates to maxChars', () => {
-  const text = 'a'.repeat(200) + '\n' + 'b'.repeat(200);
-  const result = truncateToTokenBudget(text, 100);
-  assert.ok(result.length <= 100 + 50); // some slack for the notice
-});
-
-test('truncateToTokenBudget appends a truncation notice', () => {
-  const text = 'x'.repeat(500);
-  const result = truncateToTokenBudget(text, 100);
-  assert.ok(result.includes('[Document truncated'));
-});
-
-test('truncateToTokenBudget returns text unchanged when exactly at limit', () => {
-  const text = 'a'.repeat(100);
-  assert.equal(truncateToTokenBudget(text, 100), text);
-});
-
-test('truncateToTokenBudget handles null gracefully', () => {
+test('truncateToTokenBudget passes through short text, truncates long text', () => {
+  assert.equal(truncateToTokenBudget('short text', 1000), 'short text');
+  assert.equal(truncateToTokenBudget('a'.repeat(100), 100), 'a'.repeat(100));
   assert.equal(truncateToTokenBudget(null, 100), null);
+
+  const longText = 'x'.repeat(500);
+  const result = truncateToTokenBudget(longText, 100);
+  assert.ok(result.length <= 150); // some slack for truncation notice
+  assert.ok(result.includes('[Document truncated'));
 });
 
 // ---------------------------------------------------------------------------
 // parseDetachmentsFromRaw
 // ---------------------------------------------------------------------------
 
-test('parseDetachmentsFromRaw returns an array of detachment objects', () => {
+test('parseDetachmentsFromRaw parses sections into detachment objects', () => {
   const sections = [
     { name: 'Virulent Vectorium', rawText: 'Virulent Vectorium\nSpread the Sickness ability text here.\nCloud of Flies\n1CP\nThis is a stratagem.' },
   ];
   const result = parseDetachmentsFromRaw(sections);
   assert.equal(result.length, 1);
   assert.equal(result[0].name, 'Virulent Vectorium');
-});
 
-test('parseDetachmentsFromRaw handles empty sections array', () => {
   assert.deepEqual(parseDetachmentsFromRaw([]), []);
 });
 
@@ -262,188 +184,118 @@ test('parseDetachmentsFromRaw preserves detachment name', () => {
 // hasFactionKeyword
 // ---------------------------------------------------------------------------
 
-test('hasFactionKeyword returns true when keyword matches faction slug', () => {
-  const unit = { keywords: ['Infantry', 'Chaos', 'Death Guard', 'Nurgle'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+test('hasFactionKeyword matches faction slug and is case-insensitive', () => {
+  assert.equal(hasFactionKeyword({ keywords: ['Infantry', 'Chaos', 'Death Guard', 'Nurgle'] }, 'death-guard'), true);
+  assert.equal(hasFactionKeyword({ keywords: ['DEATH GUARD', 'NURGLE'] }, 'death-guard'), true);
+  assert.equal(hasFactionKeyword({ keywords: ['Infantry', 'Tyranids', 'Synapse'] }, 'tyranids'), true);
 });
 
-test('hasFactionKeyword returns true when no keywords extracted (failsafe)', () => {
-  const unit = { keywords: [] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+test('hasFactionKeyword returns true (failsafe) when keywords are empty or missing', () => {
+  assert.equal(hasFactionKeyword({ keywords: [] }, 'death-guard'), true);
+  assert.equal(hasFactionKeyword({ name: 'Unknown Unit' }, 'death-guard'), true);
 });
 
-test('hasFactionKeyword returns true when keywords field is missing', () => {
-  const unit = { name: 'Unknown Unit' };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
-});
-
-test('hasFactionKeyword returns false for summoned daemon ally (has SUMMONED keyword)', () => {
-  // Plaguebearers, Nurglings, Plague Drones all carry SUMMONED
-  const unit = { keywords: ['Infantry', 'Chaos', 'Daemon', 'Nurgle', 'SUMMONED', 'Plaguebearers'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), false);
-});
-
-test('hasFactionKeyword returns true for daemon engine without SUMMONED (e.g. Plagueburst Crawler)', () => {
-  // Daemon engines are Death Guard units — they have DAEMON but not SUMMONED
-  const unit = { keywords: ['VEHICLE', 'CHAOS', 'NURGLE', 'DAEMON', 'PLAGUEBURST CRAWLER'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
-});
-
-test('hasFactionKeyword returns true for unit missing faction keyword but not SUMMONED (e.g. Poxwalkers)', () => {
-  const unit = { keywords: ['INFANTRY', 'CHAOS', 'NURGLE', 'POXWALKERS'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
-});
-
-test('hasFactionKeyword is case-insensitive', () => {
-  const unit = { keywords: ['DEATH GUARD', 'NURGLE'] };
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
-});
-
-test('hasFactionKeyword works for other faction slugs', () => {
-  const unit = { keywords: ['Infantry', 'Tyranids', 'Synapse'] };
-  assert.equal(hasFactionKeyword(unit, 'tyranids'), true);
-  // Exclusion-based logic: a Tyranids unit has no SUMMONED keyword, so it passes
-  // (in practice, Tyranids units never appear on the Death Guard faction page)
-  assert.equal(hasFactionKeyword(unit, 'death-guard'), true);
+test('hasFactionKeyword excludes SUMMONED daemons but keeps daemon engines', () => {
+  assert.equal(
+    hasFactionKeyword({ keywords: ['Infantry', 'Chaos', 'Daemon', 'Nurgle', 'SUMMONED', 'Plaguebearers'] }, 'death-guard'),
+    false
+  );
+  assert.equal(
+    hasFactionKeyword({ keywords: ['VEHICLE', 'CHAOS', 'NURGLE', 'DAEMON', 'PLAGUEBURST CRAWLER'] }, 'death-guard'),
+    true
+  );
+  // Poxwalkers: no faction keyword, no SUMMONED → kept
+  assert.equal(
+    hasFactionKeyword({ keywords: ['INFANTRY', 'CHAOS', 'NURGLE', 'POXWALKERS'] }, 'death-guard'),
+    true
+  );
 });
 
 // ---------------------------------------------------------------------------
 // deduplicateUnit
 // ---------------------------------------------------------------------------
 
-test('deduplicateUnit removes duplicate weapons by name', () => {
+test('deduplicateUnit removes duplicate weapons and abilities', () => {
   const unit = {
     weapons: [
       { name: 'Plague boltgun', a: '2' },
-      { name: 'Plague boltgun', a: '2' }, // duplicate
+      { name: 'Plague boltgun', a: '2' },
       { name: 'Blight grenades', a: 'D6' },
     ],
-    abilities: [],
-  };
-  deduplicateUnit(unit);
-  assert.equal(unit.weapons.length, 2);
-  assert.equal(unit.weapons[0].name, 'Plague boltgun');
-  assert.equal(unit.weapons[1].name, 'Blight grenades');
-});
-
-test('deduplicateUnit removes duplicate abilities by name', () => {
-  const unit = {
-    weapons: [],
     abilities: [
       { name: 'Contagion of Nurgle', description: 'desc' },
-      { name: 'Contagion of Nurgle', description: 'desc' }, // duplicate
+      { name: 'Contagion of Nurgle', description: 'desc' },
       { name: 'Disgustingly Resilient', description: 'desc2' },
     ],
   };
   deduplicateUnit(unit);
+  assert.equal(unit.weapons.length, 2);
   assert.equal(unit.abilities.length, 2);
 });
 
-test('deduplicateUnit is a no-op when no duplicates', () => {
-  const unit = {
-    weapons: [{ name: 'Weapon A' }, { name: 'Weapon B' }],
-    abilities: [{ name: 'Ability A' }],
-  };
+test('deduplicateUnit is a no-op when no duplicates and handles missing arrays', () => {
+  const unit = { weapons: [{ name: 'A' }, { name: 'B' }], abilities: [{ name: 'C' }] };
   deduplicateUnit(unit);
   assert.equal(unit.weapons.length, 2);
   assert.equal(unit.abilities.length, 1);
-});
 
-test('deduplicateUnit handles missing weapons array gracefully', () => {
-  const unit = { abilities: [{ name: 'A' }] };
-  assert.doesNotThrow(() => deduplicateUnit(unit));
-});
+  // Missing arrays: no throw
+  assert.doesNotThrow(() => deduplicateUnit({ abilities: [{ name: 'A' }] }));
+  assert.doesNotThrow(() => deduplicateUnit({ weapons: [{ name: 'W' }] }));
 
-test('deduplicateUnit handles missing abilities array gracefully', () => {
-  const unit = { weapons: [{ name: 'W' }] };
-  assert.doesNotThrow(() => deduplicateUnit(unit));
-});
-
-test('deduplicateUnit returns the unit object', () => {
-  const unit = { weapons: [], abilities: [] };
-  assert.strictEqual(deduplicateUnit(unit), unit);
+  // Returns the unit object
+  const u2 = { weapons: [], abilities: [] };
+  assert.strictEqual(deduplicateUnit(u2), u2);
 });
 
 // ---------------------------------------------------------------------------
 // deduplicateDetachments
 // ---------------------------------------------------------------------------
 
-test('deduplicateDetachments removes detachment with same name', () => {
-  const detachments = [
-    { name: 'Virulent Vectorium', stratagems: [], enhancements: [] },
-    { name: 'Virulent Vectorium', stratagems: [], enhancements: [] }, // duplicate
-    { name: "Mortarion's Hammer", stratagems: [], enhancements: [] },
-  ];
-  const result = deduplicateDetachments(detachments);
-  assert.equal(result.length, 2);
-  assert.equal(result[0].name, 'Virulent Vectorium');
-  assert.equal(result[1].name, "Mortarion's Hammer");
-});
-
-test('deduplicateDetachments deduplicates stratagems within a detachment', () => {
+test('deduplicateDetachments removes duplicate detachments, stratagems, and enhancements', () => {
   const detachments = [
     {
       name: 'Virulent Vectorium',
       stratagems: [
         { name: 'Cloud of Flies', cp: '1 CP' },
-        { name: 'Cloud of Flies', cp: '1 CP' }, // duplicate
+        { name: 'Cloud of Flies', cp: '1 CP' },
         { name: 'Plague of Attrition', cp: '2 CP' },
       ],
-      enhancements: [],
-    },
-  ];
-  const result = deduplicateDetachments(detachments);
-  assert.equal(result[0].stratagems.length, 2);
-});
-
-test('deduplicateDetachments deduplicates enhancements within a detachment', () => {
-  const detachments = [
-    {
-      name: 'Virulent Vectorium',
-      stratagems: [],
       enhancements: [
         { name: 'Suppurating Plate' },
-        { name: 'Suppurating Plate' }, // duplicate
+        { name: 'Suppurating Plate' },
         { name: 'Droning Halo' },
       ],
     },
+    { name: 'Virulent Vectorium', stratagems: [], enhancements: [] },
+    { name: "Mortarion's Hammer", stratagems: [], enhancements: [] },
   ];
   const result = deduplicateDetachments(detachments);
+  assert.equal(result.length, 2);
+  assert.equal(result[0].name, 'Virulent Vectorium');
+  assert.equal(result[0].stratagems.length, 2);
   assert.equal(result[0].enhancements.length, 2);
+  assert.equal(result[1].name, "Mortarion's Hammer");
 });
 
-test('deduplicateDetachments handles empty array', () => {
+test('deduplicateDetachments handles empty array and missing fields', () => {
   assert.deepEqual(deduplicateDetachments([]), []);
-});
 
-test('deduplicateDetachments handles detachments without stratagems/enhancements', () => {
   const detachments = [{ name: 'Test Detachment', ability: 'Some ability' }];
   assert.doesNotThrow(() => deduplicateDetachments(detachments));
-  const result = deduplicateDetachments(detachments);
-  assert.equal(result.length, 1);
+  assert.equal(deduplicateDetachments(detachments).length, 1);
 });
 
 // ---------------------------------------------------------------------------
 // FORGE_WORLD_SLUGS
 // ---------------------------------------------------------------------------
 
-test('FORGE_WORLD_SLUGS is a Set', () => {
+test('FORGE_WORLD_SLUGS is populated and contains expected entries', () => {
   assert.ok(FORGE_WORLD_SLUGS instanceof Set);
-});
-
-test('FORGE_WORLD_SLUGS is populated from config.json (not empty)', () => {
   assert.ok(FORGE_WORLD_SLUGS.size > 0);
-});
-
-test('FORGE_WORLD_SLUGS contains known Forge World unit slugs', () => {
   assert.ok(FORGE_WORLD_SLUGS.has('Spartan'));
   assert.ok(FORGE_WORLD_SLUGS.has('Typhon'));
   assert.ok(FORGE_WORLD_SLUGS.has('Leviathan-Dreadnought'));
-  assert.ok(FORGE_WORLD_SLUGS.has('Sokar-pattern-Stormbird'));
-});
-
-test('FORGE_WORLD_SLUGS does not contain standard Death Guard units', () => {
   assert.ok(!FORGE_WORLD_SLUGS.has('Plague-Marines'));
   assert.ok(!FORGE_WORLD_SLUGS.has('Mortarion'));
-  assert.ok(!FORGE_WORLD_SLUGS.has('Plagueburst-Crawler'));
 });

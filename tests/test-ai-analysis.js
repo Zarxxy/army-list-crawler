@@ -4,10 +4,8 @@
  * Tests for ai-analysis.js
  *
  * These tests do NOT make real API calls. They verify:
- *   - The script exits 0 and writes a placeholder when ANTHROPIC_API_KEY is absent
- *   - The placeholder JSON has the expected structure (new schema)
- *   - The script recovers gracefully when the meta report is missing
- *   - The script recovers gracefully when the report has zero lists
+ *   - The script exits 0 and writes a valid placeholder when ANTHROPIC_API_KEY is absent
+ *   - The script recovers gracefully when the meta report is missing or empty
  */
 
 const { test, after } = require('node:test');
@@ -56,7 +54,6 @@ function runAI(env = {}, extraArgs = []) {
       ...extraArgs],
     {
       encoding: 'utf-8',
-      // Explicitly clear ANTHROPIC_API_KEY so tests don't make real API calls
       env: { ...process.env, ANTHROPIC_API_KEY: '', ...env },
     }
   );
@@ -67,54 +64,24 @@ function readLatest() {
   return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : null;
 }
 
-test('exits with code 0 when ANTHROPIC_API_KEY is not set', () => {
+test('no-API-key run: exits 0, writes files, placeholder has correct schema', () => {
   const result = runAI({ ANTHROPIC_API_KEY: '' });
   assert.equal(result.status, 0, `stderr: ${result.stderr}`);
-});
 
-test('writes ai-analysis-latest.json when API key is missing', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
+  // Output files exist
   assert.ok(fs.existsSync(path.join(TMP, 'ai-analysis-latest.json')));
-});
-
-test('writes ai-analysis-latest.txt when API key is missing', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
   assert.ok(fs.existsSync(path.join(TMP, 'ai-analysis-latest.txt')));
-});
 
-test('placeholder JSON has skipped:true when no API key', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
-  const result = readLatest();
-  assert.equal(result.skipped, true);
-});
-
-test('placeholder JSON has a reason field mentioning ANTHROPIC_API_KEY', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
-  const result = readLatest();
-  assert.ok(result.reason, 'reason field is empty');
-  assert.ok(result.reason.toLowerCase().includes('anthropic_api_key'), `unexpected reason: ${result.reason}`);
-});
-
-test('placeholder JSON has faction field', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
-  const result = readLatest();
-  assert.ok(result.faction, 'faction field missing');
-});
-
-test('placeholder JSON has generatedAt timestamp', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
-  const result = readLatest();
-  assert.ok(result.generatedAt, 'generatedAt missing');
-  assert.ok(!isNaN(Date.parse(result.generatedAt)), `invalid date: ${result.generatedAt}`);
-});
-
-test('placeholder JSON has new-schema fields', () => {
-  runAI({ ANTHROPIC_API_KEY: '' });
-  const result = readLatest();
-  assert.ok(Array.isArray(result.detachmentSummaries),    'detachmentSummaries should be an array');
-  assert.ok(Array.isArray(result.listCharacterizations),  'listCharacterizations should be an array');
-  assert.ok('crossDetachmentPatterns' in result,          'crossDetachmentPatterns field missing');
-  assert.ok('crawlDiff' in result,                        'crawlDiff field missing');
+  // Placeholder JSON structure
+  const json = readLatest();
+  assert.equal(json.skipped, true);
+  assert.ok(json.reason.toLowerCase().includes('anthropic_api_key'));
+  assert.ok(json.faction);
+  assert.ok(!isNaN(Date.parse(json.generatedAt)));
+  assert.ok(Array.isArray(json.detachmentSummaries));
+  assert.ok(Array.isArray(json.listCharacterizations));
+  assert.ok('crossDetachmentPatterns' in json);
+  assert.ok('crawlDiff' in json);
 });
 
 test('exits 0 when meta report is missing', () => {
@@ -126,28 +93,18 @@ test('exits 0 when meta report is missing', () => {
   assert.equal(result.status, 0);
 });
 
-test('exits 0 when report has zero lists', () => {
+test('exits 0 with skipped placeholder when report has zero lists', () => {
   const result = spawnSync(
     process.execPath,
     [AI_SCRIPT, '--report', EMPTY_REPORT_FILE, '--output', TMP],
     { encoding: 'utf-8', env: { ...process.env, ANTHROPIC_API_KEY: 'fake-key' } }
   );
   assert.equal(result.status, 0);
-});
-
-test('zero-lists placeholder has skipped:true', () => {
-  spawnSync(
-    process.execPath,
-    [AI_SCRIPT, '--report', EMPTY_REPORT_FILE, '--output', TMP],
-    { encoding: 'utf-8', env: { ...process.env, ANTHROPIC_API_KEY: 'fake-key' } }
-  );
-  const result = readLatest();
-  assert.equal(result.skipped, true);
+  const json = readLatest();
+  assert.equal(json.skipped, true);
 });
 
 test('accepts --enriched arg without error', () => {
-  // The script exits before reaching focused rules when API key is absent,
-  // but the arg should be accepted without parse errors
   const enrichedPath = path.join(TMP, 'enriched-rules-latest.json');
   fs.writeFileSync(enrichedPath, JSON.stringify({ detachments: [], units: [] }), 'utf-8');
 
