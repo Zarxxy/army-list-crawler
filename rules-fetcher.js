@@ -5,6 +5,7 @@ let chromium;
 
 const fs   = require('fs');
 const path = require('path');
+const { getArg } = require('./utils');
 
 const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 const rfConfig  = appConfig.rulesFetcher || {};
@@ -42,17 +43,12 @@ const FORGE_WORLD_SLUGS = new Set(rfConfig.forgeWorldSlugs || []);
 
 const args = process.argv.slice(2);
 
-function getArg(flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
-
-const faction   = getArg('--faction')   || DEFAULT_FACTION;
-const edition   = getArg('--edition')   || DEFAULT_EDITION;
-const outputDir = getArg('--output')    || path.join(__dirname, 'rules');
-const _rawMaxUnits  = parseInt(getArg('--max-units') || '0', 10);
+const faction   = getArg(args, '--faction')   || DEFAULT_FACTION;
+const edition   = getArg(args, '--edition')   || DEFAULT_EDITION;
+const outputDir = getArg(args, '--output')    || path.join(__dirname, 'rules');
+const _rawMaxUnits  = parseInt(getArg(args, '--max-units') || '0', 10);
 const maxUnits  = Number.isFinite(_rawMaxUnits)  && _rawMaxUnits  >= 0 ? _rawMaxUnits  : 0; // 0 = no limit
-const _rawPageDelay = parseInt(getArg('--delay') || String(CONFIG.PAGE_DELAY_MS), 10);
+const _rawPageDelay = parseInt(getArg(args, '--delay') || String(CONFIG.PAGE_DELAY_MS), 10);
 const pageDelay = Number.isFinite(_rawPageDelay) && _rawPageDelay >= 0 ? _rawPageDelay : CONFIG.PAGE_DELAY_MS;
 const force     = args.includes('--force');
 const headless  = !args.includes('--no-headless');

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getArg, log } = require('./utils');
 
 // ---------------------------------------------------------------------------
 // Builds the GitHub Pages site by inlining report JSON directly into the
@@ -16,16 +17,11 @@ const path = require('path');
 
 const args = process.argv.slice(2);
 
-function getArg(flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
-
-const reportsDir = getArg('--reports-dir') || path.join(__dirname, 'reports');
-const docsDir    = getArg('--docs-dir')    || path.join(__dirname, 'docs');
-const listsFile  = getArg('--lists-file')  || path.join(__dirname, 'output', 'army-lists-latest.json');
-const rulesFile    = getArg('--rules-file')    || path.join(__dirname, 'rules', 'death-guard-latest.json');
-const enrichedFile = getArg('--enriched-file') || path.join(__dirname, 'reports', 'enriched-rules-latest.json');
+const reportsDir = getArg(args, '--reports-dir') || path.join(__dirname, 'reports');
+const docsDir    = getArg(args, '--docs-dir')    || path.join(__dirname, 'docs');
+const listsFile  = getArg(args, '--lists-file')  || path.join(__dirname, 'output', 'army-lists-latest.json');
+const rulesFile    = getArg(args, '--rules-file')    || path.join(__dirname, 'rules', 'death-guard-latest.json');
+const enrichedFile = getArg(args, '--enriched-file') || path.join(__dirname, 'reports', 'enriched-rules-latest.json');
 const dataDir    = path.join(docsDir, 'data');
 const templatePath = path.join(docsDir, 'template.html');
 const outputPath   = path.join(docsDir, 'index.html');
@@ -123,7 +119,7 @@ function buildLlmsFiles(reportsDir, docsDir, metaData) {
   ].join('\n');
 
   fs.writeFileSync(path.join(docsDir, 'llms.txt'), llmsTxt, 'utf-8');
-  console.log('  Generated llms.txt');
+  log.info('  Generated llms.txt');
 
   // --- llms-full.txt ---
   const reportFiles = [
@@ -148,7 +144,7 @@ function buildLlmsFiles(reportsDir, docsDir, metaData) {
   }
 
   fs.writeFileSync(path.join(docsDir, 'llms-full.txt'), sections.join('\n'), 'utf-8');
-  console.log('  Generated llms-full.txt');
+  log.info('  Generated llms-full.txt');
 }
 
 function main() {
@@ -158,7 +154,7 @@ function main() {
 
   // Read template
   if (!fs.existsSync(templatePath)) {
-    console.error(`Template not found: ${templatePath}`);
+    log.error(`Template not found: ${templatePath}`);
     process.exit(1);
   }
   let html = fs.readFileSync(templatePath, 'utf-8');
@@ -171,10 +167,10 @@ function main() {
   if (fs.existsSync(metaSrc)) {
     metaJSON = fs.readFileSync(metaSrc, 'utf-8');
     fs.copyFileSync(metaSrc, path.join(dataDir, 'meta-report.json'));
-    console.log('  Embedded meta report');
+    log.info('  Embedded meta report');
     embedded++;
   } else {
-    console.warn('  Warning: meta report not found — run "npm run report" first');
+    log.warn('  Warning: meta report not found — run "npm run report" first');
   }
 
   // Optimizer report
@@ -183,10 +179,10 @@ function main() {
   if (fs.existsSync(optSrc)) {
     optJSON = fs.readFileSync(optSrc, 'utf-8');
     fs.copyFileSync(optSrc, path.join(dataDir, 'optimizer.json'));
-    console.log('  Embedded optimizer report');
+    log.info('  Embedded optimizer report');
     embedded++;
   } else {
-    console.warn('  Warning: optimizer report not found — run "npm run optimize" first');
+    log.warn('  Warning: optimizer report not found — run "npm run optimize" first');
   }
 
   // AI analysis report
@@ -197,21 +193,21 @@ function main() {
     try {
       aiData = JSON.parse(fs.readFileSync(aiSrc, 'utf-8'));
     } catch (err) {
-      console.warn(`  Warning: failed to parse AI analysis JSON: ${err.message}`);
+      log.warn(`  Warning: failed to parse AI analysis JSON: ${err.message}`);
       aiData = { skipped: true, reason: `Parse error: ${err.message}` };
     }
     // Only embed if the analysis was not skipped / is not an empty placeholder
     if (!aiData.skipped) {
       aiJSON = JSON.stringify(aiData);
       fs.copyFileSync(aiSrc, path.join(dataDir, 'ai-analysis.json'));
-      console.log('  Embedded AI analysis');
+      log.info('  Embedded AI analysis');
       embedded++;
     } else {
-      console.warn(`  AI analysis skipped (${aiData.reason || 'no reason given'}) — embedding placeholder`);
+      log.warn(`  AI analysis skipped (${aiData.reason || 'no reason given'}) — embedding placeholder`);
       aiJSON = JSON.stringify({ skipped: true, reason: aiData.reason || 'AI analysis was skipped' });
     }
   } else {
-    console.warn('  Warning: AI analysis not found — embedding placeholder (run "npm run ai-analysis" to generate)');
+    log.warn('  Warning: AI analysis not found — embedding placeholder (run "npm run ai-analysis" to generate)');
     aiJSON = JSON.stringify({ skipped: true, reason: 'AI analysis was not run. Set ANTHROPIC_API_KEY and run "npm run ai-analysis".' });
   }
 
@@ -220,10 +216,10 @@ function main() {
   if (fs.existsSync(listsFile)) {
     listsJSON = fs.readFileSync(listsFile, 'utf-8');
     fs.copyFileSync(listsFile, path.join(dataDir, 'army-lists.json'));
-    console.log('  Embedded army lists');
+    log.info('  Embedded army lists');
     embedded++;
   } else {
-    console.warn(`  Warning: army lists not found at ${listsFile} — run "npm run crawl:dg" first`);
+    log.warn(`  Warning: army lists not found at ${listsFile} — run "npm run crawl:dg" first`);
   }
 
   // Rules data (unit keywords, abilities, detachment rules, stratagems, enhancements)
@@ -238,10 +234,10 @@ function main() {
     }
     rulesJSON = JSON.stringify(rulesData);
     fs.writeFileSync(path.join(dataDir, 'rules.json'), JSON.stringify(rulesData, null, 2), 'utf-8');
-    console.log('  Embedded rules data');
+    log.info('  Embedded rules data');
     embedded++;
   } else {
-    console.warn(`  Warning: rules file not found at ${rulesFile} — run "npm run fetch-rules" first`);
+    log.warn(`  Warning: rules file not found at ${rulesFile} — run "npm run fetch-rules" first`);
   }
 
   // Enriched rules (cross-referenced rules + optimizer data)
@@ -249,10 +245,10 @@ function main() {
   if (fs.existsSync(enrichedFile)) {
     enrichedJSON = fs.readFileSync(enrichedFile, 'utf-8');
     fs.copyFileSync(enrichedFile, path.join(dataDir, 'enriched-rules.json'));
-    console.log('  Embedded enriched rules');
+    log.info('  Embedded enriched rules');
     embedded++;
   } else {
-    console.warn(`  Warning: enriched rules not found at ${enrichedFile} — run "npm run enrich" first`);
+    log.warn(`  Warning: enriched rules not found at ${enrichedFile} — run "npm run enrich" first`);
   }
 
   // Inject data into the template
@@ -272,18 +268,18 @@ function main() {
     const before = html.length;
     html = html.replace(placeholders[i], escapeForScriptTag(replacements[i]));
     if (html.length === before) {
-      console.warn(`  WARNING: Placeholder ${placeholders[i].slice(2, placeholders[i].indexOf('*/'))} not found in template`);
+      log.warn(`  WARNING: Placeholder ${placeholders[i].slice(2, placeholders[i].indexOf('*/'))} not found in template`);
     }
   }
 
   fs.writeFileSync(outputPath, html, 'utf-8');
 
   if (embedded === 0) {
-    console.warn('\nNo reports found — site will show empty state.');
+    log.warn('\nNo reports found — site will show empty state.');
   }
 
-  console.log(`\nSite built -> ${path.relative(__dirname, outputPath)} (${embedded} report${embedded > 1 ? 's' : ''} inlined)`);
-  console.log('Deploy docs/ to GitHub Pages, or open index.html in a browser.');
+  log.info(`\nSite built -> ${path.relative(__dirname, outputPath)} (${embedded} report${embedded > 1 ? 's' : ''} inlined)`);
+  log.info('Deploy docs/ to GitHub Pages, or open index.html in a browser.');
 
   // Generate LLM-readable files
   let llmsMetaData = null;
@@ -292,7 +288,7 @@ function main() {
       const parsed = JSON.parse(metaJSON);
       llmsMetaData = parsed.meta || parsed;
     } catch (err) {
-      console.warn(`  Warning: failed to parse meta JSON for llms files: ${err.message}`);
+      log.warn(`  Warning: failed to parse meta JSON for llms files: ${err.message}`);
     }
   }
   buildLlmsFiles(reportsDir, docsDir, llmsMetaData);

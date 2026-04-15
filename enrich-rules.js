@@ -19,7 +19,7 @@
 
 const fs   = require('fs');
 const path = require('path');
-const { getArg } = require('./utils');
+const { getArg, log } = require('./utils');
 
 const args = process.argv.slice(2);
 
@@ -35,7 +35,7 @@ const dryRun    = args.includes('--dry-run');
 function readJSON(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); }
-  catch (err) { console.warn(`Failed to parse JSON ${filePath}: ${err.message}`); return null; }
+  catch (err) { log.warn(`Failed to parse JSON ${filePath}: ${err.message}`); return null; }
 }
 
 /**
@@ -294,33 +294,33 @@ function enrich(rules, optimizer) {
 function main() {
   const rules = readJSON(rulesFile);
   if (!rules) {
-    console.error(`Rules file not found: ${rulesFile}`);
+    log.error(`Rules file not found: ${rulesFile}`);
     process.exit(1);
   }
 
   const optimizer = readJSON(optimFile);
   if (!optimizer) {
-    console.warn(`Optimizer file not found at ${optimFile} — enriching with rules only (no meta stats).`);
+    log.warn(`Optimizer file not found at ${optimFile} — enriching with rules only (no meta stats).`);
   }
 
   const enriched = enrich(rules, optimizer);
 
-  console.log(`Enriched: ${enriched.detachments.length} detachments, ` +
+  log.info(`Enriched: ${enriched.detachments.length} detachments, ` +
     `${enriched.units.length} tournament units, ${enriched.unseenUnits.length} unseen units`);
 
   for (const det of enriched.detachments) {
-    console.log(`  ${det.name}: ${det.stratagems.length} stratagems, ${det.enhancements.length} enhancements`);
+    log.info(`  ${det.name}: ${det.stratagems.length} stratagems, ${det.enhancements.length} enhancements`);
   }
 
   if (dryRun) {
-    console.log('\nDry run — no files written.');
+    log.info('Dry run — no files written.');
     return;
   }
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
   const outPath = path.join(outputDir, 'enriched-rules-latest.json');
   fs.writeFileSync(outPath, JSON.stringify(enriched, null, 2), 'utf-8');
-  console.log(`\nEnriched rules saved to ${outPath}`);
+  log.info(`Enriched rules saved to ${outPath}`);
 }
 
 // Export for testing

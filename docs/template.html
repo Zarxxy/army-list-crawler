@@ -624,8 +624,7 @@
     var safeId = esc(listId);
 
     var header = '<div class="list-card-header" onclick="toggleCard(this.parentElement)">' +
-      '<input type="checkbox" class="compare-cb" onclick="event.stopPropagation();handleCompare(this,\'' +
-        listId.replace(/'/g, "\\'") + '\')" title="Compare this list">' +
+      '<input type="checkbox" class="compare-cb" data-listid="' + safeId + '" onclick="event.stopPropagation();handleCompare(this)" title="Compare this list">' +
       '<span class="det-pill">' + esc(det) + '</span>' +
       '<span class="player-name">' + esc(l.playerName || l.player || 'Unknown') + '</span>' +
       (isNew ? '<span class="novelty-badge">NEW</span>' : '') +
@@ -659,7 +658,7 @@
       body += '<p style="color:var(--text2);font-size:0.83rem">(No list text available)</p>';
     }
     body += '<div class="card-footer">' +
-      '<a class="det-link" href="#" onclick="goToDetachment(\'' + esc(det).replace(/'/g, "\\'") + '\');return false;">' +
+      '<a class="det-link" href="#" data-detachment="' + esc(det) + '" onclick="goToDetachment(this.dataset.detachment);return false;">' +
       'See all ' + esc(det) + ' lists &rarr;</a></div>';
 
     return '<div class="list-card" data-listid="' + safeId + '">' +
@@ -752,7 +751,8 @@
   // ---------------------------------------------------------------------------
   // Comparison
   // ---------------------------------------------------------------------------
-  function handleCompare(cb, listId) {
+  function handleCompare(cb) {
+    var listId = cb.dataset.listid;
     if (cb.checked) {
       if (_selected.length >= 2) { cb.checked = false; return; }
       _selected.push(listId);

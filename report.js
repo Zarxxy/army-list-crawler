@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getArg, parseRecord, extractDetachment, flattenLists, parseUnitsFromText } = require('./utils');
+const { getArg, parseRecord, extractDetachment, flattenLists, log, parseUnitsFromText } = require('./utils');
 
 const args = process.argv.slice(2);
 const inputFile = getArg(args, '--input') || path.join(__dirname, 'output', 'army-lists-latest.json');
@@ -20,8 +20,8 @@ function main() {
   };
 
   if (!fs.existsSync(inputFile)) {
-    console.error(`ERROR: Input file not found: ${inputFile}`);
-    console.error('Run "npm run crawl:dg" first to generate the army lists data.');
+    log.error(`Input file not found: ${inputFile}`);
+    log.error('Run "npm run crawl:dg" first to generate the army lists data.');
     process.exit(1);
   }
 
@@ -29,34 +29,34 @@ function main() {
   try {
     raw = JSON.parse(fs.readFileSync(inputFile, 'utf-8'));
   } catch (err) {
-    console.error(`ERROR: Failed to parse input file "${inputFile}": ${err.message}`);
+    log.error(`Failed to parse input file "${inputFile}": ${err.message}`);
     process.exit(1);
   }
   const lists = flattenLists(raw);
 
   if (lists.length === 0) {
-    console.warn('No army lists found in the input file. Generating empty report.');
+    log.warn('No army lists found in the input file. Generating empty report.');
     emptyReport.meta.crawledAt = raw.crawledAt || 'unknown';
     writeReports(emptyReport);
     return;
   }
 
-  console.log(`Loaded ${lists.length} army lists from ${inputFile}\n`);
+  log.info(`Loaded ${lists.length} army lists from ${inputFile}`);
 
   let previousLists = null;
   if (fs.existsSync(previousFile)) {
     try {
       const prevRaw = JSON.parse(fs.readFileSync(previousFile, 'utf-8'));
       previousLists = flattenLists(prevRaw);
-      console.log(`Loaded ${previousLists.length} previous army lists from ${previousFile}`);
+      log.info(`Loaded ${previousLists.length} previous army lists from ${previousFile}`);
     } catch (err) {
-      console.warn(`Could not load previous file: ${err.message}`);
+      log.warn(`Could not load previous file: ${err.message}`);
     }
   }
 
   const report = buildReport(lists, raw.crawledAt, previousLists);
   const textReport = renderText(report);
-  console.log(textReport);
+  log.info(textReport);
 
   writeReports(report, textReport);
 }
@@ -69,14 +69,14 @@ function writeReports(report, textReport) {
     const jsonPath = path.join(outputDir, `meta-report-${timestamp}.json`);
     fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2), 'utf-8');
     fs.writeFileSync(path.join(outputDir, 'meta-report-latest.json'), JSON.stringify(report, null, 2), 'utf-8');
-    console.log(`JSON report saved to ${jsonPath}`);
+    log.info(`JSON report saved to ${jsonPath}`);
   }
   if (format === 'text' || format === 'all') {
     const text = textReport || 'No army lists found.\n';
     const textPath = path.join(outputDir, `meta-report-${timestamp}.txt`);
     fs.writeFileSync(textPath, text, 'utf-8');
     fs.writeFileSync(path.join(outputDir, 'meta-report-latest.txt'), text, 'utf-8');
-    console.log(`Text report saved to ${textPath}`);
+    log.info(`Text report saved to ${textPath}`);
   }
 }
 

@@ -66,7 +66,7 @@ jobs:
           const data = JSON.parse(fs.readFileSync('output/army-lists-latest.json', 'utf-8'));
           const total = Object.values(data.sections || {}).reduce((s, a) => s + a.length, 0);
           console.log('Lists found:', total);
-          if (total === 0) { console.error('ERROR: Crawler returned 0 army lists — aborting deploy to avoid overwriting dashboard with empty data.'); process.exit(1); }
+          if (total < 5) { console.error('ERROR: Crawler returned only ' + total + ' army lists (minimum 5 required) — aborting deploy to avoid overwriting dashboard with incomplete data.'); process.exit(1); }
           "
 
       - name: Upload crawler debug artifacts (on failure)
@@ -107,10 +107,22 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node ai-analysis.js
         timeout-minutes: 15
+        continue-on-error: true
 
       - name: Build site
         run: node build-site.js
         timeout-minutes: 5
+
+      - name: Smoke test built site
+        run: |
+          node -e "
+          const fs = require('fs');
+          if (!fs.existsSync('docs/index.html')) { console.error('Missing docs/index.html'); process.exit(1); }
+          const html = fs.readFileSync('docs/index.html', 'utf-8');
+          if (html.length < 1000) { console.error('index.html too small:', html.length, 'bytes'); process.exit(1); }
+          if (html.includes('/*__META_REPORT_DATA__*/null')) { console.error('Placeholder __META_REPORT_DATA__ not replaced'); process.exit(1); }
+          console.log('Smoke test passed:', html.length, 'bytes');
+          "
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

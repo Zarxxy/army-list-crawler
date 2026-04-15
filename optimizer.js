@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getArg, parseRecord, extractDetachment, flattenLists, UNIT_REGEX, ALT_UNIT_REGEX } = require('./utils');
+const { getArg, parseRecord, extractDetachment, flattenLists, log, UNIT_REGEX, ALT_UNIT_REGEX } = require('./utils');
 const { normaliseName, findRulesUnit, parseDetachments } = require('./enrich-rules');
 
 // ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ function emptyOutput(dataSource) {
 
 function main() {
   if (!fs.existsSync(listsFile) || !fs.existsSync(reportFile)) {
-    console.warn('Input files not found. Generating empty optimizer output.');
+    log.warn('Input files not found. Generating empty optimizer output.');
     writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
     return;
   }
@@ -56,30 +56,30 @@ function main() {
   try {
     rawLists = JSON.parse(fs.readFileSync(listsFile, 'utf-8'));
   } catch (err) {
-    console.warn(`Failed to parse lists file: ${err.message}`);
+    log.warn(`Failed to parse lists file: ${err.message}`);
     writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
     return;
   }
   try {
     metaReport = JSON.parse(fs.readFileSync(reportFile, 'utf-8'));
   } catch (err) {
-    console.warn(`Failed to parse report file: ${err.message}`);
+    log.warn(`Failed to parse report file: ${err.message}`);
     writeOutput(emptyOutput(null), 'No army lists to optimize.\n');
     return;
   }
   const lists = flattenLists(rawLists);
 
   if (lists.length === 0) {
-    console.warn('No lists found. Generating empty optimizer output.');
+    log.warn('No lists found. Generating empty optimizer output.');
     writeOutput(emptyOutput(metaReport.meta), 'No army lists to optimize.\n');
     return;
   }
 
-  console.log(`Loaded ${lists.length} army lists and meta report.\n`);
+  log.info(`Loaded ${lists.length} army lists and meta report.`);
 
   const result = optimize(lists, metaReport);
   const textOutput = renderText(result);
-  console.log(textOutput);
+  log.info(textOutput);
   writeOutput(result, textOutput);
 }
 
@@ -91,14 +91,14 @@ function writeOutput(result, textOutput) {
     const textPath = path.join(outputDir, `optimizer-${timestamp}.txt`);
     fs.writeFileSync(textPath, textOutput, 'utf-8');
     fs.writeFileSync(path.join(outputDir, 'optimizer-latest.txt'), textOutput, 'utf-8');
-    console.log(`\nText report saved to ${textPath}`);
+    log.info(`Text report saved to ${textPath}`);
   }
 
   if (format === 'json' || format === 'all') {
     const jsonPath = path.join(outputDir, `optimizer-${timestamp}.json`);
     fs.writeFileSync(jsonPath, JSON.stringify(result, null, 2), 'utf-8');
     fs.writeFileSync(path.join(outputDir, 'optimizer-latest.json'), JSON.stringify(result, null, 2), 'utf-8');
-    console.log(`JSON report saved to ${jsonPath}`);
+    log.info(`JSON report saved to ${jsonPath}`);
   }
 }
 
@@ -131,13 +131,13 @@ function loadCanonicalNames() {
       for (const unit of _canonicalUnits) {
         _canonicalNameMap[normaliseName(unit.name)] = unit;
       }
-      console.log(`Loaded ${_canonicalUnits.length} canonical unit names from rules.`);
+      log.info(`Loaded ${_canonicalUnits.length} canonical unit names from rules.`);
     } else {
       _canonicalUnits = [];
       _canonicalNameMap = {};
     }
   } catch (err) {
-    console.warn(`Failed to load canonical names: ${err.message}`);
+    log.warn(`Failed to load canonical names: ${err.message}`);
     _canonicalUnits = [];
     _canonicalNameMap = {};
   }
@@ -466,7 +466,7 @@ function buildNoveltyFlags(parsedLists, prevFile) {
     const prevRaw = JSON.parse(fs.readFileSync(prevFilePath, 'utf-8'));
     previousLists = flattenLists(prevRaw);
   } catch (err) {
-    console.warn(`Could not load previous file for novelty flags: ${err.message}`);
+    log.warn(`Could not load previous file for novelty flags: ${err.message}`);
     return [];
   }
 
@@ -522,7 +522,7 @@ function buildEnhancementDetachmentMap() {
     }
     return map;
   } catch (err) {
-    console.warn(`Failed to build enhancement-detachment map: ${err.message}`);
+    log.warn(`Failed to build enhancement-detachment map: ${err.message}`);
     return {};
   }
 }
@@ -635,11 +635,6 @@ function renderText(result) {
 
   lines.push(hr);
   return lines.join('\n');
-}
-
-function padRow(cols) {
-  const widths = [28, 8, 8, 12];
-  return '  ' + cols.map((c, i) => String(c).padEnd(widths[i] || 12)).join('');
 }
 
 // ---------------------------------------------------------------------------

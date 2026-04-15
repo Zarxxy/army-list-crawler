@@ -24,6 +24,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { getArg } = require('./utils');
 
 const appConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 const rfConfig  = appConfig.rulesFetcher || {};
@@ -46,19 +47,14 @@ const {
 
 const args = process.argv.slice(2);
 
-function getArg(flag) {
-  const idx = args.indexOf(flag);
-  return idx !== -1 && idx + 1 < args.length ? args[idx + 1] : null;
-}
-
-const faction  = getArg('--faction') || rfConfig.defaultFaction || 'death-guard';
-const edition  = getArg('--edition') || rfConfig.defaultEdition || '10ed';
+const faction  = getArg(args, '--faction') || rfConfig.defaultFaction || 'death-guard';
+const edition  = getArg(args, '--edition') || rfConfig.defaultEdition || '10ed';
 const rulesDir = path.join(__dirname, 'rules');
 const dryRun   = args.includes('--dry-run');
 
 const defaultInput  = path.join(rulesDir, `${faction}-latest.json`);
-const inputFile     = getArg('--input')  || defaultInput;
-const outputFile    = getArg('--output') || inputFile;
+const inputFile     = getArg(args, '--input')  || defaultInput;
+const outputFile    = getArg(args, '--output') || inputFile;
 
 // ---------------------------------------------------------------------------
 // Pure helpers
